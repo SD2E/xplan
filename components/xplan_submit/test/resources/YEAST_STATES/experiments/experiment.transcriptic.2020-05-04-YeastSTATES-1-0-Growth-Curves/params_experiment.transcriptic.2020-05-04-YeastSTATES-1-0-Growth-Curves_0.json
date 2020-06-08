@@ -1,0 +1,371 @@
+{
+    "parameters": {
+        "experimental_info": {
+            "experiment_id": "experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves",
+            "experiment_reference": "YeastSTATES-1-0-Growth-Curves",
+            "experiment_reference_url": "https://docs.google.com/document/d/1fFcxyJyheMrzSsVoSsO6v7qHJKFf_0heIFtqEur02cg"
+        },
+        "incubation_info": {
+            "inc_temp": "warm_30"
+        },
+        "inoc_info": {
+            "inc_time_1": "16:hour",
+            "inoc_media_vol": "500:microliter",
+            "inoc_vol": "5:microliter",
+            "inoculation_media": "sc_media"
+        },
+        "plate_reader_info": {
+            "fluor_em": "530:nanometer",
+            "fluor_ex": "488:nanometer",
+            "list_of_gains": {
+                "gain_1": 0.1,
+                "gain_2": 0.16,
+                "gain_3": 0.2
+            }
+        },
+        "read_info": {
+            "growth_time": {
+                "sample_points": "1,3,6,9,12,15,18,21,24"
+            },
+            "sampling_info": {
+                "read_cult_vol": "10:microliter",
+                "read_solv": "PBS",
+                "read_solv_vol": "90:microliter"
+            }
+        },
+        "recovery_info": {
+            "recovery_media": "sc_media",
+            "recovery_media_vol": "700:microliter",
+            "recovery_sample_vol": "2:microliter"
+        },
+        "src_info": {
+            "src_samples": [
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 0
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 9
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 10
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 1
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 2
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 3
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 4
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 5
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 6
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 7
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 8
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 12
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 21
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 22
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 13
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 14
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 15
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 16
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 17
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 18
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 19
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 20
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 24
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 33
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 34
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 25
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 26
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 27
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 28
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 29
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 30
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 31
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 32
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 36
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 45
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 37
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 38
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 39
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 40
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 41
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 42
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 43
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 44
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 48
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 57
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 49
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 50
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 51
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 52
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 53
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 54
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 55
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 56
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 60
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 69
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 61
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 62
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 63
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 64
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 65
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 66
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 67
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 68
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 72
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 73
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 74
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 75
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 76
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 77
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 78
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 79
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 80
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 84
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 85
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 86
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 87
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 88
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 89
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 90
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 91
+                },
+                {
+                    "containerId": "ct1eh6w25ukxf6z",
+                    "wellIndex": 92
+                }
+            ]
+        },
+        "validate_samples": false
+    }
+}
