@@ -54,7 +54,7 @@ def design_to_parameters(experiment_request,
     else:
         challenge_out_dir = os.path.join(out_dir, base_dir, challenge_problem)
 
-
+    params = {}
     for batch in batches:
         param, design, container = get_invocation_parameters(batch,
                                                              parameters,
@@ -73,7 +73,8 @@ def design_to_parameters(experiment_request,
                               str(batch['id']),
                               json.dumps(param, indent=4, sort_keys=True, separators=(',', ': '), cls=NpEncoder),
                               challenge_out_dir)
-
+            params[batch['id']] = param
+    return params
 
 
 

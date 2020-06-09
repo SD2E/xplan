@@ -16,7 +16,7 @@ from xplan_utils.lab.strateos.utils import TranscripticApiError, get_transcripti
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
-def  submit_experiment(request, design, xplan_config, tx_cfg, tx_params, out_dir=".", batches=None, tx_mock=False):
+def  submit_experiment(request, design, xplan_config, tx_cfg, tx_params, out_dir=".", parameters=None, batches=None, mock=False):
     experiment_id = request['experiment_id']
     base_dir = request.get('base_dir', ".")
     challenge_problem = request.get('challenge_problem')
@@ -43,11 +43,12 @@ def  submit_experiment(request, design, xplan_config, tx_cfg, tx_params, out_dir
                                                      batch['id'],
                                                      challenge_problem,
                                                      challenge_out_dir,
-                                                     tx_mock,
+                                                     mock,
                                                      tx_proj_id,
                                                      protocol_id,
                                                      tx_test_mode,
-                                                     tx_cfg)
+                                                     tx_cfg,
+                                                     parameters=parameters)
 
         #slack_post('Submitted {} plan to Transcriptic'.format(
         #    tx_proj_nick), robj.settings)
@@ -87,11 +88,15 @@ def  submit_experiment(request, design, xplan_config, tx_cfg, tx_params, out_dir
 
 
 def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
-                 tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg):
+                 tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg, parameters=None):
     l.info("Handling plate: " + plate_id)
-    params_file_name = get_params_file_name(experiment_id, plate_id)
-    l.info("Submitting param file: " + params_file_name)
-    params_file_name = get_params_file_path(experiment_id, plate_id, out_dir)
+
+    if parameters is None:
+        params_file_name = get_params_file_path(experiment_id, plate_id, out_dir)
+        l.info("Submitting param file: " + params_file_name)
+        params = json.load(open(params_file_name, 'r'))
+    else:
+        params_for_plate = parameters[plate_id]
     submit_resp = None
     submit_id = None
 
@@ -99,7 +104,7 @@ def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
         if not tx_mock:
             submit_resp = submit_to_transcriptic(tx_proj_id,
                                                  tx_proto_id,
-                                                 params_file_name,
+                                                 params_for_plate,
                                                  challenge_problem,
                                                  out_dir,
                                                  tx_cfg,
@@ -107,7 +112,7 @@ def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
             submit_id = submit_resp['id']
         else:
             l.info("Submitting Mock TX Experiment")
-            submit_id = 'r1c5va879uaex'
+            submit_id = 'mock_submission'
     except Exception as exc:
         l.info("Failed to submit " + params_file_name + " to Transcriptic")
         submit_id = "failed_submission_" + str(arrow.utcnow().timestamp)
@@ -115,7 +120,7 @@ def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
 
 
 def submit_to_transcriptic(project_id, protocol_id,
-                           params_file, challenge_problem, out_dir, tx_cfg, test_mode=True):
+                           params, challenge_problem, out_dir, tx_cfg, test_mode=True):
     """Submit to transcriptic and record response"""
     # TODO: Parameterize test_mode, protocol_id, project_id
 
@@ -134,7 +139,7 @@ def submit_to_transcriptic(project_id, protocol_id,
 
     try:
         l.info("Transcriptic.launch_protocol")
-        params = json.load(open(params_file, 'r'))
+
         # print(params)
         launch_request = _create_launch_request(params, test_mode=test_mode, out_dir=out_dir)
         l.debug("get launch_protocol " + str(launch_request))

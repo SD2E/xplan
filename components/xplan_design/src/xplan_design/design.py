@@ -115,7 +115,7 @@ def generate_design(request, xplan_config, transcriptic_cfg, out_dir='.'):
                 hand_coded_constraints = defaults['constraints']
             else:
                 hand_coded_constraints = None
-            generate_experiment_smt(conditions,
+            experiment_design = generate_experiment_smt(conditions,
                                     parameters,
                                     condition_space,
                                     sample_model,
@@ -149,6 +149,7 @@ def generate_design(request, xplan_config, transcriptic_cfg, out_dir='.'):
     #    raise Exception("TODO: Implement submission coordination")
     #    #submit_experiment(robj, experiment_id, challenge_out_dir, challenge_problem, protocol_id, test_mode)
 
+    return experiment_design
 
 
 
@@ -206,7 +207,7 @@ def generate_experiment_smt(conditions,
     new_state = persist.set_state(state, recovery_file=os.path.join(challenge_out_dir,
                                                                           xplan_config['state_file']))
 
-
+    return experiment_design
 
 
 
