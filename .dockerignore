@@ -1,0 +1,5 @@
+*
+!apps/xplan_design
+!components/xplan_design
+!xplan-dev-env/xplan_models
+xplan-dev-env/xplan_models/src/*egg-info

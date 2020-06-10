@@ -25,6 +25,13 @@
       "label": "Invocation File"
     },
     "semantics": {}
+  },
+  {
+    "id": "lab_configuration",
+    "details": {
+      "label": "Lab Configuration"
+    },
+    "semantics": {}
   }],
   "parameters": [
     {

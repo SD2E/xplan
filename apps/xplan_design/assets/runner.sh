@@ -25,3 +25,6 @@ fi
 # set -x
 
 # set +x
+COMMAND="python3"
+PARAMS="/run.py ${invocation} ${lab_configuration}"
+container_exec ${CONTAINER_IMAGE} ${COMMAND} ${PARAMS}

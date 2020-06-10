@@ -1,12 +1,11 @@
-FROM ubuntu:bionic
+FROM sd2e/python3:latest
 
-RUN apt-get update
-RUN apt-get install -y python-pip
-
-ADD xplan-dev-env/xplan-models /xplan-models
-RUN pip install /xplan_models
+ADD xplan-dev-env/xplan_models /xplan_models
+RUN pip3 install /xplan_models
 RUN rm -rf /xplan_models
 
-ADD . /xplan_design
-RUN pip install /xplan_design
-RUN rm -rf /xplan_design
+ADD components/xplan_design /xplan_design
+RUN pip3 install /xplan_design
+#RUN rm -rf /xplan_design
+
+ADD apps/xplan_design/run.py /run.py

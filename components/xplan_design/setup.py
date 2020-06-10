@@ -24,7 +24,7 @@ def override_run(cls):
         """
 
         orig_run(self)
-        pip_install('git+https://gitlab.sd2e.org/dbryce/xplan_models')
+        #pip_install('git+https://gitlab.sd2e.org/dbryce/xplan_models')
 
         ## Setup solvers in pysmt
         os.system("pysmt-install --z3 --confirm-agreement")

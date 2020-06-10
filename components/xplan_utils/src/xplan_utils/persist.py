@@ -14,7 +14,7 @@ class ReactorsPersistError(Exception):
     pass
 
 
-def get_state(recovery_file):
+def get_state(recovery_file="state.json"):
     try:
         if recovery_file is not None:
             if os.path.exists(recovery_file):
@@ -40,7 +40,7 @@ def get_state(recovery_file):
         raise ReactorsPersistError(exc)
 
 
-def set_state(state, recovery_file):
+def set_state(state, recovery_file="state.json"):
     try:
         #print(recovery_file)
 

@@ -18,7 +18,7 @@ from xplan_utils import persist
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
-def generate_design(request, xplan_config, transcriptic_cfg, out_dir='.'):
+def generate_design(request, transcriptic_cfg, out_dir='.'):
     """
     Handle experiment request based upon condition space factors
     """
@@ -58,7 +58,7 @@ def generate_design(request, xplan_config, transcriptic_cfg, out_dir='.'):
         challenge_out_dir = os.path.join(out_dir, base_dir, challenge_problem)
     l.info("challenge_problem = " + challenge_problem)
 
-    state = persist.get_state(os.path.join(challenge_out_dir, xplan_config['state_file']))
+    state = persist.get_state(os.path.join(challenge_out_dir))
 
     ## Override factor types
     for fname, factor in condition_space.factors.items():
@@ -129,7 +129,6 @@ def generate_design(request, xplan_config, transcriptic_cfg, out_dir='.'):
                                     protocol,
                                     state,
                                     batches,
-                                    xplan_config,
                                     challenge_out_dir,
                                     challenge_problem,
                                     usable_containers,
@@ -167,7 +166,6 @@ def generate_experiment_smt(conditions,
                             protocol,
                             state,
                             batches,
-                            xplan_config,
                             challenge_out_dir,
                             challenge_problem,
                             usable_containers,
@@ -204,8 +202,7 @@ def generate_experiment_smt(conditions,
     put_experiment_design(experiment_design, challenge_out_dir)
     put_aliquot_properties(experiment_id, aliquot_properties, challenge_out_dir)
 
-    new_state = persist.set_state(state, recovery_file=os.path.join(challenge_out_dir,
-                                                                          xplan_config['state_file']))
+    persist.set_state(state, recovery_file=os.path.join(challenge_out_dir))
 
     return experiment_design
 

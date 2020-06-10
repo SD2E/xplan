@@ -4,12 +4,6 @@ from xplan_design.design import generate_design
 import os
 
 
-xplan_config = {
-#  "upload" : False,
-#  "overwrite": False,
-  "state_file": "state.json",
-  "out_dir": "/work/projects/SD2E-Community/prod/projects/sd2e-project-14/xplan-reactor"
-}
 
 transcriptic_cfg = {
   "analytics": True,
@@ -27,4 +21,4 @@ def test_generate_growth_curve_design():
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
     with open(invocation_file, "r") as experiment_request:
-        generate_design(json.load(experiment_request), xplan_config, transcriptic_cfg, out_dir)
+        generate_design(json.load(experiment_request), transcriptic_cfg, out_dir)
