@@ -29,7 +29,7 @@ def override_run(cls):
         ## Setup solvers in pysmt
         os.system("pysmt-install --z3 --confirm-agreement")
         os.system("export PYSMT_CYTON=0")
-        PYSMT_CYTHON = 0
+        #PYSMT_CYTHON = 0
 
 
 
