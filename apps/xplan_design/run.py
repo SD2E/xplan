@@ -23,8 +23,8 @@ def main():
     out_dir = args.out_dir
     #out_dir = "/work/projects/SD2E-Community/prod/projects/sd2e-project-14/xplan-reactor"
 
-    with open(invocation, "r") as experiment_request:
-        generate_design(json.load(experiment_request), lab_configuration, out_dir)
+    with open(invocation, "r") as experiment_request, open(lab_configuration, "r") as lab_secret:
+        generate_design(json.load(experiment_request), json.load(lab_secret), out_dir)
 
 
 if __name__ == '__main__':

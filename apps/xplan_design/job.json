@@ -1,9 +1,19 @@
 {
-  "name": "{{ app.name }}-test-{{ iso8601_basic_short }}",
-  "appId": "{{ app.name }}-{{ app.version}}",
+  "name": "xplan_design-job-1592257880145",
+  "appId": "xplan_design-0.0.1",
+  "batchQueue": "all",
+  "maxRunTime": "01:00:00",
+  "memoryPerNode": "1GB",
+  "nodeCount": 1,
+  "processorsPerNode": 1,
   "archive": false,
-  "inputs": {
-    "invocation" : ""
-  },
-  "parameters": {}
+  "inputs": {},
+  "parameters": {},
+  "notifications": [
+    {
+      "event": "*",
+      "persistent": true,
+      "url": "dbryce@sift.net"
+    }
+  ]
 }

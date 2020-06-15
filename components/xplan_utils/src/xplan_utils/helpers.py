@@ -193,6 +193,9 @@ def ensure_dir_permissions(target_dir, permission=STICKY_GROUP_RW):
         pass
 
 def ensure_experiment_dir(experiment_id, out_dir):
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
     experiments_dir = os.path.join(out_dir, 'experiments')
     if not os.path.exists(experiments_dir):
         os.makedirs(experiments_dir)

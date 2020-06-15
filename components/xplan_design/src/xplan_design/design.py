@@ -58,7 +58,7 @@ def generate_design(request, transcriptic_cfg, out_dir='.'):
         challenge_out_dir = os.path.join(out_dir, base_dir, challenge_problem)
     l.info("challenge_problem = " + challenge_problem)
 
-    state = persist.get_state(os.path.join(challenge_out_dir))
+    state = persist.get_state(challenge_out_dir)
 
     ## Override factor types
     for fname, factor in condition_space.factors.items():
@@ -202,7 +202,7 @@ def generate_experiment_smt(conditions,
     put_experiment_design(experiment_design, challenge_out_dir)
     put_aliquot_properties(experiment_id, aliquot_properties, challenge_out_dir)
 
-    persist.set_state(state, recovery_file=os.path.join(challenge_out_dir))
+    persist.set_state(state, challenge_out_dir)
 
     return experiment_design
 

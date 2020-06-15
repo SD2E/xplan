@@ -10,37 +10,30 @@ import logging
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
-class ReactorsPersistError(Exception):
-    pass
-
-
-def get_state(recovery_file="state.json"):
+def get_state(out_dir, recovery_file="state.json"):
     try:
         if recovery_file is not None:
-            if os.path.exists(recovery_file):
-                data = open(recovery_file).read()
+            full_recovery_file = os.path.join(out_dir, recovery_file)
+            if os.path.exists(full_recovery_file):
+                data = open(full_recovery_file).read()
                 # MAD 20190910 -- Default to empty object if state file is empty.
                 if len(data) == 0:
                     data = "{}"
                 state = AttrDict(json.loads(data))
             else:
                 l.info("State file does not exist.")
-                p = pathlib.Path(recovery_file)
-                # Create the state directory if it does not exist already
-                p.parent.mkdir(parents=True, exist_ok=True)
+                if not os.path.exists(out_dir):
+                    os.makedirs(out_dir)
                 state = AttrDict()
-                recovery_dir = "/".join(recovery_file.split('/')[:-1])
-                if not os.path.exists(recovery_dir):
-                    os.makedirs(recovery_dir)
-                with open(recovery_file, 'w') as f:
+                with open(full_recovery_file, 'w') as f:
                     l.info("Creating new file.")
                     json.dump({}, f)
         return state
     except Exception as exc:
-        raise ReactorsPersistError(exc)
+        raise exc
 
 
-def set_state(state, recovery_file="state.json"):
+def set_state(state, out_dir, recovery_file="state.json"):
     try:
         #print(recovery_file)
 
@@ -51,7 +44,7 @@ def set_state(state, recovery_file="state.json"):
                 json.dump(state, f)
             return state
     except Exception as exc:
-        raise ReactorsPersistError(exc)
+        raise exc
 
 
 def preview_dict(d, depth=0):

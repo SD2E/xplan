@@ -6,3 +6,9 @@
 /env/
 .idea
 /components/xplan_coordinate/test_out/
+/out/
+tx_secret.json
+/components/xplan_coordinate/src/xplan_submit.egg-info
+xplan-dev-env
+/apps/xplan_design/out
+**/__pycache__

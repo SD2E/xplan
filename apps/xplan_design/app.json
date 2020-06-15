@@ -1,8 +1,8 @@
 {
   "checkpointable": false,
   "name": "{{ app.name }}",
-  "executionSystem": "{{ app.execution_system }}",
-  "executionType": "BATCH",
+  "executionSystem": "hpc-tacc-wrangler-{{ agave.username }}",
+  "executionType": "HPC",
   "deploymentPath": "{{ username }}/apps/{{ app.name }}-{{ app.version }}",
   "deploymentSystem": "{{ app.deployment_system }}",
   "helpURI": "",
