@@ -32,6 +32,13 @@
       "label": "Lab Configuration"
     },
     "semantics": {}
+  },
+  {
+    "id": "out_dir",
+    "details": {
+      "label": "Output directory"
+    },
+    "semantics": {}
   }],
   "parameters": [
     {

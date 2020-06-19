@@ -18,20 +18,15 @@ def override_run(cls):
     orig_run = cls.run
 
     def new_run(self):
-        """
-        Use the github link to a forked branch of pydoe that
-        fixes python3 issues
-        """
-
         orig_run(self)
         #pip_install('git+https://gitlab.sd2e.org/dbryce/xplan_models')
-
         ## Setup solvers in pysmt
+        pip_install("pandas")
+        pip_install("pysmt")
+        print("Installing z3...")
         os.system("pysmt-install --z3 --confirm-agreement")
         os.system("export PYSMT_CYTON=0")
         #PYSMT_CYTHON = 0
-
-
 
     cls.run = new_run
     return cls
@@ -57,12 +52,8 @@ setup(name='xplan_design',
       license='MIT',
       packages=find_packages('src'),
       package_dir={'':'src'},
-      install_requires=[
-                      "pytest-runner",
-                      "pandas",
-                      "pysmt"
-      ],
       tests_require=["pytest"],
+      zip_safe=False,
       cmdclass=cmdclass
       )
 
