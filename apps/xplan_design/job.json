@@ -8,9 +8,9 @@
   "processorsPerNode": 1,
   "archive": false,
   "inputs": {
-    "invocation" : "agave://tacc.work.dbryce/xplan2/test/resources/invocation_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json",
-    "lab_configuration" : "agave://tacc.work.dbryce/xplan2/secrets/tx_secrets.json",
-    "out_dir" : "agave://tacc.work.dbryce/xplan2/out"
+    "invocation" : "agave://data-tacc-work-dbryce/xplan2/test/resources/invocation_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json",
+    "lab_configuration" : "agave://data-tacc-work-dbryce/xplan2/secrets/tx_secrets.json",
+    "out_dir" : "agave://data-tacc-work-dbryce/xplan2/out"
   },
   "parameters": {},
   "notifications": [

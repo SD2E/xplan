@@ -1,7 +1,7 @@
 DESIGN_APP_TAG=sd2e/xplan:2.0
 XPLAN_DESIGN_APP_ID=xplan_design-0.0.1
 TMP_OUT=out
-REMOTE_WORK_DIR=tacc.work.dbryce
+REMOTE_WORK_DIR=data-tacc-work-dbryce
 
 all: build test deploy
 
@@ -19,7 +19,8 @@ test-xplan-design-app: build-xplan-design-app test-xplan-design-app-local
 test-xplan-design-app-local: build-xplan-design-app
 	sh scripts/run_docker.sh ${TMP_OUT} ${DESIGN_APP_TAG} invocation_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json
 
-test-xplan-design-app-remote: build-xplan-design-app deploy-xplan-design-app
+test-xplan-design-app-remote: deploy-xplan-design-app
+	tapis auth init
 	sh scripts/run_tapis_app.sh ${REMOTE_WORK_DIR}
 
 
