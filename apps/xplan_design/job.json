@@ -6,7 +6,7 @@
   "memoryPerNode": "1GB",
   "nodeCount": 1,
   "processorsPerNode": 1,
-  "archive": false,
+  "archive": true,
   "inputs": {
     "invocation" : "agave://data-tacc-work-dbryce/xplan2/test/resources/invocation_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json",
     "lab_configuration" : "agave://data-tacc-work-dbryce/xplan2/secrets/tx_secrets.json",
