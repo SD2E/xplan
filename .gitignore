@@ -12,3 +12,14 @@ tx_secret.json
 xplan-dev-env
 /apps/xplan_design/out
 **/__pycache__
+/apps/xplan_design/xplan_design/
+/apps/xplan_design/xplan_models/
+/apps/xplan_design/xplan_utils/
+/components/xplan_design/.eggs/
+/components/xplan_design/build/
+/secrets/tx_secrets.json
+/components/xplan_design/test/experiments/state.json
+/components/xplan_design/test/experiments/dan.csv
+/assets/
+/assets/
+/assets/
