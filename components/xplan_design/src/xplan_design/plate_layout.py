@@ -1202,7 +1202,30 @@ def get_container_assignment(input):
     container_assignment = batch_types.reset_index(drop=True).to_dict('index')
 
     ## Set keys to str
-    container_assignment = { str(list(containers.keys())[k]):v for k,v in container_assignment.items() }
+    aliquot_factors = { x : y for x, y in input['factors'].items() if  y['ftype'] != 'sample'}
+    batch_aliquots = get_sample_types(aliquot_factors, input['requirements'])
+    batch_size = batch_aliquots.groupby(list(batch_factors.keys())).size().to_frame().reset_index()
+    container_assignment = {}
+    for batch_type_id, batch_type in batch_types.iterrows():
+        this_batch_size = batch_type.to_frame().transpose().merge(batch_size).loc[0,0]
+        if this_batch_size <= 0:
+            continue
+        ## Assign containers to this batch until covered
+        for container_id, container in containers.items():
+            if container_id in container_assignment:
+                continue
+            container_size = len(container['aliquots'])
+            container_assignment[container_id] = batch_type.to_dict()
+            this_batch_size -= container_size
+            if this_batch_size <= 0:
+                break
+
+    ## Add remaining containers to first batch
+    ## FIXME ensure that each container is compatible with batch
+    for container_id, container in containers.items():
+        container_assignment[container_id] = batch_types.loc[0,].to_dict()
+
+#    container_assignment = { str(list(containers.keys())[k]):v for k,v in container_assignment.items() }
 
     l.debug("container_assignment: %s", container_assignment)
     return container_assignment
@@ -1701,6 +1724,7 @@ def preprocess_containers(input, sample_types, strain_counts, sample_factors, al
     batch_containers = pd.read_json(json.dumps(container_assignment), orient='index')
     batch_containers['container'] = batch_containers.index
     #l.debug("batch_containers: %s", batch_containers)
+    ## If there are multiple containers per batch, then need to
     batch_aliquots = batch_aliquots.merge(batch_containers, on=batch_factors, how='inner')
     #l.debug("batch_aliquots: %s", batch_aliquots)
     batch_aliquots = batch_aliquots.groupby(batch_factors)
