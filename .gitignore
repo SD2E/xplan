@@ -21,3 +21,4 @@ xplan-dev-env
 /components/xplan_design/test/experiments/state.json
 /components/xplan_design/test/experiments/dan.csv
 /assets/
+/out/
