@@ -1,0 +1,14 @@
+---
+job_spec:
+  user_email: jladwig@sift.net
+  app_id: jladwig-test-app-0.0.1
+  base_name: job-jladwig-test-app-
+  max_run_time: 00:30:00
+  inputs:
+    - invocation
+    - lab_configuration
+    - out_dir
+
+logs:
+  level: DEBUG
+  token: ~
