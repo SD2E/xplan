@@ -38,7 +38,7 @@ def main():
     job_def["archive"] = False
     job_def["notifications"] = [
         {
-            "event": "ACCEPTED",
+            "event": "PENDING",
             "persistent": True,
             "url": user_email
         },
@@ -60,7 +60,7 @@ def main():
         job_def["notifications"].append({
             "event": "FINISHED",
             "persistent": True,
-            "url": r.create_webhook(maxuses=1, actorId=job_spec.finished_sink_id) + "&id=${JOB_NAME}"
+            "url": r.create_webhook(maxuses=1, actorId=job_spec.finished_sink_id) + "&id=${JOB_ID}"
         })
 
     r.logger.info('Job Def: {}'.format(job_def))
