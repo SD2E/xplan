@@ -1,0 +1,9 @@
+---
+xplan_config:
+  out_dir: "agave://data-tacc-work-jladwig/xplan2/out"
+  jobs:
+    email: jladwig@sift.net
+
+logs:
+  level: DEBUG
+  token: ~

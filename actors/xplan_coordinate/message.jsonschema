@@ -1,8 +1,8 @@
 
 {
   "$schema": "http://json-schema.org/draft-06/schema#",
-  "title": "Basic-Job-Launcher",
-  "description": "Reactor that launches a job",
+  "title": "Xplan Coordinate",
+  "description": "Coordinates xplan jobs",
   "type": "object",
   "additionalProperties": false,
   "properties": {},

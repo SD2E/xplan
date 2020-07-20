@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "ExampleMessage",
+    "description": "Example message type",
+    "$comment": "",
+    "definitions": {     
+    },
+    "properties": {
+        "path" : { "type" : "string" },
+        "payload" : { "type" : "string" }
+    },
+    "required": ["path", "payload"]
+}
