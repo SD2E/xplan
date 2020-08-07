@@ -27,13 +27,6 @@ def main():
     r.logger.debug("Using in_dir: " + in_dir)
     r.logger.debug("Using out_dir: " + out_dir)
 
-    # TODO resolve how output should work.
-    # For now just create the output path if it does not exist already.
-    # This is to support cases where we are just writing to the executions
-    # scratch space.
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-
     # # TODO check the msg to see if a job completion
     job_completion_id = None
 
