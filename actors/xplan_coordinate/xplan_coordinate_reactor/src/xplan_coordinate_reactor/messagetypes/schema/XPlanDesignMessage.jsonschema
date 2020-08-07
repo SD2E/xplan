@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "XPlanDesignMessage",
+    "description": "XPlan design message",
+    "$comment": "",
+    "definitions": {     
+    },
+    "properties": {
+        "invocation" : { "type" : "string" },
+        "lab_configuration" : { "type" : "string" },
+        "out_dir" : { "type" : "string" }
+    },
+    "required": [
+        "invocation",
+        "lab_configuration",
+        "out_dir"
+    ]
+}
+

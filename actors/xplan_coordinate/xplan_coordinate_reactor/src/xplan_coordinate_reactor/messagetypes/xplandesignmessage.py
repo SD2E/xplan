@@ -4,25 +4,27 @@ from attrdict import AttrDict
 from xplan_utils.helpers import persist
 
 
-class ExampleMessage(AbacoMessage):
+class XPlanDesignMessage(AbacoMessage):
 
     JOB_SPEC = AttrDict({
-        "app_id": "jladwig-test-app-0.0.1",
-        "base_name": "job-jladwig-test-app-",
-        "max_run_time": "00:30:00",
+        "app_id": "xplan_design-0.0.1",
+        "base_name": "xplan_design_job-",
+        "max_run_time": "01:00:00",
         "inputs": [
-            "path",
-            "payload"
+            "invocation",
+            "lab_configuration",
+            "out_dir"
         ]
     })
 
     def process_message(self, r, in_dir, out_dir):
         msg = getattr(self, 'body')
-        input_path = msg.get('path')
-        input_payload = msg.get('payload')
+        input_invocation = msg.get('invocation')
+        input_lab_configuration = msg.get('lab_configuration')
+        input_out_dir = msg.get('out_dir')
         r.logger.info(
-            "Process example message Path: {} Payload: {}".format(
-                input_path, input_payload))
+            "Process xplan design message \n  Invocation: {}\n  Lab Configuration: {}\n  OutDir: {}"
+            .format(input_invocation, input_lab_configuration, input_out_dir))
 
         job_id = launch_job(r, msg, self.JOB_SPEC)
         if (job_id is None):
@@ -37,5 +39,5 @@ class ExampleMessage(AbacoMessage):
         r.logger.info("Finalize example message")
 
 
-class ExampleMessageError(AbacoMessageError):
+class XPlanDesignMessageError(AbacoMessageError):
     pass

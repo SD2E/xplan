@@ -28,7 +28,7 @@ class AbacoMessage(object):
                     'parameter "{}" is mandatory'.format(param))
             setattr(self, attr, value)
 
-    def process_message(self, r, out_dir):
+    def process_message(self, r, in_dir, out_dir):
         raise AbacoMessageError(
             "process_message called on base abaco message type")
 

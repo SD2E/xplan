@@ -4,6 +4,7 @@ from attrdict import AttrDict
 from xplan_coordinate_reactor import typed_message_from_context
 from reactors.runtime import Reactor
 from xplan_utils import persist
+import os
 
 MOCK_STATE = AttrDict({"message_dict": {
     "path": "out",
@@ -16,10 +17,22 @@ def main():
 
     if r.local is True:
         r.logger.debug("Running locally")
+        # TODO actually mount the inputs here
+        in_dir = '/mnt/xplan/in'
         out_dir = '/mnt/ephemeral-01'
     else:
+        in_dir = r.settings['xplan_config']['in_dir']
         out_dir = r.settings['xplan_config']['out_dir']
+        
+    r.logger.debug("Using in_dir: " + in_dir)
     r.logger.debug("Using out_dir: " + out_dir)
+
+    # TODO resolve how output should work.
+    # For now just create the output path if it does not exist already.
+    # This is to support cases where we are just writing to the executions
+    # scratch space.
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
 
     # # TODO check the msg to see if a job completion
     job_completion_id = None
@@ -33,7 +46,7 @@ def main():
     else:
         msg = typed_message_from_context(r.context)
         r.logger.debug("Processing message of type " + type(msg).__name__)
-        job_id = msg.process_message(r, out_dir)
+        job_id = msg.process_message(r, in_dir, out_dir)
         if job_id is not None:
             # TODO add the job_id to the state dictionary
             pass

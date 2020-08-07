@@ -59,6 +59,8 @@ def create_job_definition(r: Reactor, msg, job_spec):
 def submit_job(r: Reactor, job_def):
     if (r.local):
         return "mock-job-id"
+    
+    r.logger.error("TODO enable job submission once all other parts are working")
     return None
 
     # try:
