@@ -6,7 +6,7 @@ from pysmt.typing import INT, REAL
 from pysmt.rewritings import conjunctive_partition
 from functools import reduce
 
-from xplan_design.plate_layout_utils import get_samples_from_condition_set, get_column_name, get_column_factors, get_column_id, get_row_name, get_row_factors, get_row_id, get_aliquot_row, get_aliquot_col
+from xplan_design.plate_layout_utils import get_samples_from_condition_set, get_column_name, get_column_factors, get_column_id, get_row_name, get_row_factors, get_row_id, get_aliquot_row, get_aliquot_col, resolve_sbh_uri
 
 from xplan_utils.container_data_conversion import get_strain_count
 
@@ -576,12 +576,18 @@ def generate_constraints1(inputs):
         else:
             pred = Equals(factors_of_type[factor_id], Real(level))
         return pred
+
+    def map_aliquot_property_level(level):
+        if type(level) == str && "https://" in level:
+            resolve_sbh_uri(level, sbh_user, sbh_password)
+        else
+            return level
     
     aliquot_properties_constraint = \
       And([
           And(
             ## Every aliquot must satisfy the aliquot factors defined by the container
-            And([get_req_const(aliquot_factors[container_id][aliquot], factor, level)
+            And([get_req_const(aliquot_factors[container_id][aliquot], factor, map_aliquot_property_level(level))
                  for factor, level in aliquot_properties.items() if factor in aliquot_factors[container_id][aliquot]]),
                  #,
             ## Every column factor implied by the container aliquots is satisfied
@@ -1028,13 +1034,13 @@ def get_column_symmetry(samples, factors, containers, container_assignment, aliq
         ## Get containers that can fulfill batch
         batch_container_columns = container_columns.merge(ca_df, on='container', how="inner").drop(columns=batch_factors)
         column_index = 0
-        for _, level in batch_columns_per_column_levels.iterrows():
+        for _, level in batch_columns_per_column_levels.astype(str).iterrows():
             ## filter batch_container_columns columns on the basis of whether they can fulfill aliquots with level
-            possible_columns_for_level = aliquot_symmetry.merge(level.to_frame().transpose())[['column', 'container']].drop_duplicates()
-            possible_unused_columns_for_level = batch_container_columns.reset_index().merge(possible_columns_for_level, how='left').set_index('index')
+            possible_columns_for_level = aliquot_symmetry.merge(level.to_frame().transpose().astype(str))[['column', 'container']].drop_duplicates()
+            possible_unused_columns_for_level = batch_container_columns.reset_index().merge(possible_columns_for_level).set_index('index')
             #next_column_index = int(column_index+level['count'])
             #level_columns = batch_container_columns.loc[container_columns.index[column_index:next_column_index]]
-            level_columns = possible_unused_columns_for_level.iloc[:level['count'].astype(int)]
+            level_columns = possible_unused_columns_for_level.iloc[:int(level['count'])]
             batch_container_columns = batch_container_columns.drop(level_columns.index)
             
             for factor in column_factors:
@@ -1042,11 +1048,6 @@ def get_column_symmetry(samples, factors, containers, container_assignment, aliq
             possible_column_levels = possible_column_levels.append(level_columns, ignore_index=True)
             #column_index = next_column_index
 
-        ## Fill in any remaining columns with NaN
-        level_columns = batch_container_columns
-        for factor in column_factors:
-            level_columns.loc[:, factor] = 0.0
-        possible_column_levels = possible_column_levels.append(level_columns, ignore_index=True)
 
 
 
