@@ -1,6 +1,7 @@
 import json
 import os
 import numpy as np
+import pandas as pd
 
 from xplan_design.experiment_design import ExperimentDesign
 from xplan_design.plate_layout import get_model_pd, solve1
@@ -290,11 +291,14 @@ def generate_experiment_request_smt(conditions,
         "containers": c2ds
     }
 
-    model, variables = solve1(inputs, hand_coded_constraints=hand_coded_constraints)
+    solutions = solve1(inputs, hand_coded_constraints=hand_coded_constraints)
 
-    if model:
+    if len(solutions) > 0:
         l.info("Extracting dataframe for design ...")
-        df = get_model_pd(model, variables, inputs['factors'])
+        df = pd.DataFrame()
+        for model, variables in solutions:
+            bdf = get_model_pd(model, variables, inputs['factors'], inputs['float_map'])
+            df = df.append(bdf, ignore_index=True)
 
         ## if test mode, and need to submit, then clone containers
         if test_mode and submit:

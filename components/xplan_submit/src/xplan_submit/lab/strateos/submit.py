@@ -94,7 +94,7 @@ def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
     if parameters is None:
         params_file_name = get_params_file_path(experiment_id, plate_id, out_dir)
         l.info("Submitting param file: " + params_file_name)
-        params = json.load(open(params_file_name, 'r'))
+        params_for_plate = json.load(open(params_file_name, 'r'))
     else:
         params_for_plate = parameters[plate_id]
     submit_resp = None
@@ -122,7 +122,6 @@ def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
 def submit_to_transcriptic(project_id, protocol_id,
                            params, challenge_problem, out_dir, tx_cfg, test_mode=True):
     """Submit to transcriptic and record response"""
-    # TODO: Parameterize test_mode, protocol_id, project_id
 
     launch_request_id = None
     launch_protocol = None

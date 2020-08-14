@@ -130,7 +130,7 @@ def put_aliquot_properties(experiment_id, aliquot_properties, out_dir):
 
 def put_experiment_submission(experiment_id, batch_id, submit_id, params_file_name, out_dir, xplan_config):
     l.info("Saving Experiment Submission Record ...")
-    state = persist.get_state(recovery_file=os.path.join(out_dir, xplan_config['state_file']))
+    state = persist.get_state(out_dir)
     ## if robj.local is True:
     # persist.preview_dict(state)
     # session = robj.nickname
@@ -158,8 +158,7 @@ def put_experiment_submission(experiment_id, batch_id, submit_id, params_file_na
     else:
         state['runs'][submit_id] = {"experiment_id": experiment_id, "batch_id": batch_id}
 
-    new_state = persist.set_state(state,
-                                  recovery_file=os.path.join(out_dir, xplan_config['state_file']))
+    new_state = persist.set_state(state, out_dir)
     # persist.save_state(robj, os.path.join(out_dir, robj.settings['xplan_config']['state_file']))
     l.info("Saved Experiment Submission Record ...")
 

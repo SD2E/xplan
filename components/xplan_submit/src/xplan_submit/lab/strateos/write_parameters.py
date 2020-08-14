@@ -229,7 +229,7 @@ def get_matching_container(strains, transcriptic_api, strain_property="Name", co
     raise Exception("Could not find container with strains: %s", strains)
 
 
-def add_reagent_concentrations(invocation_params, batch_samples, reagents):
+def add_reagent_concentrations(invocation_params, batch_samples, reagents, parameters):
     if len(reagents) == 0:
         make_entry(invocation_params, "induction_info.induction_reagents.inducer_layout", {
             "value": "select_cols",
@@ -248,12 +248,23 @@ def add_reagent_concentrations(invocation_params, batch_samples, reagents):
         for reagent in reagents:
             col_conc_df = batch_samples[[reagent, 'column_id']].drop_duplicates().rename(
                 columns={"column_id": "col_num", reagent: "conc"}).dropna().replace("NA", 0.0)
+
+            values = col_conc_df.conc.astype(float).unique()
+            if len(values) == 1 and 0.0 in values:
+                continue ## Ignore zero inducers
+
+            ## If there are multiple reagents in the ER, then need to select the right one for this plate
+            reagent_name = reagent.split("_concentration")[0]
+            if 'inducers' in parameters:
+                for k, v in parameters['inducers'][reagent_name].items():
+                    make_entry(invocation_params, k, v)
+
             col_conc = col_conc_df.astype({"conc": "float", "col_num": "int32"}).to_dict('records')
             cols_used = [x['col_num'] for x in col_conc]
             for col in range(1, 13):
                 if not col in cols_used:
                     col_conc.append({"col_num": col, "conc": 0.0})
-            break
+
             #    col_conc.append(col_conc_df.astype({ "col_num" : "int32"}).to_dict('records'))
 
         ## inducer_container = {
@@ -512,8 +523,12 @@ def get_time_series_invocation_parameters(batch_samples,
     invocation_params = AutoVivification()
     exp_params = parameters.copy()
 
+    omit_parameters = ["inducers"]
+
     for k, v in exp_params.items():
         l.debug("Setting %s = %s", str(k), str(v))
+        if k in omit_parameters:
+            continue
         make_entry(invocation_params, k, v)
 
     for fname, factor in condition_space.factors.items():
@@ -533,17 +548,18 @@ def get_time_series_invocation_parameters(batch_samples,
                                                                 num_blank_wells=num_blank_wells)
 
     if protocol == 'growth_curve':
-        timepoints = list(batch_samples.timepoint.unique())
-        if 0.0 in timepoints:
-            timepoints.remove(0.0)  ## Timepoint 0 will be read automatically, do not need to specify
-        timepoint_str = ','.join(map(str, map(int, timepoints)))
+        timepoint_str = extract_timepoints(batch_samples)
         make_entry(invocation_params, 'read_info.growth_time.sample_points', timepoint_str)
         make_entry(invocation_params, 'src_info.src_samples', samples)
     elif protocol == 'timeseries':
         ## Add reagent column concentrations
         reagents = [factor_id for factor_id, factor in condition_space.factors.items() if factor['ftype'] == 'column']
-        invocation_params = add_reagent_concentrations(invocation_params, batch_samples, reagents)
+        invocation_params = add_reagent_concentrations(invocation_params, batch_samples, reagents, parameters)
         make_entry(invocation_params, 'exp_info.src_samples', samples)
+
+        timepoint_str = extract_timepoints(batch_samples)
+        make_entry(invocation_params, 'induction_info.induction_time.sample_points', timepoint_str)
+
 
         ## Set recovery media to media used in induction and inoculation
         ## FIXME need to set media as part of factor
@@ -571,6 +587,15 @@ def get_time_series_invocation_parameters(batch_samples,
     l.debug("after batch params, design: %s", str(design))
     return final_invocation_params, design, source_container
 
+def extract_timepoints(batch_samples):
+    timepoints = list(batch_samples.timepoint.unique())
+    if 0.0 in timepoints:
+        timepoints.remove(0.0)  ## Timepoint 0 will be read automatically, do not need to specify
+    if len(timepoints)  == 1:
+        timepoint_str = str([timepoints[0]])
+    else:
+        timepoint_str = ','.join(map(str, map(int, timepoints)))
+    return timepoint_str
 
 def factor_to_param(factor_name, factor, batch_samples, protocol, logger=l):
     if factor_name not in batch_samples.columns:

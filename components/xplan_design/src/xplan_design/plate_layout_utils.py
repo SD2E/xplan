@@ -1,6 +1,9 @@
 import pandas as pd
 import logging
 
+from synbiohub_adapter.query_synbiohub import *
+from synbiohub_adapter.SynBioHubUtil import *
+from sbol import *
 
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
@@ -135,3 +138,31 @@ def condition_set_cross_product(factors, condition_set):
             fdf.loc[:,'key'] = 0
             samples = samples.merge(fdf, how='left', on='key')
     return samples
+
+
+
+def resolve_common_term(common_term, user, password):
+    # SBH requiress authentication
+    sbh_query = SynBioHubQuery(SD2Constants.SD2_SERVER)
+    sbh_query.login(user, password)
+    # Option 1: Look up a dictionary value, by lab id -> provide Common Name and URI as output
+    common_term = 'B_subtilis_LG227_Colony_1'
+    designs = sbh_query.query_designs_by_lab_ids(SD2Constants.TRANSCRIPTIC, common_term, verbose=True)
+    sbh_uri = designs[common_term]['identity']
+    mapped_name = designs[common_term]['name']
+    # https://hub.sd2e.org/user/sd2e/design/B_subtilis_LG227/1
+    #print(sbh_uri)
+    # B_subtilis_LG227
+    #print(mapped_name)
+    return sbh_uri
+
+def resolve_sbh_uri(sbh_uri, user, password):
+    # SBH requiress authentication
+    sbh_query = SynBioHubQuery(SD2Constants.SD2_SERVER)
+    sbh_query.login(user, password)
+
+    # Option 2: Look up a dictionary value by URI -> provide lab id and Common Name as output
+    value_to_query = 'https://hub.sd2e.org/user/sd2e/design/B_subtilis_LG227/1'
+    lab_ids = sbh_query.query_lab_ids_by_designs(SD2Constants.TRANSCRIPTIC, value_to_query, verbose=True)
+    # [{'id': 'B_subtilis_LG227_Colony_1', 'name': 'B_subtilis_LG227'}, {'id': 'B_subtilis_LG227_Colony_2', 'name': 'B_subtilis_LG227'}, {'id': 'B_subtilis_LG227_Colony_3', 'name': 'B_subtilis_LG227'}]
+    return lab_ids[sbh_uri]
