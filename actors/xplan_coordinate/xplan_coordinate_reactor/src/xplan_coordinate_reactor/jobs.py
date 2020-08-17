@@ -1,7 +1,25 @@
 """Functions for launch jobs"""
+from agavepy.actors import update_state
 from attrdict import AttrDict
 from reactors.runtime import Reactor, agaveutils
 from requests.exceptions import HTTPError
+from xplan_utils import persist
+
+
+JOB_STATE = "jobs"
+
+
+def get_state(r: Reactor):
+    state = r.context.get('state')
+    if not isinstance(state, dict):
+        state = {}
+    if JOB_STATE not in state:
+        state.update({JOB_STATE: {}})
+    return state
+
+
+def set_state(state):
+    update_state(state)
 
 
 def create_job_definition(r: Reactor, msg, job_spec):
@@ -51,7 +69,8 @@ def create_job_definition(r: Reactor, msg, job_spec):
             "url": r.create_webhook(maxuses=1, actorId=r.uid) + "&id=${JOB_ID}"
         })
     else:
-        r.logger.debug("Skipping webhook notification because we are in local mode")
+        r.logger.debug(
+            "Skipping webhook notification because we are in local mode")
 
     return job_def
 
@@ -59,9 +78,10 @@ def create_job_definition(r: Reactor, msg, job_spec):
 def submit_job(r: Reactor, job_def):
     if (r.local):
         return "mock-job-id"
-    
-    r.logger.error("TODO enable job submission once all other parts are working")
-    return None
+
+    r.logger.error(
+        "TODO enable job submission once all other parts are working")
+    return "mock-job-id"
 
     # try:
     #     resp = r.client.jobs.submit(body=job_def)
@@ -83,7 +103,16 @@ def submit_job(r: Reactor, job_def):
     # return None
 
 
-def launch_job(r: Reactor, msg, job_spec):
+def launch_job(r: Reactor, msg, job_spec, out_dir):
     job_def = create_job_definition(r, msg, job_spec)
     r.logger.info('Job Def: {}'.format(job_def))
-    return submit_job(r, job_def)
+    job_id = submit_job(r, job_def)
+
+    raw_state = r.context.get('state')
+    r.logger.info(raw_state)
+    state = get_state(r)
+    state[JOB_STATE].update({job_id: msg})
+    r.logger.info(state)
+    set_state(state)
+
+    return job_id

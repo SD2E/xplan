@@ -1,11 +1,7 @@
 ---
 xplan_config:
-  # FIXME this was my hack for getting agave paths in FileMessages to
-  # resolve to a known location. I am pretty sure it uses undocumented
-  # behavior in the reactor.
-  in_dir: "/work/07455/jladwig/xplan2/in/xplan-reactor"
-  # FIXME writea out to the executinos scratch space for now
-  out_dir: "/xplan/out/xplan-reactor"
+  posix_work_dir: "/work/projects/SD2E-Community/prod/projects/sd2e-project-50/"
+  out_dir: "xplan-reactor"
   jobs:
     email: jladwig@sift.net
 

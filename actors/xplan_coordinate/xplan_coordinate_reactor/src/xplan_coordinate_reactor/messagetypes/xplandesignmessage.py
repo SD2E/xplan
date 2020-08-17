@@ -7,7 +7,7 @@ from xplan_utils.helpers import persist
 class XPlanDesignMessage(AbacoMessage):
 
     JOB_SPEC = AttrDict({
-        "app_id": "xplan_design-0.0.1",
+        "app_id": "dev_xplan_design-0.0.1",
         "base_name": "xplan_design_job-",
         "max_run_time": "01:00:00",
         "inputs": [
@@ -17,7 +17,7 @@ class XPlanDesignMessage(AbacoMessage):
         ]
     })
 
-    def process_message(self, r, in_dir, out_dir):
+    def process_message(self, r, work_dir, out_dir):
         msg = getattr(self, 'body')
         input_invocation = msg.get('invocation')
         input_lab_configuration = msg.get('lab_configuration')
@@ -26,7 +26,7 @@ class XPlanDesignMessage(AbacoMessage):
             "Process xplan design message \n  Invocation: {}\n  Lab Configuration: {}\n  OutDir: {}"
             .format(input_invocation, input_lab_configuration, input_out_dir))
 
-        job_id = launch_job(r, msg, self.JOB_SPEC)
+        job_id = launch_job(r, msg, self.JOB_SPEC, out_dir)
         if (job_id is None):
             r.logger.error("Failed to launch job.")
             return None
