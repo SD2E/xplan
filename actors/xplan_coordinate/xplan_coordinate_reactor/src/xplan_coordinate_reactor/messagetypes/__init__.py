@@ -1,4 +1,5 @@
 from .abacomessage import *
-from .examplemessage import ExampleMessage
-from .xplandesignmessage import XPlanDesignMessage
-from .filemessage import FileMessage
+from .examplemessage import ExampleMessage, ExampleMessageError
+from .jobcompletionmessage import JobCompletionMessage
+from .xplandesignmessage import XPlanDesignMessage, XPlanDesignMessageError
+from .filemessage import FileMessage, FileMessageError

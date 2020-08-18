@@ -1,3 +1,4 @@
 {
-    "file": "test/message/example-message.json"
+    "out_dir": "agave://data-tacc-work-jladwig/xplan2/out",
+    "payload": "example message payload"
 }

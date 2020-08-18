@@ -1,7 +1,6 @@
 from ..jobs import launch_job
 from .abacomessage import AbacoMessage, AbacoMessageError
 from attrdict import AttrDict
-from xplan_utils.helpers import persist
 
 
 class ExampleMessage(AbacoMessage):
@@ -11,18 +10,20 @@ class ExampleMessage(AbacoMessage):
         "base_name": "job-jladwig-test-app-",
         "max_run_time": "00:30:00",
         "inputs": [
-            "path",
+            "out_dir"
+        ],
+        "parameters": [
             "payload"
         ]
     })
 
     def process_message(self, r, work_dir, out_dir):
         msg = getattr(self, 'body')
-        input_path = msg.get('path')
+        input_out_dir = msg.get('out_dir')
         input_payload = msg.get('payload')
         r.logger.info(
-            "Process example message Path: {} Payload: {}".format(
-                input_path, input_payload))
+            "Process example message out_dir: {} payload: {}".format(
+                input_out_dir, input_payload))
 
         job_id = launch_job(r, msg, self.JOB_SPEC, out_dir)
         if (job_id is None):
@@ -34,7 +35,8 @@ class ExampleMessage(AbacoMessage):
         return job_id
 
     def finalize_message(self, r):
-        r.logger.info("Finalize example message")
+        msg = getattr(self, 'body')
+        r.logger.info("Finalize example message: {}".format(msg))
 
 
 class ExampleMessageError(AbacoMessageError):

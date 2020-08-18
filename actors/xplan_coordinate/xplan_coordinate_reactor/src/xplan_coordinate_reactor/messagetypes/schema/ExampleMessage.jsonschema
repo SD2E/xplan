@@ -6,8 +6,8 @@
     "definitions": {     
     },
     "properties": {
-        "path" : { "type" : "string" },
+        "out_dir" : { "type" : "string" },
         "payload" : { "type" : "string" }
     },
-    "required": ["path", "payload"]
+    "required": ["out_dir", "payload"]
 }

@@ -23,15 +23,30 @@ def message_as_dict(context):
             raise AbacoMessageError("Message cannot be parsed as JSON")
 
 
-def typed_message_from_context(context_dict):
+def typed_message_from_dict(message_dict):
     """Returns one of messagetypes based on schema validation"""
-    message_dict = message_as_dict(context_dict)
 
     if ExampleMessage.validate(message_dict) is True:
         return ExampleMessage(message=message_dict)
-    if XPlanDesignMessage.validate(message_dict) is True:
+    elif XPlanDesignMessage.validate(message_dict) is True:
         return XPlanDesignMessage(message=message_dict)
     elif FileMessage.validate(message_dict) is True:
         return FileMessage(typed_message_from_context, message=message_dict)
     else:
-        raise AbacoMessageError("Unable to determine message type")
+        raise AbacoMessageError(
+            "Unable to determine message type for: {}".format(message_dict))
+
+
+def typed_message_from_context(context_dict):
+    """Returns one of messagetypes based on schema validation"""
+    message_dict = message_as_dict(context_dict)
+    return typed_message_from_dict(message_dict)
+
+
+def as_job_completion_message(context_dict):
+    """Returns a job completion message based on schema validation"""
+    message_dict = message_as_dict(context_dict)
+
+    if JobCompletionMessage.validate(message_dict) is True:
+        return JobCompletionMessage(message=message_dict)
+    return None

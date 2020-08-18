@@ -36,7 +36,7 @@ class XPlanDesignMessage(AbacoMessage):
         return job_id
 
     def finalize_message(self, r):
-        r.logger.info("Finalize example message")
+        r.logger.info("Finalize xplan design message")
 
 
 class XPlanDesignMessageError(AbacoMessageError):

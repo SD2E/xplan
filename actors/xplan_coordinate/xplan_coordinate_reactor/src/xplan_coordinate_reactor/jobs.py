@@ -1,6 +1,7 @@
 """Functions for launch jobs"""
 from agavepy.actors import update_state
 from attrdict import AttrDict
+from .messagetypes import AbacoMessage
 from reactors.runtime import Reactor, agaveutils
 from requests.exceptions import HTTPError
 from xplan_utils import persist
@@ -10,16 +11,41 @@ JOB_STATE = "jobs"
 
 
 def get_state(r: Reactor):
-    state = r.context.get('state')
+    state = r.client.actors.getState(actorId=r.uid).get('state')
+    r.logger.info("Raw state: {}".format(state))
+
     if not isinstance(state, dict):
+        r.logger.info("Initializing state...")
         state = {}
     if JOB_STATE not in state:
+        r.logger.info("Initializing job map...")
         state.update({JOB_STATE: {}})
-    return state
 
+    return state
 
 def set_state(state):
     update_state(state)
+
+def num_jobs(r :Reactor):
+    state = get_state(r)
+    job_map = state[JOB_STATE]
+    return len(job_map)
+
+def register_job(r :Reactor, job_id, msg):
+    state = get_state(r)
+    r.logger.info("Before register: {}".format(state))
+    state[JOB_STATE].update({job_id: msg})
+    r.logger.info("After register: {}".format(state))
+    set_state(state)
+
+def deregister_job(r: Reactor, job_id):
+    state = get_state(r)
+    job_map = state[JOB_STATE]
+    r.logger.info("Before deregister: {}".format(state))
+    result = job_map.pop(job_id, None)
+    r.logger.info("After deregister: {}".format(state))
+    set_state(state)
+    return result
 
 
 def create_job_definition(r: Reactor, msg, job_spec):
@@ -32,6 +58,13 @@ def create_job_definition(r: Reactor, msg, job_spec):
         else:
             inputs[i] = msg.get(i)
 
+    parameters = {}
+    for i in job_spec.parameters:
+        if i not in msg:
+            r.logger.info("Parameter missing: {}".format(i))
+        else:
+            parameters[i] = msg.get(i)
+
     job_app_id = job_spec.app_id
     job_base_name = job_spec.base_name
     job_max_run_time = job_spec.max_run_time
@@ -41,6 +74,7 @@ def create_job_definition(r: Reactor, msg, job_spec):
         "appId": job_app_id,
         "name": job_base_name + r.nickname,
         "inputs": inputs,
+        "parameters": parameters,
         "maxRunTime": job_max_run_time,
     }
     job_def["archive"] = False
@@ -79,40 +113,30 @@ def submit_job(r: Reactor, job_def):
     if (r.local):
         return "mock-job-id"
 
-    r.logger.error(
-        "TODO enable job submission once all other parts are working")
-    return "mock-job-id"
+    try:
+        resp = r.client.jobs.submit(body=job_def)
+        r.logger.debug("resp: {}".format(resp))
+        if "id" in resp:
+            return resp["id"]
+        else:
+            raise Exception("Response did not contain a job id")
 
-    # try:
-    #     resp = r.client.jobs.submit(body=job_def)
-    #     r.logger.debug("resp: {}".format(resp))
-    #     if "id" in resp:
-    #         return resp["id"]
-    #     else:
-    #         raise Exception("Response did not contain a job id")
+    except HTTPError as h:
+        # Report what is likely to be an Agave-specific error
+        raise Exception("Failed to submit job", h)
 
-    # except HTTPError as h:
-    #     # Report what is likely to be an Agave-specific error
-    #     raise Exception("Failed to submit job", h)
+    except Exception as exc:
+        # Report what is likely to be an error with this Reactor, the Data
+        # Catalog, or the PipelineJobs system components
+        raise Exception("Failed to launch job {}".format(job_def["name"]), exc)
 
-    # except Exception as exc:
-    #     # Report what is likely to be an error with this Reactor, the Data
-    #     # Catalog, or the PipelineJobs system components
-    #     raise Exception("Failed to launch job {}".format(job_def["name"]), exc)
-
-    # return None
+    return None
 
 
-def launch_job(r: Reactor, msg, job_spec, out_dir):
+def launch_job(r: Reactor, msg :AbacoMessage, job_spec, out_dir):
     job_def = create_job_definition(r, msg, job_spec)
     r.logger.info('Job Def: {}'.format(job_def))
     job_id = submit_job(r, job_def)
-
-    raw_state = r.context.get('state')
-    r.logger.info(raw_state)
-    state = get_state(r)
-    state[JOB_STATE].update({job_id: msg})
-    r.logger.info(state)
-    set_state(state)
-
+    if job_id is not None:
+        register_job(r, job_id, msg)
     return job_id
