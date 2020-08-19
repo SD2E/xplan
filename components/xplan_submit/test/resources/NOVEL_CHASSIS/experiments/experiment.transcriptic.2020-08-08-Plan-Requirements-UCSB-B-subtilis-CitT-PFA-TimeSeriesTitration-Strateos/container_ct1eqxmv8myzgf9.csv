@@ -1,0 +1,95 @@
+Well Index,Well Label,Vol (uL),Bacitracin_concentration,Xylose_concentration
+A1,B. subtilis 168 PmtlA-comKS citT,50,0.125,0.0
+B1,B. subtilis 168 PmtlA-comKS citT,50,0.125,0.0
+C1,B. subtilis 168 PmtlA-comKS citT,50,0.125,0.0
+D1,B. subtilis 168 PmtlA-comKS citT,50,0.125,0.0
+E1,B. subtilis 168 PmtlA-comKS,50,0.125,0.0
+F1,B. subtilis 168 PmtlA-comKS,50,0.125,0.0
+G1,B. subtilis 168 PmtlA-comKS,50,0.125,0.0
+H1,B. subtilis 168 PmtlA-comKS,50,0.125,0.0
+A10,B. subtilis 168 PmtlA-comKS citT,50,0.01625,0.0
+B10,B. subtilis 168 PmtlA-comKS citT,50,0.01625,0.0
+C10,B. subtilis 168 PmtlA-comKS citT,50,0.01625,0.0
+D10,B. subtilis 168 PmtlA-comKS citT,50,0.01625,0.0
+E10,B. subtilis 168 PmtlA-comKS,50,0.01625,0.0
+F10,B. subtilis 168 PmtlA-comKS,50,0.01625,0.0
+G10,B. subtilis 168 PmtlA-comKS,50,0.01625,0.0
+H10,B. subtilis 168 PmtlA-comKS,50,0.01625,0.0
+A11,B. subtilis 168 PmtlA-comKS citT,50,0.0010156,0.0
+B11,B. subtilis 168 PmtlA-comKS citT,50,0.0010156,0.0
+C11,B. subtilis 168 PmtlA-comKS citT,50,0.0010156,0.0
+D11,B. subtilis 168 PmtlA-comKS citT,50,0.0010156,0.0
+E11,B. subtilis 168 PmtlA-comKS,50,0.0010156,0.0
+F11,B. subtilis 168 PmtlA-comKS,50,0.0010156,0.0
+G11,B. subtilis 168 PmtlA-comKS,50,0.0010156,0.0
+A12,B. subtilis 168 PmtlA-comKS citT,50,0.0,0.0
+B12,B. subtilis 168 PmtlA-comKS citT,50,0.0,0.0
+C12,B. subtilis 168 PmtlA-comKS citT,50,0.0,0.0
+D12,B. subtilis 168 PmtlA-comKS citT,50,0.0,0.0
+E12,B. subtilis 168 PmtlA-comKS,50,0.0,0.0
+F12,B. subtilis 168 PmtlA-comKS,50,0.0,0.0
+G12,B. subtilis 168 PmtlA-comKS,50,0.0,0.0
+A2,B. subtilis 168 PmtlA-comKS citT,50,0.03125,0.0
+B2,B. subtilis 168 PmtlA-comKS citT,50,0.03125,0.0
+C2,B. subtilis 168 PmtlA-comKS citT,50,0.03125,0.0
+D2,B. subtilis 168 PmtlA-comKS citT,50,0.03125,0.0
+E2,B. subtilis 168 PmtlA-comKS,50,0.03125,0.0
+F2,B. subtilis 168 PmtlA-comKS,50,0.03125,0.0
+G2,B. subtilis 168 PmtlA-comKS,50,0.03125,0.0
+H2,B. subtilis 168 PmtlA-comKS,50,0.03125,0.0
+A3,B. subtilis 168 PmtlA-comKS citT,50,0.0625,0.0
+B3,B. subtilis 168 PmtlA-comKS citT,50,0.0625,0.0
+C3,B. subtilis 168 PmtlA-comKS citT,50,0.0625,0.0
+D3,B. subtilis 168 PmtlA-comKS citT,50,0.0625,0.0
+E3,B. subtilis 168 PmtlA-comKS,50,0.0625,0.0
+F3,B. subtilis 168 PmtlA-comKS,50,0.0625,0.0
+G3,B. subtilis 168 PmtlA-comKS,50,0.0625,0.0
+H3,B. subtilis 168 PmtlA-comKS,50,0.0625,0.0
+A4,B. subtilis 168 PmtlA-comKS citT,50,0.1,0.0
+B4,B. subtilis 168 PmtlA-comKS citT,50,0.1,0.0
+C4,B. subtilis 168 PmtlA-comKS citT,50,0.1,0.0
+D4,B. subtilis 168 PmtlA-comKS citT,50,0.1,0.0
+E4,B. subtilis 168 PmtlA-comKS,50,0.1,0.0
+F4,B. subtilis 168 PmtlA-comKS,50,0.1,0.0
+G4,B. subtilis 168 PmtlA-comKS,50,0.1,0.0
+H4,B. subtilis 168 PmtlA-comKS,50,0.1,0.0
+A5,B. subtilis 168 PmtlA-comKS citT,50,0.25,0.0
+B5,B. subtilis 168 PmtlA-comKS citT,50,0.25,0.0
+C5,B. subtilis 168 PmtlA-comKS citT,50,0.25,0.0
+D5,B. subtilis 168 PmtlA-comKS citT,50,0.25,0.0
+E5,B. subtilis 168 PmtlA-comKS,50,0.25,0.0
+F5,B. subtilis 168 PmtlA-comKS,50,0.25,0.0
+G5,B. subtilis 168 PmtlA-comKS,50,0.25,0.0
+H5,B. subtilis 168 PmtlA-comKS,50,0.25,0.0
+A6,B. subtilis 168 PmtlA-comKS citT,50,0.0040625,0.0
+B6,B. subtilis 168 PmtlA-comKS citT,50,0.0040625,0.0
+C6,B. subtilis 168 PmtlA-comKS citT,50,0.0040625,0.0
+D6,B. subtilis 168 PmtlA-comKS citT,50,0.0040625,0.0
+E6,B. subtilis 168 PmtlA-comKS,50,0.0040625,0.0
+F6,B. subtilis 168 PmtlA-comKS,50,0.0040625,0.0
+G6,B. subtilis 168 PmtlA-comKS,50,0.0040625,0.0
+H6,B. subtilis 168 PmtlA-comKS,50,0.0040625,0.0
+A7,B. subtilis 168 PmtlA-comKS citT,50,0.05,0.0
+B7,B. subtilis 168 PmtlA-comKS citT,50,0.05,0.0
+C7,B. subtilis 168 PmtlA-comKS citT,50,0.05,0.0
+D7,B. subtilis 168 PmtlA-comKS citT,50,0.05,0.0
+E7,B. subtilis 168 PmtlA-comKS,50,0.05,0.0
+F7,B. subtilis 168 PmtlA-comKS,50,0.05,0.0
+G7,B. subtilis 168 PmtlA-comKS,50,0.05,0.0
+H7,B. subtilis 168 PmtlA-comKS,50,0.05,0.0
+A8,B. subtilis 168 PmtlA-comKS citT,50,0.008125,0.0
+B8,B. subtilis 168 PmtlA-comKS citT,50,0.008125,0.0
+C8,B. subtilis 168 PmtlA-comKS citT,50,0.008125,0.0
+D8,B. subtilis 168 PmtlA-comKS citT,50,0.008125,0.0
+E8,B. subtilis 168 PmtlA-comKS,50,0.008125,0.0
+F8,B. subtilis 168 PmtlA-comKS,50,0.008125,0.0
+G8,B. subtilis 168 PmtlA-comKS,50,0.008125,0.0
+H8,B. subtilis 168 PmtlA-comKS,50,0.008125,0.0
+A9,B. subtilis 168 PmtlA-comKS citT,50,0.0020313,0.0
+B9,B. subtilis 168 PmtlA-comKS citT,50,0.0020313,0.0
+C9,B. subtilis 168 PmtlA-comKS citT,50,0.0020313,0.0
+D9,B. subtilis 168 PmtlA-comKS citT,50,0.0020313,0.0
+E9,B. subtilis 168 PmtlA-comKS,50,0.0020313,0.0
+F9,B. subtilis 168 PmtlA-comKS,50,0.0020313,0.0
+G9,B. subtilis 168 PmtlA-comKS,50,0.0020313,0.0
+H9,B. subtilis 168 PmtlA-comKS,50,0.0020313,0.0
