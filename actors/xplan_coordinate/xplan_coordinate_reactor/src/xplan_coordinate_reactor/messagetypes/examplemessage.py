@@ -1,6 +1,9 @@
-from ..jobs import launch_job
 from .abacomessage import AbacoMessage, AbacoMessageError
 from attrdict import AttrDict
+from ..jobs import launch_job
+import json
+import os
+from ..files import upload_file
 
 
 class ExampleMessage(AbacoMessage):
@@ -37,6 +40,23 @@ class ExampleMessage(AbacoMessage):
     def finalize_message(self, r):
         msg = getattr(self, 'body')
         r.logger.info("Finalize example message: {}".format(msg))
+
+        msg_out_dir = msg.get('out_dir')
+
+        # write a test file to disk 
+        data = {
+            "data": "some example data"
+        }
+        filePath = "./example_out_file.json"
+
+        r.logger.info("Writing file: %s", filePath)
+        with open(filePath, 'w') as f:
+            json.dump(data, f)
+
+        r.logger.info("Uploading results to " + msg_out_dir)
+        upload_file(r, "example_out_file.json", filePath, msg_out_dir)
+
+        r.logger.info("Finished finalize")
 
 
 class ExampleMessageError(AbacoMessageError):
