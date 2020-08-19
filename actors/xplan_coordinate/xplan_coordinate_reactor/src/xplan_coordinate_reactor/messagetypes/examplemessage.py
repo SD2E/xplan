@@ -3,7 +3,7 @@ from attrdict import AttrDict
 from ..jobs import launch_job
 import json
 import os
-from ..files import upload_file
+from ..files import upload_file, download_file
 
 
 class ExampleMessage(AbacoMessage):
@@ -27,6 +27,13 @@ class ExampleMessage(AbacoMessage):
         r.logger.info(
             "Process example message out_dir: {} payload: {}".format(
                 input_out_dir, input_payload))
+
+        # test file download
+        downloadPath = os.path.join(input_out_dir, "download_file.txt")
+        download = download_file(r, downloadPath)
+        r.logger.info("Downloaded: {}".format(download.text))
+        # if json
+        # res = AttrDict(download.json())
 
         job_id = launch_job(r, msg, self.JOB_SPEC, out_dir)
         if (job_id is None):
