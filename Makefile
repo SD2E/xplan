@@ -1,7 +1,7 @@
-DESIGN_APP_TAG=sd2e/xplan:2.0
+DESIGN_APP_TAG=jladwigsift/xplan:2.0
 XPLAN_DESIGN_APP_ID=xplan_design-0.0.1
-TMP_OUT=out
-REMOTE_WORK_DIR=data-tacc-work-dbryce
+TMP_OUT=${PWD}/out
+REMOTE_WORK_DIR=data-tacc-work-jladwig
 
 all: build test deploy
 
@@ -12,7 +12,19 @@ test: test-apps test-components
 test-apps: test-xplan-design-app
 
 build-xplan-design-app:
-	docker build -f apps/xplan_design/Dockerfile -t ${DESIGN_APP_TAG} .
+	cp -r xplan-dev-env/xplan_models apps/xplan_design
+	cp -r components/xplan_utils apps/xplan_design
+	cp -r components/xplan_design apps/xplan_design
+	cp -r xplan-dev-env/xplan_api apps/xplan_design
+	cp -r components/xplan_submit apps/xplan_design
+	cp -r xplan-dev-env/pysd2cat apps/xplan_design
+	docker build -f apps/xplan_design/Dockerfile -t ${DESIGN_APP_TAG} apps/xplan_design
+	rm -rf apps/xplan_design/xplan_models
+	rm -rf apps/xplan_design/xplan_utils
+	rm -rf apps/xplan_design/xplan_design
+	rm -rf apps/xplan_design/xplan_api
+	rm -rf apps/xplan_design/xplan_submit
+	rm -rf apps/xplan_design/pysd2cat
 
 test-xplan-design-app: build-xplan-design-app test-xplan-design-app-local
 
