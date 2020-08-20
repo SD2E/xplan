@@ -20,8 +20,11 @@ def override_run(cls):
     def new_run(self):
         orig_run(self)
         #pip_install('git+https://gitlab.sd2e.org/dbryce/xplan_models')
+        pip_install("git+https://github.com/SD2E/synbiohub_adapter.git@v1.3")
+        pip_install("pysbol")
+        pip_install("fsspec")
+        pip_install("pandas==0.25.3")
         ## Setup solvers in pysmt
-        pip_install("pandas")
         pip_install("pysmt")
         print("Installing z3...")
         os.system("pysmt-install --z3 --confirm-agreement")
