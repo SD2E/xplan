@@ -31,7 +31,7 @@ class AbacoMessage(object):
     def get_body(self):
         return getattr(self, "body")
 
-    def process_message(self, r, work_dir, out_dir):
+    def process_message(self, r):
         raise AbacoMessageError(
             "process_message called on base abaco message type")
 

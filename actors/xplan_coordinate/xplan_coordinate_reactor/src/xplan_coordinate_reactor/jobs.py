@@ -65,22 +65,38 @@ def create_job_definition(r: Reactor, msg, job_spec):
         else:
             parameters[i] = msg.get(i)
 
-    job_app_id = job_spec.app_id
-    job_base_name = job_spec.base_name
-    job_max_run_time = job_spec.max_run_time
     user_email = r.settings['xplan_config']['jobs']['email']
 
     job_def = {
-        "appId": job_app_id,
-        "name": job_base_name + r.nickname,
+        "appId": job_spec.app_id,
+        "name": job_spec.base_name + r.nickname,
         "inputs": inputs,
         "parameters": parameters,
-        "maxRunTime": job_max_run_time,
+        "batchQueue": job_spec.batchQueue,
+        "maxRunTime": job_spec.max_run_time,
+        "memoryPerNode": job_spec.memoryPerNode,
+        "nodeCount": job_spec.nodeCount,
+        "processorsPerNode": job_spec.processorsPerNode,
+        "archive": job_spec.archive,
     }
-    job_def["archive"] = False
     job_def["notifications"] = [
         {
             "event": "PENDING",
+            "persistent": True,
+            "url": user_email
+        },
+        {
+            "event": "SUBMITTING",
+            "persistent": True,
+            "url": user_email
+        },
+        {
+            "event": "QUEUED",
+            "persistent": True,
+            "url": user_email
+        },
+        {
+            "event": "RUNNING",
             "persistent": True,
             "url": user_email
         },
@@ -133,7 +149,7 @@ def submit_job(r: Reactor, job_def):
     return None
 
 
-def launch_job(r: Reactor, msg :AbacoMessage, job_spec, out_dir):
+def launch_job(r: Reactor, msg :AbacoMessage, job_spec):
     job_def = create_job_definition(r, msg, job_spec)
     r.logger.info('Job Def: {}'.format(job_def))
     job_id = submit_job(r, job_def)

@@ -1,7 +1,5 @@
 ---
 xplan_config:
-  posix_work_dir: "/work/projects/SD2E-Community/prod/projects/sd2e-project-50/"
-  out_dir: "xplan-reactor"
   jobs:
     email: jladwig@sift.net
 
