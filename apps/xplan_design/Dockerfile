@@ -11,18 +11,6 @@ ADD ./xplan_utils /xplan_utils
 RUN pip3 install /xplan_utils
 RUN rm -rf /xplan_utils
 
-ADD ./xplan_api /xplan_api
-RUN pip3 install /xplan_api
-RUN rm -rf /xplan_api
-
-ADD ./xplan_submit /xplan_submit
-RUN pip3 install /xplan_submit
-RUN rm -rf /xplan_submit
-
-ADD ./pysd2cat /pysd2cat
-RUN pip3 install /pysd2cat
-RUN rm -rf /pysd2cat
-
 ADD ./xplan_design /xplan_design
 #RUN pip3 install /xplan_design
 RUN cd /xplan_design && python3 setup.py install && cd /

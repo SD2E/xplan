@@ -12,19 +12,13 @@ test: test-apps test-components
 test-apps: test-xplan-design-app
 
 build-xplan-design-app:
+	cp -r components/xplan_design apps/xplan_design
 	cp -r xplan-dev-env/xplan_models apps/xplan_design
 	cp -r components/xplan_utils apps/xplan_design
-	cp -r components/xplan_design apps/xplan_design
-	cp -r xplan-dev-env/xplan_api apps/xplan_design
-	cp -r components/xplan_submit apps/xplan_design
-	cp -r xplan-dev-env/pysd2cat apps/xplan_design
 	docker build -f apps/xplan_design/Dockerfile -t ${DESIGN_APP_TAG} apps/xplan_design
+	rm -rf apps/xplan_design/xplan_design
 	rm -rf apps/xplan_design/xplan_models
 	rm -rf apps/xplan_design/xplan_utils
-	rm -rf apps/xplan_design/xplan_design
-	rm -rf apps/xplan_design/xplan_api
-	rm -rf apps/xplan_design/xplan_submit
-	rm -rf apps/xplan_design/pysd2cat
 
 test-xplan-design-app: build-xplan-design-app test-xplan-design-app-local
 
