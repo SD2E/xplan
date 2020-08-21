@@ -6,7 +6,7 @@ RUN pip3 install --upgrade setuptools
 ADD ./xplan_design /xplan_design
 RUN pip3 install /xplan_design
 RUN pysmt-install --z3 --confirm-agreement
-ENV PYSMT_CYTON=0
+ENV PYSMT_CYTHON=0
 # RUN cd /xplan_design && python3 setup.py install && cd /
 RUN rm -rf /xplan_design
 

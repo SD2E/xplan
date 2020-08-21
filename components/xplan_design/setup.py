@@ -28,7 +28,7 @@ def override_run(cls):
         pip_install("pysmt")
         print("Installing z3...")
         os.system("pysmt-install --z3 --confirm-agreement")
-        os.system("export PYSMT_CYTON=0")
+        os.system("export PYSMT_CYTHON=0")
         #PYSMT_CYTHON = 0
 
     cls.run = new_run
