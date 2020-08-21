@@ -1,5 +1,5 @@
 DESIGN_APP_TAG=jladwigsift/xplan:2.0
-XPLAN_DESIGN_APP_ID=xplan_design-0.0.1
+XPLAN_DESIGN_APP_ID=jladwig_xplan_design-0.0.1
 TMP_OUT=${PWD}/out
 REMOTE_WORK_DIR=data-tacc-work-jladwig
 

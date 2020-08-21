@@ -55,6 +55,12 @@ setup(name='xplan_design',
       license='MIT',
       packages=find_packages('src'),
       package_dir={'':'src'},
+      install_requires=["fsspec",
+                        "pandas==0.25.3",
+                        "pysbol",
+                        "pysmt",
+                        "synbiohub_adapter @ git+https://github.com/SD2E/synbiohub_adapter.git@v1.3"
+                        ],
       tests_require=["pytest"],
       zip_safe=False,
       cmdclass=cmdclass

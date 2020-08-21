@@ -3,6 +3,13 @@ FROM sd2e/python3:latest
 RUN pip3 install --upgrade pip
 RUN pip3 install --upgrade setuptools
 
+ADD ./xplan_design /xplan_design
+RUN pip3 install /xplan_design
+RUN pysmt-install --z3 --confirm-agreement
+ENV PYSMT_CYTON=0
+# RUN cd /xplan_design && python3 setup.py install && cd /
+RUN rm -rf /xplan_design
+
 ADD ./xplan_models /xplan_models
 RUN pip3 install /xplan_models
 RUN rm -rf /xplan_models
@@ -10,11 +17,6 @@ RUN rm -rf /xplan_models
 ADD ./xplan_utils /xplan_utils
 RUN pip3 install /xplan_utils
 RUN rm -rf /xplan_utils
-
-ADD ./xplan_design /xplan_design
-#RUN pip3 install /xplan_design
-RUN cd /xplan_design && python3 setup.py install && cd /
-RUN rm -rf /xplan_design
 
 
 ADD run.py /run.py
