@@ -4,6 +4,7 @@ from attrdict import AttrDict
 from .messagetypes import AbacoMessage
 from reactors.runtime import Reactor, agaveutils
 from requests.exceptions import HTTPError
+import os
 
 
 # split an agave uri into (system_id, path)
@@ -12,6 +13,10 @@ def split_agave_uri(agave_uri: str) -> (str, str):
         raise Exception("agaveURI is not an agave URI")
     # split the system id from the path
     return agave_uri.split("agave://")[1].split("/", 1)
+
+
+def make_agave_uri(system_id: str, path: str) -> str:
+    return "agave://{}/{}".format(system_id, path)
 
 
 def download_file_from_system(r: Reactor, system_id: str, path: str):
@@ -24,14 +29,151 @@ def download_file(r: Reactor, downloadURI: str):
     return download_file_from_system(r, system_id, path)
 
 
-def upload_file_to_system(r: Reactor, name: str, sourcePath: str, destSystem: str, destPath):
+def upload_file_to_system(r: Reactor, sourcePath: str, destSystem: str, destPath: str, *, name: str = None):
     # r.logger.info("Uploading {} to {} on {}".format(
     #     sourcePath, destPath, destSystem))
     with open(sourcePath, 'rb') as f:
-        r.client.files.importData(
-            filePath=destPath, systemId=destSystem, fileName=name, fileToUpload=f)
+        if name is None:
+            r.client.files.importData(
+                filePath=destPath, systemId=destSystem, fileToUpload=f)
+        else:
+            r.client.files.importData(
+                filePath=destPath, systemId=destSystem, fileName=name, fileToUpload=f)
 
 
-def upload_file(r: Reactor, name: str, sourcePath: str, destinationURI: str):
+def upload_file(r: Reactor, sourcePath: str, destinationURI: str, *, name: str = None):
     system_id, path = split_agave_uri(destinationURI)
-    upload_file_to_system(r, name, sourcePath, system_id, path)
+    upload_file_to_system(r, sourcePath, system_id, path, name=name)
+
+
+def upload_dir(r: Reactor, sourceDir: str, destinationURI: str):
+    system_id, destPath = split_agave_uri(destinationURI)
+
+    for (dirpath, dirnames, filenames) in os.walk(sourceDir):
+        # we want the relative path when building agave uris
+        relpath = os.path.relpath(dirpath, sourceDir)
+
+        # make any directories we see
+        for d in dirnames:
+            if relpath == '.':
+                path = d
+            else:
+                path = os.path.join(relpath, d)
+            mkdir(r, destinationURI, path)
+
+        # upload any files in the current directory
+        for f in filenames:
+            sourcePath = os.path.join(destPath, dirpath, f)
+
+            if relpath == '.':
+                path = destPath
+            else:
+                path = os.path.join(destPath, relpath)
+
+            fileToUpload = make_agave_uri(system_id, path)
+            upload_file(r, sourcePath, fileToUpload)
+
+
+# files.manage(body=<BODY>, filePath=<FILEPATH>, systemId=<SYSTEMID>)
+def mkdir_on_system(r: Reactor, system_id: str, path: str, dirpath: str):
+    r.client.files.manage(systemId=system_id,
+                          body={
+                              'action': 'mkdir',
+                              'path': dirpath
+                          },
+                          filePath=path)
+
+
+def mkdir(r: Reactor, uri: str, dirpath: str):
+    system_id, path = split_agave_uri(uri)
+    mkdir_on_system(r, system_id, path, dirpath)
+
+
+# files.list(filePath=<FILEPATH>, limit=250, offset=0, systemId=<SYSTEMID>)
+def list_dir_on_system(r: Reactor, system_id: str, path: str, limit: int = 250, offset: int = 0):
+    return r.client.files.list(filePath=path, limit=limit, offset=offset, systemId=system_id)
+
+
+def list_dir(r: Reactor, uri: str, limit: int = 250, offset: int = 0):
+    system_id, path = split_agave_uri(uri)
+    return list_dir_on_system(r, system_id, path, limit, offset)
+
+
+def collect_relative_file_paths(r: Reactor, uri: str, *, recursive=True, depth=0, max_depth=10, path=None):
+    # base results
+    results = []
+
+    # attempt to avoid infinite loops
+    depth = max(0, depth)
+    if depth > max_depth:
+        r.logger.error("execute_on_dirs: max depth exceeded")
+        return results
+
+    # collect all files in the current dir
+    contents = list_dir(r, uri)
+    for file in contents:
+        f = AttrDict(file)
+        if f.type != 'file':
+            continue
+        if path is not None:
+            results.append("{}/{}".format(path, f.name))
+        else:
+            results.append(f.name)
+
+    # return early if we are not recursing through dirs
+    if not recursive:
+        return results
+
+    # recurse into subdirectories
+    for directory in contents:
+        d = AttrDict(directory)
+        if d.type != 'dir':
+            continue
+        if d.name == '.':
+            continue
+        if d.name == '..':
+            continue
+        next_uri = "{}/{}".format(uri, d.name)
+
+        if path is not None:
+            next_path = "{}/{}".format(path, d.name)
+        else:
+            next_path = d.name
+
+        results += collect_relative_file_paths(
+            r, next_uri,
+            depth=depth+1,
+            max_depth=max_depth,
+            path=next_path)
+
+    return results
+
+
+def collect_file_paths(r: Reactor, uri: str, *, recursive=True, depth=0, max_depth=10, path=None):
+    results = collect_relative_file_paths(
+        r, uri, recursive=recursive, depth=depth, max_depth=max_depth)
+    return ["{}/{}".format(uri, s) for s in results]
+
+
+def download_dir(r: Reactor, downloadURI: str, destPath: str, *, recursive=True, makedirs=True):
+    files = collect_relative_file_paths(r, downloadURI, recursive=recursive)
+    for file in files:
+        uri = "{}/{}".format(downloadURI, file)
+
+        resp = download_file(r, uri)
+        if not resp.ok:
+            r.logger.error("Failed to download file: {}".format(uri))
+            continue
+
+        directory = os.path.dirname(file)
+        out_dir = os.path.join(destPath, directory)
+        if not os.path.exists(out_dir):
+            if makedirs is True:
+                os.makedirs(out_dir)
+            else:
+                r.logger.error("Missing output directory: {}".format(out_dir))
+                continue
+
+        out_path = os.path.join(out_dir, os.path.basename(file))
+        with open(out_path, 'wb') as f:
+            f.write(resp.content)

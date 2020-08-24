@@ -68,7 +68,7 @@ class ExampleMessage(AbacoMessage):
             json.dump(data, f)
 
         r.logger.info("Uploading results to " + msg_out_dir)
-        upload_file(r, "example_out_file.json", filePath, msg_out_dir)
+        upload_file(r, filePath, msg_out_dir, name="example_out_file.json")
 
         r.logger.info("Finished finalize")
 
