@@ -1,4 +1,4 @@
-from ..files import download_file, upload_file
+from ..files import download_file, download_dir, upload_dir, split_agave_uri, make_agave_uri
 from ..jobs import launch_job
 from .abacomessage import AbacoMessage, AbacoMessageError
 from attrdict import AttrDict
@@ -49,13 +49,15 @@ class XPlanDesignMessage(AbacoMessage):
         msg = getattr(self, 'body')
         r.logger.info("Finalize xplan design message: {}".format(msg))
 
-        out_dir = "out"
+        # TODO adjust output of design app to always output to /out
+        # This assumes the design app mounts the out_dir agave path as 
+        # just the basename of the given out_dir path
+        out_uri = msg.get('out_dir')
+        upload_system, out_path = split_agave_uri(out_uri)
+        out_basename = os.path.basename(out_path.rstrip('/'))
 
-        # input_invocation = msg.get('invocation')
-        # input_lab_configuration = msg.get('lab_configuration')
-        # input_out_dir = msg.get('out_dir')
-        archiveSystem = job.get("archiveSystem")
-        archivePath = job.get("archivePath")
+        archive_system = job.get("archiveSystem")
+        archive_path = job.get("archivePath")
 
         invocation_uri = msg.get('invocation')
         invocation_resp = download_file(r, invocation_uri)
@@ -69,23 +71,26 @@ class XPlanDesignMessage(AbacoMessage):
         challenge_problem = invocation.get('challenge_problem')
 
         if base_dir == ".":
-            challenge_out_dir = os.path.join(out_dir, challenge_problem)
+            archive_out_dir = os.path.join(archive_path, out_basename, challenge_problem)
+            upload_out_dir = os.path.join(out_path, challenge_problem)
         else:
-            challenge_out_dir = os.path.join(
-                out_dir, base_dir, challenge_problem)
+            archive_out_dir = os.path.join(archive_path, out_basename, base_dir, challenge_problem)
+            upload_out_dir = os.path.join(out_path, base_dir, challenge_problem)
+
         r.logger.info("challenge_problem = " + challenge_problem)
 
-        # TODO adjust output of design app to always output to /out
-        challenge_uri = "agave://{}/{}/{}".format(
-            archiveSystem, archivePath, challenge_out_dir)
+        archive_uri = make_agave_uri(archive_system, archive_out_dir)
+        r.logger.info("archive_uri = {}".format(archive_uri))
 
-        r.logger.info("challenge_uri {}".format(challenge_uri))
+        upload_uri = make_agave_uri(upload_system, upload_out_dir)
+        r.logger.info("upload_uri = {}".format(upload_uri))
 
-        challenge_resp = download_file(r, challenge_uri)
-        if not challenge_resp.ok:
-            raise XPlanDesignMessageError("Failed to download challenge dir")
-        r.logger.info("response {}".format(challenge_resp))
-        r.logger.info("json {}".format(challenge_resp.json()))
+        local_out = os.path.abspath(out_basename)
+        download_dir(r, archive_uri, local_out)
+        r.logger.info("Download:\n  to: {}\n  from: {}".format(local_out, archive_uri))
+
+        upload_dir(r, local_out, upload_uri)
+        r.logger.info("Upload:\n  from: {}\n  to: {}".format(local_out, upload_uri))
 
 class XPlanDesignMessageError(AbacoMessageError):
     pass

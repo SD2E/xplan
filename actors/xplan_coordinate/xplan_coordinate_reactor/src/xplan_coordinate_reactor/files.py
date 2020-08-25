@@ -46,9 +46,24 @@ def upload_file(r: Reactor, sourcePath: str, destinationURI: str, *, name: str =
     upload_file_to_system(r, sourcePath, system_id, path, name=name)
 
 
+def ensure_path_on_system(r: Reactor, system_id: str, path: str):
+    system_uri = "agave://{}/".format(system_id)
+    mkdir(r, system_uri, path)
+
+
+def ensure_agave_uri(r: Reactor, uri: str):
+    system_id, path = split_agave_uri(uri)
+    ensure_path_on_system(r, system_id, path)
+
+
 def upload_dir(r: Reactor, sourceDir: str, destinationURI: str):
     system_id, destPath = split_agave_uri(destinationURI)
 
+    # ensure the destinationURI exists at all
+    ensure_path_on_system(r, system_id, destPath)
+
+    # walk the soruceDir and upload each file to the destination
+    # while making any needed directories along the way
     for (dirpath, dirnames, filenames) in os.walk(sourceDir):
         # we want the relative path when building agave uris
         relpath = os.path.relpath(dirpath, sourceDir)
