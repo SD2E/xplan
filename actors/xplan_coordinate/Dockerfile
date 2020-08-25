@@ -17,3 +17,7 @@ RUN pip3 install --no-cache-dir /xplan_design \
 ADD ./xplan_utils /xplan_utils
 RUN pip3 install --no-cache-dir /xplan_utils \
     && rm -rf /xplan_utils
+
+ADD ./xplan_submit /xplan_submit
+RUN pip3 install --no-cache-dir /xplan_submit \
+    && rm -rf /xplan_submit
