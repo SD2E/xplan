@@ -87,31 +87,11 @@ class XPlanDesignMessage(AbacoMessage):
         r.logger.info("Download:\n  to: {}\n  from: {}".format(
             local_out, archive_uri))
 
-        # Download the state.json from the working dir of the app
-        # TODO does state.json file location depend on base_dir etc?
-        state_filename = 'state.json'
-        archive_state_path = os.path.join(archive_path, state_filename)
-
-        # FIXME
-        # the design app seems to write two state files currently...
-        # wd = os.path.abspath('.')
-        challenge_out_dir = self.get_challenge_dir(invocation, local_out)
-        local_state_path = os.path.join(challenge_out_dir, state_filename)
-        archive_state_uri = make_agave_uri(archive_system, archive_state_path)
-        self.download_state(r, archive_state_uri, local_state_path)
-
         # Do final processing
         self.handle_design_output(r,
                                   invocation,
                                   self.get_lab_configuration(r, msg),
                                   local_out)
-
-        # I think the state.json is uploaded via the out_dir
-        #
-        # # Don't include state_filename in upload path
-        # upload_state_path = os.path.join(out_path)
-        # upload_state_uri = make_agave_uri(upload_system, upload_state_path)
-        # upload_file(r, local_state_path, upload_state_uri)
 
         # Upload the finished experiment files
         upload_dir(r, local_out, upload_uri)
@@ -174,15 +154,14 @@ class XPlanDesignMessage(AbacoMessage):
         mock = not invocation.get('submit', False)
         r.logger.info("mock: {}".format(mock))
 
-        completed_design = submit_experiment(invocation,
-                                             design,
-                                             xplan_config,
-                                             lab_cfg,
-                                             transcriptic_params,
-                                             parameters=parameters,
-                                             out_dir=out_dir,
-                                             mock=mock)
-        return completed_design
+        submit_experiment(invocation,
+                          design,
+                          xplan_config,
+                          lab_cfg,
+                          transcriptic_params,
+                          parameters=None,
+                          out_dir=out_dir,
+                          mock=mock)
 
 
 class XPlanDesignMessageError(AbacoMessageError):

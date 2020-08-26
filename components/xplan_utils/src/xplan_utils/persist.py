@@ -38,9 +38,10 @@ def set_state(state, out_dir, recovery_file="state.json"):
         #print(recovery_file)
 
         if recovery_file is not None:
-            l.info('Saving state to: {}'.format(recovery_file))
+            full_recovery_file = os.path.join(out_dir, recovery_file)
+            l.info('Saving state to: {}'.format(full_recovery_file))
             #state = get_state(robj, recovery_file=dest)
-            with open(recovery_file, 'w') as f:
+            with open(full_recovery_file, 'w') as f:
                 json.dump(state, f)
             return state
     except Exception as exc:
