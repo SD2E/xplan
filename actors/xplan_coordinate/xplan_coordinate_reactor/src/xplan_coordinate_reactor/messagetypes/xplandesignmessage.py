@@ -172,16 +172,17 @@ class XPlanDesignMessage(AbacoMessage):
         # a mock submission. If submit is False or not present
         # then do a mock submission.
         mock = not invocation.get('submit', False)
+        r.logger.info("mock: {}".format(mock))
 
-        # completed_design = submit_experiment(invocation,
-        #                                      design,
-        #                                      xplan_config,
-        #                                      lab_cfg,
-        #                                      transcriptic_params,
-        #                                      parameters=parameters,
-        #                                      out_dir=out_dir,
-        #                                      mock=mock)
-        # return completed_design
+        completed_design = submit_experiment(invocation,
+                                             design,
+                                             xplan_config,
+                                             lab_cfg,
+                                             transcriptic_params,
+                                             parameters=parameters,
+                                             out_dir=out_dir,
+                                             mock=mock)
+        return completed_design
 
 
 class XPlanDesignMessageError(AbacoMessageError):
