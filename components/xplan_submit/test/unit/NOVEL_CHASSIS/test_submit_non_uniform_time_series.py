@@ -42,4 +42,6 @@ def test_submit_non_uniform_timeseries():
         experiment_design = ExperimentDesign(**experiment_json)
         with open(request_file) as request:
             experiment_request = json.load(request)
-            submit_experiment(experiment_request, experiment_design, xplan_config, transcriptic_cfg, transcriptic_params, out_dir=out_dir)
+            #submit_experiment(experiment_request, experiment_design, xplan_config, transcriptic_cfg, transcriptic_params, out_dir=out_dir)
+            submit_experiment(experiment_request, experiment_design, xplan_config, transcriptic_cfg,
+                              transcriptic_params, out_dir=out_dir, batches=["0","1"])
