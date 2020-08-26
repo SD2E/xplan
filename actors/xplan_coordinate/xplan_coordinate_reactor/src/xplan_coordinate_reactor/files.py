@@ -10,7 +10,7 @@ import os
 # split an agave uri into (system_id, path)
 def split_agave_uri(agave_uri: str) -> (str, str):
     if "agave://" not in agave_uri:
-        raise Exception("agaveURI is not an agave URI")
+        raise Exception("agaveURI is not an agave URI: {}".format(agave_uri))
     # split the system id from the path
     return agave_uri.split("agave://")[1].split("/", 1)
 

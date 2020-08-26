@@ -44,7 +44,7 @@ def get_design_file_name(experiment_id):
 
 def get_experiment_design(robj, experiment_id, out_dir):
     robj.logger.info("Getting Experiment Design ... " + experiment_id)
-    state = persist.get_state(robj, recovery_file=os.path.join(out_dir, robj.settings['xplan_config']['state_file']))
+    state = persist.get_state(out_dir)
 
     if 'experiment_requests' not in state:
         raise Exception("Cannot retreive experiment design: " + str(experiment_id))
@@ -62,7 +62,7 @@ def get_experiment_design(robj, experiment_id, out_dir):
 
 def get_experiment_request(robj, experiment_id, out_dir):
     robj.logger.info("Getting Experiment Request ... " + experiment_id)
-    state = persist.get_state(robj, recovery_file=os.path.join(out_dir, robj.settings['xplan_config']['state_file']))
+    state = persist.get_state(out_dir)
 
     if 'experiment_requests' not in state:
         raise Exception("Cannot retreive experiment request: " + str(experiment_id))

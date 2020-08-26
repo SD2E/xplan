@@ -1,5 +1,6 @@
 ---
 xplan_config:
+  state_file: state.json
   jobs:
     email: jladwig@sift.net
 
