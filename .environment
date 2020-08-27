@@ -1,0 +1,5 @@
+DESIGN_APP_TAG=sd2e/xplan:2.0
+XPLAN_DESIGN_APP_ID=xplan_design-0.0.1
+REMOTE_WORK_DIR=data-tacc-work-dbryce
+REACTOR_TAG=sd2e/xplan-reactor:2.0
+REACTOR_NAME=xplan2-reactor

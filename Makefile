@@ -1,7 +1,9 @@
-DESIGN_APP_TAG=jladwigsift/xplan:2.0
-XPLAN_DESIGN_APP_ID=jladwig_xplan_design-0.0.1
-TMP_OUT=${PWD}/out
-REMOTE_WORK_DIR=data-tacc-work-jladwig
+include .environment
+include actors/xplan_coordinate/reactor.rc
+#M_DESIGN_APP_TAG?=$(DESIGN_APP_TAG)
+#M_XPLAN_DESIGN_APP_ID=${XPLAN_DESIGN_APP_ID}
+TMP_OUT?=${PWD}/out
+#M_REMOTE_WORK_DIR=${REMOTE_WORK_DIR}
 
 all: build test deploy
 
@@ -23,18 +25,20 @@ build-xplan-design-app:
 test-xplan-design-app: build-xplan-design-app test-xplan-design-app-local
 
 test-xplan-design-app-local: build-xplan-design-app
-	sh scripts/run_docker.sh ${TMP_OUT} ${DESIGN_APP_TAG} invocation_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json
+	sh scripts/run_docker.sh ${TMP_OUT} ${M_DESIGN_APP_TAG} invocation_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json
 
 test-xplan-design-app-remote: deploy-xplan-design-app
 	tapis auth init
-	sh scripts/run_tapis_app.sh ${REMOTE_WORK_DIR}
+	sh scripts/run_tapis_app.sh ${M_REMOTE_WORK_DIR}
 
 
 test-components:
 
-deploy: deploy-apps
+deploy: deploy-apps deploy-reactors
 
 deploy-apps: deploy-xplan-design-app
+
+deploy-reactors: deploy-xplan-reactor
 
 deploy-xplan-design-app: clean-deploy-xplan-design-app
 	## tapis requires that docker build context is the same as the working directory
@@ -53,3 +57,9 @@ clean-deploy: clean-deploy-xplan-design-app
 clean-deploy-xplan-design-app:
 	rm assets || true
 	rm apps/xplan_design/assets/assets || true
+
+deploy-xplan-reactor:
+	scripts/create_reactor_if_not_exists.sh ${REACTOR_NAME} ${XPLAN_DESIGN_APP_ID}
+
+test-xplan-reactor-remote: deploy-xplan-reactor
+	scripts/run_reactor.sh ${REMOTE_WORK_DIR} ${REACTOR_NAME}

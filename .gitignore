@@ -22,3 +22,4 @@ xplan-dev-env
 /components/xplan_design/test/experiments/dan.csv
 /assets/
 /out/
+.environment
