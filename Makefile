@@ -31,12 +31,18 @@ test: test-apps test-components
 test-apps: test-xplan-design-app
 
 build-xplan-design-app:
-	scripts/build_design_app.sh
+	cp -r components/xplan_design apps/xplan_design
+	cp -r xplan-dev-env/xplan_models apps/xplan_design
+	cp -r components/xplan_utils apps/xplan_design
+	docker build -f apps/xplan_design/Dockerfile -t ${DESIGN_APP_TAG} apps/xplan_design
+	rm -rf apps/xplan_design/xplan_design
+	rm -rf apps/xplan_design/xplan_models
+	rm -rf apps/xplan_design/xplan_utils
 
 test-xplan-design-app: build-xplan-design-app test-xplan-design-app-local
 
 test-xplan-design-app-local: build-xplan-design-app
-	sh scripts/run_docker.sh ${TMP_OUT} ${APP_CONTAINER_FULL_NAME} invocation_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json
+	sh scripts/run_docker.sh ${TMP_OUT} ${DESIGN_APP_TAG} invocation_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json
 
 test-xplan-design-app-remote: deploy-xplan-design-app
 	tapis auth init
@@ -61,7 +67,7 @@ clean-deploy-xplan-design-app:
 	rm apps/xplan_design/assets/assets || true
 
 deploy-xplan-reactor:
-	scripts/create_reactor_if_not_exists.sh
+	scripts/create_reactor_if_not_exists.sh ${REACTOR_NAME} ${XPLAN_DESIGN_APP_ID}
 
-test-xplan-reactor-remote: deploy-xplan-design-app deploy-xplan-reactor
-	scripts/run_reactor.sh
+test-xplan-reactor-remote: deploy-xplan-reactor
+	scripts/run_reactor.sh ${REMOTE_WORK_DIR} ${REACTOR_NAME}
