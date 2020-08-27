@@ -78,6 +78,8 @@ def create_job_definition(r: Reactor, msg, job_spec):
         "nodeCount": job_spec.nodeCount,
         "processorsPerNode": job_spec.processorsPerNode,
         "archive": job_spec.archive,
+        "archivePath" : job_spec.archivePath,
+        "archiveSystem" : job_spec.archiveSystem
     }
     job_def["notifications"] = [
         {

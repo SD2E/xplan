@@ -23,6 +23,8 @@ class XPlanDesignMessage(AbacoMessage):
         "nodeCount": 1,
         "processorsPerNode": 1,
         "archive": True,
+        "archiveSystem" : "data-tacc-work-jladwig",
+        "archivePath" : "xplan2/out",
         "inputs": [
             "invocation",
             "lab_configuration",
@@ -36,11 +38,16 @@ class XPlanDesignMessage(AbacoMessage):
         input_invocation = msg.get('invocation')
         input_lab_configuration = msg.get('lab_configuration')
         input_out_dir = msg.get('out_dir')
-        r.logger.info(
-            "Process xplan design message \n  Invocation: {}\n  Lab Configuration: {}\n  OutDir: {}"
-            .format(input_invocation, input_lab_configuration, input_out_dir))
+        (archive_system, archive_path) = split_agave_uri(input_out_dir)
+        custom_job_spec = AttrDict(self.JOB_SPEC.copy())
+        custom_job_spec['archiveSystem'] = archive_system
+        custom_job_spec['archivePath'] = archive_path
 
-        job_id = launch_job(r, msg, self.JOB_SPEC)
+        r.logger.info(
+            "Process xplan design message \n  Invocation: {}\n  Lab Configuration: {}\n  OutDir: {}\n  Archive Path: {}\n  Archive System: {}"
+            .format(input_invocation, input_lab_configuration, input_out_dir, archive_path, archive_system))
+
+        job_id = launch_job(r, msg, custom_job_spec)
         if (job_id is None):
             r.logger.error("Failed to launch job.")
             return None
