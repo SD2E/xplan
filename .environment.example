@@ -1,6 +1,6 @@
 # general
 XPLAN_USER=jladwig
-XPLAN_EMAIL=jladwig@sift.net
+XPLAN_EMAIL=
 XPLAN_DOCKER_NAMESPACE=jladwigsift
 
 # remote
@@ -9,7 +9,7 @@ REMOTE_WORK_DIR=data-tacc-work-${XPLAN_USER}
 #
 # xplan design app
 #
-APP_NAME=${XPLAN_USER}_xplan_design
+APP_NAME=${XPLAN_USER}_xplan2_design
 APP_DEPLOYMENT_SYSTEM=data-tacc-work-${XPLAN_USER}
 APP_EXECUTION_SYSTEM=hpc-tacc-wrangler-${XPLAN_USER}
 APP_VERSION=0.0.1
@@ -17,7 +17,7 @@ APP_VERSION=0.0.1
 # docker
 APP_DOCKER_NAMESPACE=${XPLAN_DOCKER_NAMESPACE}
 APP_DOCKER_REPO=xplan2_design
-APP_DOCKER_TAG=0.0.1
+APP_DOCKER_TAG=${APP_VERSION}
 
 #
 # xplan reactor

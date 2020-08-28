@@ -81,38 +81,43 @@ def create_job_definition(r: Reactor, msg, job_spec):
         "archivePath" : job_spec.archivePath,
         "archiveSystem" : job_spec.archiveSystem
     }
-    job_def["notifications"] = [
-        {
-            "event": "PENDING",
-            "persistent": True,
-            "url": user_email
-        },
-        {
-            "event": "SUBMITTING",
-            "persistent": True,
-            "url": user_email
-        },
-        {
-            "event": "QUEUED",
-            "persistent": True,
-            "url": user_email
-        },
-        {
-            "event": "RUNNING",
-            "persistent": True,
-            "url": user_email
-        },
-        {
-            "event": "FINISHED",
-            "persistent": True,
-            "url": user_email
-        },
-        {
-            "event": "FAILED",
-            "persistent": True,
-            "url": user_email
-        }
-    ]
+    if user_email is None:
+        r.logger.info("No email notifications")
+        job_def["notifications"] = []
+    else:
+        r.logger.info("User email for job notifications: {}".format(user_email))
+        job_def["notifications"] = [
+            {
+                "event": "PENDING",
+                "persistent": True,
+                "url": user_email
+            },
+            {
+                "event": "SUBMITTING",
+                "persistent": True,
+                "url": user_email
+            },
+            {
+                "event": "QUEUED",
+                "persistent": True,
+                "url": user_email
+            },
+            {
+                "event": "RUNNING",
+                "persistent": True,
+                "url": user_email
+            },
+            {
+                "event": "FINISHED",
+                "persistent": True,
+                "url": user_email
+            },
+            {
+                "event": "FAILED",
+                "persistent": True,
+                "url": user_email
+            }
+        ]
 
     if r.local is not True:
         job_def["notifications"].append({

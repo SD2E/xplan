@@ -5,8 +5,8 @@ COMMAND=$1
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 COMMAND_DIR="${DIR}/../../test/command/"
 
-CONTAINER_TAG="jladwigsift/xplan-coordinate"
-VERSION=0.1
+CONTAINER_TAG="jladwigsift/xplan2"
+VERSION=2.0
 
 CONTAINER_IMAGE=${CONTAINER_TAG}:${VERSION}
 

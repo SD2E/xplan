@@ -16,7 +16,7 @@ class XPlanDesignMessage(AbacoMessage):
 
     JOB_SPEC = AttrDict({
         "app_id": "jladwig_xplan_design-0.0.1",
-        "base_name": "jladwig_xplan_design_job-",
+        "base_name": "xplan_design_job-",
         "batchQueue": "all",
         "max_run_time": "01:00:00",
         "memoryPerNode": "1GB",
@@ -101,9 +101,10 @@ class XPlanDesignMessage(AbacoMessage):
                                   local_out)
 
         # Upload the finished experiment files
-        upload_dir(r, local_out, upload_uri)
         r.logger.info("Upload:\n  from: {}\n  to: {}".format(
             local_out, upload_uri))
+        upload_dir(r, local_out, upload_uri)
+        r.logger.info("Success")
 
     # TODO move to files as a generic download to disk function
     def download_state(self, r: Reactor, source_uri, dest_path):
