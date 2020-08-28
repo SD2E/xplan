@@ -1,5 +1,6 @@
 # general
 XPLAN_USER=jladwig
+XPLAN_EMAIL=jladwig@sift.net
 XPLAN_DOCKER_NAMESPACE=jladwigsift
 
 # remote
