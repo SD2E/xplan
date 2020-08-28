@@ -26,9 +26,7 @@ def message_as_dict(context):
 def typed_message_from_dict(message_dict):
     """Returns one of messagetypes based on schema validation"""
 
-    if ExampleMessage.validate(message_dict) is True:
-        return ExampleMessage(message=message_dict)
-    elif XPlanDesignMessage.validate(message_dict) is True:
+    if XPlanDesignMessage.validate(message_dict) is True:
         return XPlanDesignMessage(message=message_dict)
     elif FileMessage.validate(message_dict) is True:
         return FileMessage(typed_message_from_context, message=message_dict)

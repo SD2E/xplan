@@ -29,9 +29,10 @@ def download_file(r: Reactor, downloadURI: str):
     return download_file_from_system(r, system_id, path)
 
 
-def upload_file_to_system(r: Reactor, sourcePath: str, destSystem: str, destPath: str, *, name: str = None):
-    # r.logger.info("Uploading {} to {} on {}".format(
-    #     sourcePath, destPath, destSystem))
+def upload_file_to_system(r: Reactor, sourcePath: str, destSystem: str, destPath: str, *, name: str = None, verbose=False):
+    if verbose is True:
+        r.logger.info("Uploading {} to {} on {}".format(
+            sourcePath, destPath, destSystem))
     with open(sourcePath, 'rb') as f:
         if name is None:
             r.client.files.importData(
@@ -41,26 +42,26 @@ def upload_file_to_system(r: Reactor, sourcePath: str, destSystem: str, destPath
                 filePath=destPath, systemId=destSystem, fileName=name, fileToUpload=f)
 
 
-def upload_file(r: Reactor, sourcePath: str, destinationURI: str, *, name: str = None):
+def upload_file(r: Reactor, sourcePath: str, destinationURI: str, *, name: str = None, verbose=False):
     system_id, path = split_agave_uri(destinationURI)
-    upload_file_to_system(r, sourcePath, system_id, path, name=name)
+    upload_file_to_system(r, sourcePath, system_id, path, name=name, verbose=verbose)
 
 
-def ensure_path_on_system(r: Reactor, system_id: str, path: str):
+def ensure_path_on_system(r: Reactor, system_id: str, path: str, *, verbose=False):
     system_uri = "agave://{}/".format(system_id)
     mkdir(r, system_uri, path)
 
 
-def ensure_agave_uri(r: Reactor, uri: str):
+def ensure_agave_uri(r: Reactor, uri: str, *, verbose=False):
     system_id, path = split_agave_uri(uri)
-    ensure_path_on_system(r, system_id, path)
+    ensure_path_on_system(r, system_id, path, verbose=verbose)
 
 
-def upload_dir(r: Reactor, sourceDir: str, destinationURI: str):
+def upload_dir(r: Reactor, sourceDir: str, destinationURI: str, *, verbose=False):
     system_id, destPath = split_agave_uri(destinationURI)
 
     # ensure the destinationURI exists at all
-    ensure_path_on_system(r, system_id, destPath)
+    ensure_path_on_system(r, system_id, destPath, verbose=verbose)
 
     # walk the soruceDir and upload each file to the destination
     # while making any needed directories along the way
@@ -74,7 +75,7 @@ def upload_dir(r: Reactor, sourceDir: str, destinationURI: str):
                 path = d
             else:
                 path = os.path.join(relpath, d)
-            mkdir(r, destinationURI, path)
+            mkdir(r, destinationURI, path, verbose=verbose)
 
         # upload any files in the current directory
         for f in filenames:
@@ -86,11 +87,13 @@ def upload_dir(r: Reactor, sourceDir: str, destinationURI: str):
                 path = os.path.join(destPath, relpath)
 
             fileToUpload = make_agave_uri(system_id, path)
-            upload_file(r, sourcePath, fileToUpload)
+            upload_file(r, sourcePath, fileToUpload, verbose=verbose)
 
 
 # files.manage(body=<BODY>, filePath=<FILEPATH>, systemId=<SYSTEMID>)
-def mkdir_on_system(r: Reactor, system_id: str, path: str, dirpath: str):
+def mkdir_on_system(r: Reactor, system_id: str, path: str, dirpath: str, *, verbose=False):
+    if verbose is True:
+        r.logger.info("mkdir {} at {}".format(dirpath, make_agave_uri(system_id, path)))
     r.client.files.manage(systemId=system_id,
                           body={
                               'action': 'mkdir',
@@ -99,9 +102,9 @@ def mkdir_on_system(r: Reactor, system_id: str, path: str, dirpath: str):
                           filePath=path)
 
 
-def mkdir(r: Reactor, uri: str, dirpath: str):
+def mkdir(r: Reactor, uri: str, dirpath: str, *, verbose=False):
     system_id, path = split_agave_uri(uri)
-    mkdir_on_system(r, system_id, path, dirpath)
+    mkdir_on_system(r, system_id, path, dirpath, verbose=verbose)
 
 
 # files.list(filePath=<FILEPATH>, limit=250, offset=0, systemId=<SYSTEMID>)
@@ -114,7 +117,9 @@ def list_dir(r: Reactor, uri: str, limit: int = 250, offset: int = 0):
     return list_dir_on_system(r, system_id, path, limit, offset)
 
 
-def collect_relative_file_paths(r: Reactor, uri: str, *, recursive=True, depth=0, max_depth=10, path=None):
+def collect_relative_file_paths(r: Reactor, uri: str, *, recursive=True, depth=0, max_depth=10, path=None, verbose=False):
+    if verbose is True:
+        r.logger.info("Collect files in {}".format(uri))
     # base results
     results = []
 
@@ -159,21 +164,28 @@ def collect_relative_file_paths(r: Reactor, uri: str, *, recursive=True, depth=0
             r, next_uri,
             depth=depth+1,
             max_depth=max_depth,
-            path=next_path)
+            path=next_path,
+            verbose=verbose)
 
     return results
 
 
-def collect_file_paths(r: Reactor, uri: str, *, recursive=True, depth=0, max_depth=10, path=None):
+def collect_file_paths(r: Reactor, uri: str, *, recursive=True, depth=0, max_depth=10, path=None, verbose=False):
     results = collect_relative_file_paths(
-        r, uri, recursive=recursive, depth=depth, max_depth=max_depth)
+        r, uri, recursive=recursive, depth=depth, max_depth=max_depth, verbose=verbose)
     return ["{}/{}".format(uri, s) for s in results]
 
 
-def download_dir(r: Reactor, downloadURI: str, destPath: str, *, recursive=True, makedirs=True):
-    files = collect_relative_file_paths(r, downloadURI, recursive=recursive)
+def download_dir(r: Reactor, downloadURI: str, destPath: str, *, recursive=True, makedirs=True, verbose=False):
+    if verbose is True:
+        r.logger.info("download_dir: {}".format(downloadURI))
+
+    files = collect_relative_file_paths(r, downloadURI, recursive=recursive, verbose=verbose)
     for file in files:
         uri = "{}/{}".format(downloadURI, file)
+
+        if verbose is True:
+            r.logger.info("Download file: {}".format(uri))
 
         resp = download_file(r, uri)
         if not resp.ok:

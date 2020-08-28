@@ -1,4 +1,4 @@
-from ..files import download_file, upload_file, download_dir, upload_dir, split_agave_uri, make_agave_uri
+from ..files import download_file, upload_file, download_dir, upload_dir, split_agave_uri, make_agave_uri, ensure_path_on_system
 from ..jobs import launch_job
 from .abacomessage import AbacoMessage, AbacoMessageError
 from attrdict import AttrDict
@@ -23,8 +23,8 @@ class XPlanDesignMessage(AbacoMessage):
         "nodeCount": 1,
         "processorsPerNode": 1,
         "archive": True,
-        "archiveSystem" : "data-tacc-work-jladwig",
-        "archivePath" : "xplan2/out",
+        "archiveSystem": "data-tacc-work-jladwig",
+        "archivePath": "xplan2/archive/jobs/job-${JOB_ID}",
         "inputs": [
             "invocation",
             "lab_configuration",
@@ -35,17 +35,32 @@ class XPlanDesignMessage(AbacoMessage):
 
     def process_message(self, r: Reactor):
         msg = getattr(self, 'body')
-        input_invocation = msg.get('invocation')
-        input_lab_configuration = msg.get('lab_configuration')
-        input_out_dir = msg.get('out_dir')
-        (archive_system, archive_path) = split_agave_uri(input_out_dir)
+        msg_invocation = msg.get('invocation')
+        msg_lab_configuration = msg.get('lab_configuration')
+        msg_out_dir = msg.get('out_dir')
+        (out_dir_system, out_dir_path) = split_agave_uri(msg_out_dir)
+        archive_system = out_dir_system
+
+        archive_path = os.path.join(out_dir_path, "archive", "jobs")
+        ensure_path_on_system(r, archive_system, archive_path, verbose=True)
+        archive_path = os.path.join(archive_path, "job-${JOB_ID}")
+
+        # TODO this is a bit of a hack in that I change the
+        # message the is seen my the process stage to something
+        # slightly different for the finalize stage. But it should
+        # resolve issues with consecutive runes massively increasing
+        # storage use (due to pulling in archive data)
+        data_path = os.path.join(out_dir_path, "data")
+        ensure_path_on_system(r, out_dir_system, data_path, verbose=True)
+        msg['out_dir'] = make_agave_uri(out_dir_system, data_path)
+
         custom_job_spec = AttrDict(self.JOB_SPEC.copy())
         custom_job_spec['archiveSystem'] = archive_system
         custom_job_spec['archivePath'] = archive_path
 
         r.logger.info(
-            "Process xplan design message \n  Invocation: {}\n  Lab Configuration: {}\n  OutDir: {}\n  Archive Path: {}\n  Archive System: {}"
-            .format(input_invocation, input_lab_configuration, input_out_dir, archive_path, archive_system))
+            "Process xplan design message \n  Invocation: {}\n  Lab Configuration: {}\n  OutDir: {}\n  Data Path: {}\n  Archive Path: {}\n  Archive System: {}"
+            .format(msg_invocation, msg_lab_configuration, msg_out_dir, data_path, archive_path, archive_system))
 
         job_id = launch_job(r, msg, custom_job_spec)
         if (job_id is None):
@@ -90,9 +105,10 @@ class XPlanDesignMessage(AbacoMessage):
         local_out = os.path.abspath(out_basename)
 
         # Download the archived challenge directory
-        download_dir(r, archive_uri, local_out)
         r.logger.info("Download:\n  to: {}\n  from: {}".format(
             local_out, archive_uri))
+        download_dir(r, archive_uri, local_out, verbose=True)
+        r.logger.info("Download: Complete")
 
         # Do final processing
         self.handle_design_output(r,
@@ -103,8 +119,10 @@ class XPlanDesignMessage(AbacoMessage):
         # Upload the finished experiment files
         r.logger.info("Upload:\n  from: {}\n  to: {}".format(
             local_out, upload_uri))
-        upload_dir(r, local_out, upload_uri)
-        r.logger.info("Success")
+        upload_dir(r, local_out, upload_uri, verbose=True)
+        r.logger.info("Upload: Complete")
+
+        r.logger.info("Finalize ended with success")
 
     # TODO move to files as a generic download to disk function
     def download_state(self, r: Reactor, source_uri, dest_path):
