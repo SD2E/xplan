@@ -1,9 +1,23 @@
 include .environment
-include actors/xplan_coordinate/reactor.rc
-#M_DESIGN_APP_TAG?=$(DESIGN_APP_TAG)
-#M_XPLAN_DESIGN_APP_ID=${XPLAN_DESIGN_APP_ID}
 TMP_OUT?=${PWD}/out
-#M_REMOTE_WORK_DIR=${REMOTE_WORK_DIR}
+
+# make these variables from .environment available
+export XPLAN_USER
+export XPLAN_EMAIL
+export XPLAN_DOCKER_NAMESPACE
+export REMOTE_WORK_DIR
+export APP_NAME
+export APP_DEPLOYMENT_SYSTEM
+export APP_EXECUTION_SYSTEM
+export APP_VERSION
+export APP_DOCKER_NAMESPACE
+export APP_DOCKER_REPO
+export APP_DOCKER_TAG
+export REACTOR_NAME
+export REACTOR_ALIAS
+export REACTOR_DOCKER_HUB_ORG
+export REACTOR_DOCKER_IMAGE_TAG
+export REACTOR_DOCKER_IMAGE_VERSION
 
 all: build test deploy
 
@@ -60,7 +74,7 @@ clean-deploy-xplan-design-app:
 	rm apps/xplan_design/assets/assets || true
 
 deploy-xplan-reactor:
-	scripts/create_reactor_if_not_exists.sh ${REACTOR_NAME} ${XPLAN_DESIGN_APP_ID}
+	scripts/create_reactor_if_not_exists.sh
 
-test-xplan-reactor-remote: deploy-xplan-reactor
-	scripts/run_reactor.sh ${REMOTE_WORK_DIR} ${REACTOR_NAME}
+test-xplan-reactor-remote: deploy-xplan-design-app deploy-xplan-reactor
+	scripts/run_reactor.sh
