@@ -52,7 +52,12 @@ cp -r $DIR/../xplan-dev-env/xplan_models ./xplan_models
 cp -r $DIR/../components/xplan_utils ./xplan_utils
 cp -r $DIR/../components/xplan_design ./xplan_design
 cp -r $DIR/../components/xplan_submit ./xplan_submit
-abaco deploy -p -U ${ACTOR_ID} -F Dockerfile
+
+docker build -f ${REACTOR_DIR}/Dockerfile -t ${REACTOR_CONTAINER_FULL_NAME} ${REACTOR_DIR}
+docker push ${REACTOR_CONTAINER_FULL_NAME}
+# use -f tp force an update even if the image tag is identical
+abaco update -f ${ACTOR_ID} ${REACTOR_CONTAINER_FULL_NAME}
+
 rm -rf ./xplan_models
 rm -rf ./xplan_utils
 rm -rf ./xplan_design

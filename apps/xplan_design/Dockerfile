@@ -1,7 +1,7 @@
 FROM sd2e/python3:latest
 
 RUN pip3 install --upgrade pip
-RUN pip3 install --upgrade setuptools
+# RUN pip3 install --upgrade setuptools
 
 ADD ./xplan_design /xplan_design
 RUN pip3 install /xplan_design
