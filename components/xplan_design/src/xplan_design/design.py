@@ -10,7 +10,7 @@ import logging
 
 from xplan_utils.container_data_conversion import container_to_dict, generate_container
 from xplan_utils.helpers import put_experiment_request, \
-    put_aliquot_properties, put_experiment_design, do_convert_ftypes
+    put_aliquot_properties, put_experiment_design, do_convert_ftypes, get_experiment_request
 from xplan_utils.lab.strateos.utils import get_transcriptic_api, TranscripticApiError, get_tx_containers, \
     get_usable_tx_containers, generate_test_container, get_container_id
 
@@ -19,11 +19,13 @@ from xplan_utils import persist
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
-def generate_design(request, transcriptic_cfg, out_dir='.'):
+def generate_design(experiment_id, transcriptic_cfg, input_dir='.', out_dir='.'):
     """
     Handle experiment request based upon condition space factors
     """
     l.info("Processing GenExperimentRequestMessageFactors")
+    request = get_experiment_request(experiment_id, input_dir)
+
     experiment_id = request.get('experiment_id')
     base_dir = request.get('base_dir', ".")
     experiment_reference = request.get('experiment_reference')
@@ -54,12 +56,14 @@ def generate_design(request, transcriptic_cfg, out_dir='.'):
         blank_wells = []
 
     if base_dir == ".":
+        challenge_in_dir = os.path.join(input_dir, challenge_problem)
         challenge_out_dir = os.path.join(out_dir, challenge_problem)
     else:
+        challenge_in_dir = os.path.join(input_dir, base_dir, challenge_problem)
         challenge_out_dir = os.path.join(out_dir, base_dir, challenge_problem)
     l.info("challenge_problem = " + challenge_problem)
 
-    state = persist.get_state(challenge_out_dir)
+    state = persist.get_state(challenge_in_dir)
 
     ## Override factor types
     for fname, factor in condition_space.factors.items():
@@ -148,6 +152,8 @@ def generate_design(request, transcriptic_cfg, out_dir='.'):
     #    l.info("Submitting Experiment: %s", experiment_id)
     #    raise Exception("TODO: Implement submission coordination")
     #    #submit_experiment(robj, experiment_id, challenge_out_dir, challenge_problem, protocol_id, test_mode)
+
+    put_experiment_design(experiment_design, out_dir)
 
     return experiment_design
 

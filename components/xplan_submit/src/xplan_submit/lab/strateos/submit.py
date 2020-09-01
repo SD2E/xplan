@@ -8,7 +8,7 @@ import requests
 from tenacity import retry, stop_after_delay, wait_exponential
 
 from xplan_utils.helpers import put_experiment_submission, put_experiment_design, get_params_file_name, \
-    get_params_file_path
+    get_params_file_path, get_experiment_request, get_experiment_design
 import logging
 
 from xplan_utils.lab.strateos.utils import TranscripticApiError, get_transcriptic_api, TranscripticRunStatus
@@ -16,25 +16,28 @@ from xplan_utils.lab.strateos.utils import TranscripticApiError, get_transcripti
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
-def  submit_experiment(request, design, xplan_config, tx_cfg, tx_params, out_dir=".", parameters=None, batches=None, mock=False):
-    experiment_id = request['experiment_id']
-    base_dir = request.get('base_dir', ".")
-    challenge_problem = request.get('challenge_problem')
+def  submit_experiment(experiment_id, tx_cfg, tx_params,
+                       input_dir=".", out_dir=".", batches=None, mock=False):
+    experiment_design = get_experiment_design(experiment_id, input_dir)
+    experiment_request = get_experiment_request(experiment_id, input_dir)
+
+    experiment_id = experiment_request['experiment_id']
+    base_dir = experiment_request.get('base_dir', ".")
+    challenge_problem = experiment_request.get('challenge_problem')
     if base_dir == ".":
         challenge_out_dir = os.path.join(out_dir, challenge_problem)
     else:
         challenge_out_dir = os.path.join(out_dir, base_dir, challenge_problem)
-    protocol_id = request['defaults']['protocol_id']
-    test_mode = request['defaults']['test_mode']
+    protocol_id = experiment_request['defaults']['protocol_id']
+    test_mode = experiment_request['defaults']['test_mode']
 
     tx_test_mode = test_mode
     tx_proj_key = tx_params.get('default')
     tx_proj = tx_params.get('projects').get(tx_proj_key)
     tx_proj_id = tx_proj.get('id')
-    tx_proj_nick = tx_proj.get('nick')
 
 
-    for batch in request['batches']:
+    for batch in experiment_request['batches']:
         if batches is not None:
             if batch['id'] not in batches:
                 continue
@@ -47,18 +50,9 @@ def  submit_experiment(request, design, xplan_config, tx_cfg, tx_params, out_dir
                                                      tx_proj_id,
                                                      protocol_id,
                                                      tx_test_mode,
-                                                     tx_cfg,
-                                                     parameters=parameters)
+                                                     tx_cfg)
 
-        #slack_post('Submitted {} plan to Transcriptic'.format(
-        #    tx_proj_nick), robj.settings)
-
-        put_experiment_submission(experiment_id,
-                                  batch['id'],
-                                  submit_id,
-                                  params_file_name,
-                                  challenge_out_dir,
-                                  xplan_config)
+        put_experiment_submission(experiment_id, batch['id'], submit_id, params_file_name, challenge_out_dir)
 
         def assign_run_id(x):
             if str(x['batch']) == batch['id']:
@@ -68,15 +62,15 @@ def  submit_experiment(request, design, xplan_config, tx_cfg, tx_params, out_dir
             else:
                 return None
 
-        design_df = pd.read_json(design['design'])
+        design_df = pd.read_json(experiment_design['design'])
         design_df['lab_id'] = design_df.apply(assign_run_id, axis=1)
 
-    design['design'] = design_df.to_json()
-    put_experiment_design(design, challenge_out_dir)
+    experiment_design['design'] = design_df.to_json()
+    put_experiment_design(experiment_design, challenge_out_dir)
 
     if test_mode:
         ## complete the experiment
-        for batch in request['batches']:
+        for batch in experiment_request['batches']:
             if batches is not None:
                 if batch['id'] not in batches:
                     continue
@@ -88,15 +82,12 @@ def  submit_experiment(request, design, xplan_config, tx_cfg, tx_params, out_dir
 
 
 def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
-                 tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg, parameters=None):
+                 tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg):
     l.info("Handling plate: " + plate_id)
 
-    if parameters is None:
-        params_file_name = get_params_file_path(experiment_id, plate_id, out_dir)
-        l.info("Submitting param file: " + params_file_name)
-        params_for_plate = json.load(open(params_file_name, 'r'))
-    else:
-        params_for_plate = parameters[plate_id]
+    params_file_name = get_params_file_path(experiment_id, plate_id, out_dir)
+    l.info("Submitting param file: " + params_file_name)
+    params_for_plate = json.load(open(params_file_name, 'r'))
     submit_resp = None
     submit_id = None
 
@@ -163,7 +154,8 @@ def submit_to_transcriptic(project_id, protocol_id,
     l.info("Transcriptic.submit_launch_request")
     request_response = {}
     try:
-        protocol_name = [x['name'] for x in conn.get_protocols() if x['id'] == protocol_id][0]
+        protocols = conn.get_protocols()
+        protocol_name = next(x['name'] for x in protocols if x['id'] == protocol_id)
         req_title = "{}_{}_{}".format(
             arrow.utcnow().format('YYYY-MM-DDThh:mm:ssTZD'),
             challenge_problem,
@@ -223,7 +215,7 @@ def __submit_launch_request(conn, launch_request_id, protocol_id=None,
                                         test_mode=test_mode)
         return lr
     except Exception as exc:
-        print(exc.args)
+        l.exception(exc.args)
         raise Exception(exc)
 
 

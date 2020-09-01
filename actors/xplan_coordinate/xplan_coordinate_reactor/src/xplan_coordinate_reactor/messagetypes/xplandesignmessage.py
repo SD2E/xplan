@@ -155,7 +155,7 @@ class XPlanDesignMessage(AbacoMessage):
         experiment_id = invocation.get('experiment_id')
 
         challenge_out_dir = self.get_challenge_dir(invocation, out_dir)
-        design = get_experiment_design(r, experiment_id, challenge_out_dir)
+        design = get_experiment_design(experiment_id, challenge_out_dir)
 
         parameters = design_to_parameters(invocation,
                                           design,
@@ -180,14 +180,7 @@ class XPlanDesignMessage(AbacoMessage):
         mock = not invocation.get('submit', False)
         r.logger.info("mock: {}".format(mock))
 
-        submit_experiment(invocation,
-                          design,
-                          xplan_config,
-                          lab_cfg,
-                          transcriptic_params,
-                          parameters=None,
-                          out_dir=out_dir,
-                          mock=mock)
+        submit_experiment(invocation, xplan_config, lab_cfg, transcriptic_params, out_dir=out_dir, mock=mock)
 
 
 class XPlanDesignMessageError(AbacoMessageError):

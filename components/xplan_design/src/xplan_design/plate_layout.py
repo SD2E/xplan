@@ -618,7 +618,7 @@ def generate_constraints1(inputs, batch):
                for aliquot in container['aliquots']])
 
         # l.debug(replicate_symmetry_constraint)
-        #constraints.append(replicate_symmetry_constraint)
+        constraints.append(replicate_symmetry_constraint)
 
     ## Column reagents are set to zero if every aliquot in the column is empty
     if "None" in factors['strain']['domain']:
@@ -1802,7 +1802,7 @@ def get_model_pd(model, variables, factors, float_map):
         
 #    df = df.sort_values(by=['aliquot'])
     #l.debug(df.loc[df.aliquot=='a5'])
-    df.to_csv("dan.csv")
+    #df.to_csv("dan.csv")
     return df
 
     

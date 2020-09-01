@@ -42,8 +42,8 @@ def get_design_file_name(experiment_id):
     return "design_" + experiment_id + ".json"
 
 
-def get_experiment_design(robj, experiment_id, out_dir):
-    robj.logger.info("Getting Experiment Design ... " + experiment_id)
+def get_experiment_design(experiment_id, out_dir):
+    l.info("Getting Experiment Design ... " + experiment_id)
     state = persist.get_state(out_dir)
 
     if 'experiment_requests' not in state:
@@ -53,15 +53,15 @@ def get_experiment_design(robj, experiment_id, out_dir):
 
     design_file_name = get_design_file_name(experiment_id)
     experiment_dir = ensure_experiment_dir(experiment_id, out_dir)
-    robj.logger.info("experiment_dir: " + experiment_dir)
+    l.info("experiment_dir: " + experiment_dir)
     design_file_stash = os.path.join(experiment_dir, design_file_name)
-    design = ExperimentDesign(**json.load(open(os.path.join(out_dir, design_file_stash))))
-    robj.logger.info("Retrieved Experiment: " + experiment_id)
+    design = ExperimentDesign(**json.load(open(design_file_stash)))
+    l.info("Retrieved Experiment: " + experiment_id)
     return design
 
 
-def get_experiment_request(robj, experiment_id, out_dir):
-    robj.logger.info("Getting Experiment Request ... " + experiment_id)
+def get_experiment_request(experiment_id, out_dir):
+    l.info("Getting Experiment Request ... " + experiment_id)
     state = persist.get_state(out_dir)
 
     if 'experiment_requests' not in state:
@@ -71,10 +71,10 @@ def get_experiment_request(robj, experiment_id, out_dir):
 
     request_file_name = get_request_file_name(experiment_id)
     experiment_dir = ensure_experiment_dir(experiment_id, out_dir)
-    robj.logger.info("experiment_dir: " + experiment_dir)
+    l.info("experiment_dir: " + experiment_dir)
     request_file_stash = os.path.join(experiment_dir, request_file_name)
-    request = json.load(open(os.path.join(out_dir, request_file_stash)))
-    robj.logger.info("Retrieved Experiment: " + experiment_id)
+    request = json.load(open(request_file_stash))
+    l.info("Retrieved Experiment: " + experiment_id)
     return request
 
 
@@ -128,7 +128,7 @@ def put_aliquot_properties(experiment_id, aliquot_properties, out_dir):
         container_df.to_csv(container_file_stash, index=False)
 
 
-def put_experiment_submission(experiment_id, batch_id, submit_id, params_file_name, out_dir, xplan_config):
+def put_experiment_submission(experiment_id, batch_id, submit_id, params_file_name, out_dir):
     l.info("Saving Experiment Submission Record ...")
     state = persist.get_state(out_dir)
     ## if robj.local is True:

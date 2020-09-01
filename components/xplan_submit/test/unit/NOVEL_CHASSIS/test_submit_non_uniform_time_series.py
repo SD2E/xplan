@@ -43,5 +43,20 @@ def test_submit_non_uniform_timeseries():
         with open(request_file) as request:
             experiment_request = json.load(request)
             #submit_experiment(experiment_request, experiment_design, xplan_config, transcriptic_cfg, transcriptic_params, out_dir=out_dir)
-            submit_experiment(experiment_request, experiment_design, xplan_config, transcriptic_cfg,
-                              transcriptic_params, out_dir=out_dir, batches=["0","1"])
+            submit_experiment(experiment_request, xplan_config, transcriptic_cfg, transcriptic_params, out_dir=out_dir,
+                              batches=["0", "1"])
+
+def test_submit_nissle_timeseries():
+    design_file = os.path.join(os.path.curdir, ",,/resources/NOVEL_CHASSIS/experiments/experiment.transcriptic.2020-08-12-Plan-Requirements-UCSB-E-coli-nissle-antibiotic-TimeSeriesTitration-Strateos/design_experiment.transcriptic.2020-08-12-Plan-Requirements-UCSB-E-coli-nissle-antibiotic-TimeSeriesTitration-Strateos.json")
+    request_file = os.path.join(os.path.curdir, "../resources/NOVEL_CHASSIS/experiments/experiment.transcriptic.2020-08-12-Plan-Requirements-UCSB-E-coli-nissle-antibiotic-TimeSeriesTitration-Strateos/request_experiment.transcriptic.2020-08-12-Plan-Requirements-UCSB-E-coli-nissle-antibiotic-TimeSeriesTitration-Strateos.json")
+    out_dir = os.path.join(os.path.curdir, "../test_out")
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    with open(design_file, "r") as design:
+        experiment_json = json.load(design)
+        experiment_design = ExperimentDesign(**experiment_json)
+        with open(request_file) as request:
+            experiment_request = json.load(request)
+            #submit_experiment(experiment_request, experiment_design, xplan_config, transcriptic_cfg, transcriptic_params, out_dir=out_dir)
+            submit_experiment(experiment_request, xplan_config, transcriptic_cfg, transcriptic_params, out_dir=out_dir,
+                              batches=["0", "1"])

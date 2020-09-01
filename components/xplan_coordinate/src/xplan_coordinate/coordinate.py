@@ -8,20 +8,18 @@ l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
 
-def coordinate_submission(request, xplan_config, transcriptic_cfg, transcriptic_params, out_dir='.', mock=True):
+def coordinate_submission(experiment_id, transcriptic_cfg, transcriptic_params, input_dir='.', out_dir='.', mock=True):
     """
     Design an experiment, write the parameters, and submit it.
     :param request:
-    :param xplan_config:
     :param transcriptic_cfg:
     :param out_dir:
     :return:
     """
-    design = generate_design(request, xplan_config, transcriptic_cfg, out_dir=out_dir)
-    parameters = design_to_parameters(request,
-                         design,
+    generate_design(experiment_id, transcriptic_cfg, input_dir=input_dir, out_dir=out_dir)
+    design_to_parameters(experiment_id,
                          transcriptic_cfg,
+                         input_dir=out_dir,
                          out_dir = out_dir)
-    completed_design = submit_experiment(request, design, xplan_config, transcriptic_cfg, transcriptic_params, parameters=parameters,
-                      out_dir=out_dir, mock=mock)
-    return completed_design
+    submit_experiment(experiment_id, transcriptic_cfg, transcriptic_params, input_dir=out_dir, out_dir=out_dir,
+                      mock=mock)

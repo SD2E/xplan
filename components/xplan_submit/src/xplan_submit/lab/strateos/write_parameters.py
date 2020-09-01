@@ -13,20 +13,24 @@ import logging
 from transcriptic.jupyter import objects
 from xplan_design.experiment_design import ExperimentDesign
 from xplan_models.condition import ConditionSpace
-from xplan_utils.helpers import NpEncoder, put_tx_parameters, do_convert_ftypes
+from xplan_utils.helpers import NpEncoder, put_tx_parameters, do_convert_ftypes, get_experiment_design, \
+    get_experiment_request
 from xplan_utils.lab.strateos.utils import get_tx_containers, get_transcriptic_api, TranscripticApiError, get_container_id
 
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
-def design_to_parameters(experiment_request,
-                         experiment_design : ExperimentDesign,
+def design_to_parameters(experiment_id,
                          transcriptic_cfg,
+                         input_dir=".",
                          out_dir="."):
+    experiment_design = get_experiment_design(experiment_id, input_dir)
+    experiment_request = get_experiment_request(experiment_id, input_dir)
+
     design = pd.read_json(experiment_design['design'])
 
     batches = experiment_request.get("batches")
-    parameters = experiment_design['parameters']
+    parameters = experiment_request['defaults']['parameters']
     condition_space = ConditionSpace(factors=experiment_request.get('condition_space')['factors'])
     experiment_id = experiment_design['experiment_id']
     experiment_reference = experiment_request["experiment_reference"]
@@ -236,7 +240,7 @@ def add_reagent_concentrations(invocation_params, batch_samples, reagents, param
             "inputs": {
                 "select_cols": {
                     "col_and_conc": [
-                        {"col_num": x, "conc": 0.1}
+                        {"col_num": x, "conc": 0.0}
                         for x in range(1, 13)
                     ]
                 }
@@ -505,6 +509,13 @@ def get_container_for_batch(batch, batch_samples, design, condition_space,
     return design, source_container, samples
 
 
+def repair_parameter_value(k, v):
+    if k == "exp_info.media_well_strings":
+        return v.replace(" ", "")
+    else:
+        return v
+
+
 def get_time_series_invocation_parameters(batch_samples,
                                           batch,
                                           parameters,
@@ -527,9 +538,10 @@ def get_time_series_invocation_parameters(batch_samples,
 
     for k, v in exp_params.items():
         l.debug("Setting %s = %s", str(k), str(v))
+        v1 = repair_parameter_value(k, v)
         if k in omit_parameters:
             continue
-        make_entry(invocation_params, k, v)
+        make_entry(invocation_params, k, v1)
 
     for fname, factor in condition_space.factors.items():
         if 'lab_name' in factor and (factor['ftype'] == 'batch' or factor['ftype'] == 'experiment'):
