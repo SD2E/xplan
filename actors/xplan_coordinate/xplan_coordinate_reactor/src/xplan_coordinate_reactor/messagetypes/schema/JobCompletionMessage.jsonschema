@@ -14,7 +14,7 @@
         "error_message" : { "type" : "string" },
         "accepted" : { "type" : "string" },
         "created" : { "type" : "string" },
-        "endTime" : { "type" : "string" },
+        "endTime" : { "type" : ["string", "null"] },
         "lastUpdated" : { "type" : "string" },
         "uuid" : { "type" : "string" },
         "owner" : { "type" : "string" },
