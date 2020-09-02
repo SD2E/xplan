@@ -295,106 +295,6 @@ def generate_variables1(inputs):
     #l.debug("Values: %s", values)
     return variables, values
 
-def generate_variables(inputs):
-    """
-    Encoding variables and values
-    """
-
-    
-    samples = inputs['samples']
-    factors = inputs['factors']
-    containers = inputs['containers']
-    aliquots = [a for c in containers for a in containers[c]['aliquots']]
-
-    variables = {}
-    variables['reverse_index'] = {}
-    variables['tau_symbols'] = \
-      {
-          a : {
-              x:  Symbol("tau_{}".format(x, a))             
-              for x in samples
-            }
-            for a in aliquots
-      }
-    for aliquot in variables['tau_symbols']:
-        for sample in variables['tau_symbols'][aliquot]:
-            var = variables['tau_symbols'][aliquot][sample]
-            if var not in variables['reverse_index']:                
-                variables['reverse_index'][var] = {}
-            variables['reverse_index'][var].update({"sample": sample, "aliquot" : aliquot})
-            
-    variables['tau_symbols_perp'] = { x: Symbol("tau_{}=perp".format(x)) for x in samples }
-    variables['sample_factors'] = \
-      { 
-        sample: {
-            factor_id : {
-                level : Symbol("{}({})={}".format(factor_id, sample, level))
-                for level in factor['domain']
-                }
-                for factor_id, factor in factors.items()
-        }
-        for sample in samples
-      }
-    for sample in variables['sample_factors']:
-        for factor_id in variables['sample_factors'][sample]:
-            for level in variables['sample_factors'][sample][factor_id]:
-                var = variables['sample_factors'][sample][factor_id][level]
-                if var not in variables['reverse_index']:                
-                    variables['reverse_index'][var] = {}
-                variables['reverse_index'][var].update({"sample" : sample, factor_id : level})
-
-    
-    variables['sample_factors_perp'] = \
-      { 
-          sample: {
-              factor_id : Symbol("{}({})=perp".format(factor_id, sample))
-              for factor_id, factor in factors.items()
-            }  for sample in samples
-      }
-    
-    values = {}
-    values['perp'] = Int(-1)
-    values['min_aliquot'] = Int(0)
-    values['max_aliquot'] = Int(len(aliquots))
-
-    variables['exp_factor'] = \
-      {
-          factor_id : {
-              level : Symbol("{}_exp={}".format(factor_id, level))
-              for level in factor['domain'] 
-              }
-            for factor_id, factor in factors.items() if factor['ftype'] == "experiment"
-      }
-    variables['batch_factor'] = \
-      {
-          factor_id : {
-                level : {
-                    container : Symbol("{}_{}_batch={}".format(factor_id, container, level))
-                    for container in containers
-                    }
-                  for level in factor['domain']   
-              }
-              for factor_id, factor in factors.items() if factor['ftype'] == "batch"
-      }
-    variables['column_factor'] = \
-      {
-          factor_id : {
-              level : {
-                  col : Symbol("{}_{}_col={}".format(factor_id, col, level))  
-                  for _, container in containers.items()
-                  for col in container['columns']
-                  }
-                  for level in factor['domain']   
-            }
-          for factor_id, factor in factors.items() if factor['ftype'] == "column"
-      }
-
-    l.debug("Variables: %s", variables)
-    l.debug("Values: %s", values)
-    return variables, values
-
-
-
 
 
 def generate_constraints1(inputs, batch):
@@ -426,6 +326,7 @@ def generate_constraints1(inputs, batch):
     na_sample_factors = variables['na_sample_factors']
     na_column_factors = variables['na_column_factors']
     row_factor = variables['row_factor']
+    aliquot_factor_map = inputs["aliquot_factor_map"]
 
     container_assignment = inputs['container_assignment']
 
@@ -548,7 +449,7 @@ def generate_constraints1(inputs, batch):
           And(
             ## Every aliquot must satisfy the aliquot factors defined by the container
             And([#get_req_const(aliquot_factors[container_id][aliquot], factor, map_aliquot_property_level(level), factors)
-                 get_req_const(aliquot_factors[container_id][aliquot], factor, level, factors)
+                 get_req_const(aliquot_factors[container_id][aliquot], factor, aliquot_factor_map[factor][level], factors)
                  for factor, level in aliquot_properties.items() if factor in aliquot_factors[container_id][aliquot]]),
                  #,
             ## Every column factor implied by the container aliquots is satisfied
@@ -571,7 +472,8 @@ def generate_constraints1(inputs, batch):
                                                                      sample_factors, na_sample_factors,
                                                                      container_assignment, aliquot_factors,
                                                                      column_factor, row_factor, samples, batch_factor,
-                                                                     na_column_factors, aliquot_symmetry_samples, batch)
+                                                                     na_column_factors, aliquot_symmetry_samples, batch,
+                                                                     aliquot_factor_map)
 
     #l.debug("satisfy_every_requirement: %s", satisfy_every_requirement)
     constraints.append(satisfy_every_requirement)
@@ -618,7 +520,7 @@ def generate_constraints1(inputs, batch):
                for aliquot in container['aliquots']])
 
         # l.debug(replicate_symmetry_constraint)
-        constraints.append(replicate_symmetry_constraint)
+        #constraints.append(replicate_symmetry_constraint)
 
     ## Column reagents are set to zero if every aliquot in the column is empty
     if "None" in factors['strain']['domain']:
@@ -658,13 +560,15 @@ def container_consistent_with_batch(container_id, container_assignment, batch):
 
 def satisfy_every_requirement_constraint(requirements, containers, factors, sample_types, sample_factors,
                                          na_sample_factors, container_assignment, aliquot_factors, column_factor,
-                                         row_factor, samples, batch_factor, na_column_factors, aliquot_symmetry_samples, batch):
+                                         row_factor, samples, batch_factor, na_column_factors, aliquot_symmetry_samples, batch,
+                                        aliquot_factor_map):
     return And([
         And(
             req_experiment_factors(r_exp_factors(r, factors), factors),
             req_batch_factors(r, r_batch_factors(r, factors), containers, sample_types, sample_factors,
                               na_sample_factors, container_assignment, aliquot_factors, column_factor, row_factor,
-                              factors, samples, batch_factor, na_column_factors, aliquot_symmetry_samples, batch)
+                              factors, samples, batch_factor, na_column_factors, aliquot_symmetry_samples, batch,
+                        aliquot_factor_map)
         )
         for r in requirements])
 
@@ -791,7 +695,8 @@ def case_consistent_with_container(case, container_id, container_assignment):
 
 def req_aliquot_factors(r, r_aliquot_factors, containers, sample_types, sample_factors, na_sample_factors,
                         container_assignment, aliquot_factors, column_factor, row_factor, factors, samples,
-                        batch_factor, na_column_factors, aliquot_symmetry_samples, batch):
+                        batch_factor, na_column_factors, aliquot_symmetry_samples, batch,
+                        aliquot_factor_map):
     """
     Disjunction over aliquots, conjunction over factors and levels
     """
@@ -813,7 +718,8 @@ def req_aliquot_factors(r, r_aliquot_factors, containers, sample_types, sample_f
                 for aliquot in container['aliquots']:
                     if aliquot_can_satisfy_requirement(aliquot, container_id, container,
                                                        [{"factor" : factor, "values" : [level]} for factor, level in case.items()],
-                                                       aliquot_symmetry_samples):
+                                                       aliquot_symmetry_samples,
+                                                       aliquot_factor_map):
                         possible_aliquots.append(aliquot)
                         aliquot_clause = And(
                                           ## Satisfy aliquot factors
@@ -912,18 +818,21 @@ def req_row_factors(r, r_row_factors, cases, container_id, rows, row_factor, fac
 
 def req_batch_factors(r, r_batch_factors, containers, sample_types, sample_factors, na_sample_factors,
                       container_assignment, aliquot_factors, column_factor, row_factor, factors, samples, batch_factor,
-                      na_column_factors, aliquot_symmetry_samples, batch):
+                      na_column_factors, aliquot_symmetry_samples, batch,
+                        aliquot_factor_map):
     """
     Satisfying a batch requirement requires having enough containers to
     satisfy each combination
     """
     clause = req_aliquot_factors(r, r_aliquot_factors(r, factors), containers, sample_types, sample_factors,
                                  na_sample_factors, container_assignment, aliquot_factors, column_factor, row_factor,
-                                 factors, samples, batch_factor, na_column_factors, aliquot_symmetry_samples, batch)
+                                 factors, samples, batch_factor, na_column_factors, aliquot_symmetry_samples, batch,
+                                 aliquot_factor_map
+    )
     return clause
 
 
-def aliquot_can_satisfy_requirement(aliquot, container_id, container, requirement, aliquot_symmetry_samples):
+def aliquot_can_satisfy_requirement(aliquot, container_id, container, requirement, aliquot_symmetry_samples, aliquot_factor_map):
     """
     Are the aliquot properties consistent with requirement?
     Both are a conjunction of factor assignments, so make
@@ -952,7 +861,8 @@ def aliquot_can_satisfy_requirement(aliquot, container_id, container, requiremen
         # l.debug("checking: %s %s", factor, level)
         if factor in requirement_factors:
             # l.debug("Is %s in %s", level, requirement_levels[factor])
-            if level not in requirement_levels[factor]:
+
+            if aliquot_factor_map[factor][level] not in requirement_levels[factor]:
                 # l.debug("no")
                 return False
 
@@ -1059,6 +969,10 @@ def fill_empty_aliquots(factors, requirements, batch_aliquots):
         new_factors = factors.copy()
         if "None" not in new_factors['strain']['domain']:
             new_factors['strain']['domain'].append("None")
+        if 'attributes' in factors['strain'] and "None" not in new_factors['strain']['attributes']:
+            factor_attributes = list(set([key for _, v in factors['strain']['attributes'].items()
+                                          for key in v.keys()]))
+            new_factors['strain']['attributes']["None"] = { k : "None"  for k in factor_attributes}
         new_factors['replicate']['domain'] = [1, max(factors['replicate']['domain'][1], max_none)]
 
         l.debug("new_factors: %s", new_factors['strain']['domain'])
@@ -1483,6 +1397,10 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
 
     input['float_map'] = map_floats(input)
 
+
+    input["aliquot_factor_map"] = get_aliquot_factor_map(containers, input['factors'])
+
+
     l.info("Generating Constraints ...")
 
     solutions = []
@@ -1508,6 +1426,40 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
             solutions.append((model, variables))
     
     return solutions
+
+def get_aliquot_factor_map(c2ds, factors):
+    """
+    The containers sometimes use different values for their factors than those
+    that are specified in the experiment request.  This function decides what values
+    to use for a factor if the factor has additional attributes that will match with
+    values in the container aliquot properties.
+    :param c2ds: containers
+    :param factors: experimental request factors
+    :return: { factor : mapped_value}
+    """
+    ## Initialize map with all factors that don't have other possbible values
+    aliquot_factor_map = { factor_id : { level : level for  level in factor['domain']}
+                           for factor_id, factor in factors.items() if 'attributes' not in factor}
+
+    ## Get mapping for all mappable factors
+    for factor in factors:
+        if factor not in aliquot_factor_map:
+            container_levels = set([aliquot_properties[factor]
+                                   for container_id, container in c2ds.items()
+                                   for aliquot_id, aliquot_properties in container['aliquots'].items()
+                                    if factor in aliquot_properties])
+            factor_attributes = list(set([key for _, v in factors[factor]['attributes'].items()
+                                              for key in v.keys()]))
+            factor_levels = {attribute : set([v[attribute] for _, v in factors[factor]['attributes'].items()])
+                             for attribute in factor_attributes}
+            level_intersection = {attribute: len(container_levels.intersection(factor_levels[attribute]))
+                                  for attribute in factor_attributes}
+            best_attribute = max(level_intersection, key=level_intersection.get)
+            factor_map = {factors[factor]['attributes'][level][best_attribute] : level for level in factors[factor]['domain']}
+            aliquot_factor_map[factor] = factor_map
+
+
+    return aliquot_factor_map
 
 def preprocess_containers(input, sample_types, strain_counts, sample_factors, aliquot_samples, container_assignment):
     """

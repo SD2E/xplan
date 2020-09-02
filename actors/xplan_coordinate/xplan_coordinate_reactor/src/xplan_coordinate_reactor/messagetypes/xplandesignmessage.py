@@ -160,7 +160,7 @@ class XPlanDesignMessage(AbacoMessage):
         parameters = design_to_parameters(invocation,
                                           design,
                                           lab_cfg,
-                                          out_dir=out_dir)
+                                          out_dir=challenge_out_dir)
         r.logger.info("design_to_parameters:\n{}\n".format(parameters))
 
         # FIXME don't hardcode this?

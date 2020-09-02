@@ -4,18 +4,12 @@ from xplan_design.experiment_design import ExperimentDesign
 from xplan_utils.helpers import get_experiment_design, get_experiment_request
 from xplan_submit.lab.strateos.write_parameters import design_to_parameters
 
-def write_params(experiment_id, input_dir = "../resources/YEAST_STATES"):
-    experiment_request = get_experiment_request(experiment_id, input_dir)
-    experiment_design = get_experiment_design(experiment_id, input_dir)
+def write_params(experiment_id, input_dir = "../resources", challenge_problem="YEAST_STATES", out_dir="../test_out"):
     transcriptic_cfg = os.path.join(os.path.curdir, "../../../../secrets/tx_secrets.json")
 
-    out_dir = os.path.join(os.path.curdir, "../test_out")
-    if not os.path.exists(out_dir):
-        os.mkdir(out_dir)
-
     with open(transcriptic_cfg, "r") as tx_secret:
-        design_to_parameters(experiment_request,
-                             experiment_design,
+        design_to_parameters(experiment_id,
+                             challenge_problem,
                              json.load(tx_secret),
                              out_dir=out_dir)
 

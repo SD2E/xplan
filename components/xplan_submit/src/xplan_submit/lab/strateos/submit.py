@@ -16,18 +16,16 @@ from xplan_utils.lab.strateos.utils import TranscripticApiError, get_transcripti
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
-def  submit_experiment(experiment_id, tx_cfg, tx_params,
+def  submit_experiment(experiment_id, challenge_problem,
+                       tx_cfg, tx_params,
                        input_dir=".", out_dir=".", batches=None, mock=False):
-    experiment_design = get_experiment_design(experiment_id, input_dir)
-    experiment_request = get_experiment_request(experiment_id, input_dir)
+    challenge_in_dir = os.path.join(input_dir, challenge_problem)
+    challenge_out_dir = os.path.join(out_dir, challenge_problem)
+    experiment_design = get_experiment_design(experiment_id, challenge_in_dir)
+    experiment_request = get_experiment_request(experiment_id, challenge_in_dir)
 
     experiment_id = experiment_request['experiment_id']
     base_dir = experiment_request.get('base_dir', ".")
-    challenge_problem = experiment_request.get('challenge_problem')
-    if base_dir == ".":
-        challenge_out_dir = os.path.join(out_dir, challenge_problem)
-    else:
-        challenge_out_dir = os.path.join(out_dir, base_dir, challenge_problem)
     protocol_id = experiment_request['defaults']['protocol_id']
     test_mode = experiment_request['defaults']['test_mode']
 
@@ -45,6 +43,7 @@ def  submit_experiment(experiment_id, tx_cfg, tx_params,
         (submit_id, params_file_name) = submit_plate(experiment_id,
                                                      batch['id'],
                                                      challenge_problem,
+                                                     challenge_in_dir,
                                                      challenge_out_dir,
                                                      mock,
                                                      tx_proj_id,
@@ -81,11 +80,11 @@ def  submit_experiment(experiment_id, tx_cfg, tx_params,
             complete_tx_test_run(tx_proj_id, run_id, tx_cfg)
 
 
-def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
+def submit_plate(experiment_id, plate_id, challenge_problem, in_dir, out_dir,
                  tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg):
     l.info("Handling plate: " + plate_id)
 
-    params_file_name = get_params_file_path(experiment_id, plate_id, out_dir)
+    params_file_name = get_params_file_path(experiment_id, plate_id, in_dir)
     l.info("Submitting param file: " + params_file_name)
     params_for_plate = json.load(open(params_file_name, 'r'))
     submit_resp = None

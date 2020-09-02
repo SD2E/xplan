@@ -21,11 +21,16 @@ l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
 def design_to_parameters(experiment_id,
+                         challenge_problem,
                          transcriptic_cfg,
                          input_dir=".",
                          out_dir="."):
-    experiment_design = get_experiment_design(experiment_id, input_dir)
-    experiment_request = get_experiment_request(experiment_id, input_dir)
+
+    challenge_in_dir = os.path.join(input_dir, challenge_problem)
+    challenge_out_dir = os.path.join(out_dir, challenge_problem)
+
+    experiment_design = get_experiment_design(experiment_id, challenge_in_dir)
+    experiment_request = get_experiment_request(experiment_id, challenge_in_dir)
 
     design = pd.read_json(experiment_design['design'])
 
@@ -50,13 +55,6 @@ def design_to_parameters(experiment_id,
     except Exception as exc:
         l.error("Failed connecting to Transcriptic")
         raise TranscripticApiError(exc)
-
-    base_dir = experiment_request.get('base_dir', ".")
-    challenge_problem = experiment_request.get('challenge_problem')
-    if base_dir == ".":
-        challenge_out_dir = os.path.join(out_dir, challenge_problem)
-    else:
-        challenge_out_dir = os.path.join(out_dir, base_dir, challenge_problem)
 
     params = {}
     for batch in batches:
@@ -259,8 +257,8 @@ def add_reagent_concentrations(invocation_params, batch_samples, reagents, param
 
             ## If there are multiple reagents in the ER, then need to select the right one for this plate
             reagent_name = reagent.split("_concentration")[0]
-            if 'inducers' in parameters:
-                for k, v in parameters['inducers'][reagent_name].items():
+            if 'inducers' in parameters['induction_info.induction_reagents']:
+                for k, v in parameters['induction_info.induction_reagents']['inducers'][reagent_name].items():
                     make_entry(invocation_params, k, v)
 
             col_conc = col_conc_df.astype({"conc": "float", "col_num": "int32"}).to_dict('records')
@@ -500,11 +498,11 @@ def get_container_for_batch(batch, batch_samples, design, condition_space,
         non_shadow_design['container'] = non_shadow_design.apply(assign_container_id, axis=1)
 
     ## Get the output_id and container from the projected design and merge back into overall design
-    fdf = non_shadow_design[['id', 'output_id', 'container']]
+    fdf = non_shadow_design[['id', 'output_id', 'container']].drop_duplicates()
 
     if 'container' in design.columns:
         design = design.drop(columns=['container'])
-    design = design.drop(columns=['output_id']).merge(fdf, how='left', on='id')
+    design = design.drop(columns=['output_id']).merge(fdf, how='left', on='id').drop_duplicates()
 
     return design, source_container, samples
 
@@ -534,7 +532,7 @@ def get_time_series_invocation_parameters(batch_samples,
     invocation_params = AutoVivification()
     exp_params = parameters.copy()
 
-    omit_parameters = ["inducers"]
+    omit_parameters = ["induction_info.induction_reagents"]
 
     for k, v in exp_params.items():
         l.debug("Setting %s = %s", str(k), str(v))

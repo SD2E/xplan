@@ -19,18 +19,21 @@ from xplan_utils import persist
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
-def generate_design(experiment_id, transcriptic_cfg, input_dir='.', out_dir='.'):
+def generate_design(experiment_id, challenge_problem, transcriptic_cfg, input_dir='.', out_dir='.'):
     """
     Handle experiment request based upon condition space factors
     """
     l.info("Processing GenExperimentRequestMessageFactors")
-    request = get_experiment_request(experiment_id, input_dir)
+
+    challenge_in_dir = os.path.join(input_dir, challenge_problem)
+    challenge_out_dir = os.path.join(out_dir, challenge_problem)
+
+
+    request = get_experiment_request(experiment_id, challenge_in_dir)
 
     experiment_id = request.get('experiment_id')
-    base_dir = request.get('base_dir', ".")
     experiment_reference = request.get('experiment_reference')
     experiment_reference_url = request.get('experiment_reference_url')
-    challenge_problem = request.get('challenge_problem')
     condition_space = ConditionSpace(factors=request.get('condition_space')['factors'])
     solver_type = request.get('solver_type', "smt")
     batches = request.get('batches')
@@ -55,12 +58,6 @@ def generate_design(experiment_id, transcriptic_cfg, input_dir='.', out_dir='.')
         num_blank_wells = 2  # Strateos requires two blank wells
         blank_wells = []
 
-    if base_dir == ".":
-        challenge_in_dir = os.path.join(input_dir, challenge_problem)
-        challenge_out_dir = os.path.join(out_dir, challenge_problem)
-    else:
-        challenge_in_dir = os.path.join(input_dir, base_dir, challenge_problem)
-        challenge_out_dir = os.path.join(out_dir, base_dir, challenge_problem)
     l.info("challenge_problem = " + challenge_problem)
 
     state = persist.get_state(challenge_in_dir)
@@ -153,7 +150,7 @@ def generate_design(experiment_id, transcriptic_cfg, input_dir='.', out_dir='.')
     #    raise Exception("TODO: Implement submission coordination")
     #    #submit_experiment(robj, experiment_id, challenge_out_dir, challenge_problem, protocol_id, test_mode)
 
-    put_experiment_design(experiment_design, out_dir)
+    put_experiment_design(experiment_design, challenge_out_dir)
 
     return experiment_design
 
@@ -264,6 +261,9 @@ def get_plate_layout_dfs(design, volume=50):
             for container_id, container in containers}
 
 
+
+
+
 def generate_experiment_request_smt(conditions,
                                     parameters,
                                     condition_space,
@@ -289,6 +289,7 @@ def generate_experiment_request_smt(conditions,
     for factor_id, factor in factors.items():
         if factor['dtype'] == "float" and len(factor['domain']) == 1:
             factor['domain'].append(factor['domain'][0])
+
 
     inputs = {
         "samples": None,

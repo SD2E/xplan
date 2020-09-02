@@ -142,6 +142,7 @@
             "run_info.only_endpoint_flow": false,
             "run_info.read_each_recovery": true,
             "run_info.read_each_induction": true,
+            "validate_samples": false,
             "exp_info.media_well_strings": "94, 95",
             "induction_info.sampling_info.read_solv_vol": "0:microliter",
             "induction_info.sampling_info.read_solv": "None",
