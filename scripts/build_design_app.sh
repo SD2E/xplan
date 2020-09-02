@@ -13,7 +13,7 @@ cp ${DESIGN_DIR}/project.ini ${DESIGN_DIR}/project.ini.back
 
 cd ${DESIGN_DIR}
 # app
-sed -i "s@name = jladwig_xplan_design@name = ${APP_NAME}@g" project.ini
+sed -i "s@name = jladwig_xplan2_design@name = ${APP_NAME}@g" project.ini
 sed -i "s@deployment_system = data-tacc-work-jladwig@deployment_system = ${APP_DEPLOYMENT_SYSTEM}@g" project.ini
 sed -i "s@execution_system =  hpc-tacc-wrangler-jladwig@execution_system = ${APP_EXECUTION_SYSTEM}@g" project.ini
 sed -i "s@version = 0.0.1@version = ${APP_VERSION}@g" project.ini
