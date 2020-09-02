@@ -1,6 +1,32 @@
+# general
+XPLAN_USER=dbryce
+XPLAN_EMAIL=dbryce@sift.net
+XPLAN_DOCKER_NAMESPACE=danbryce
 
-DESIGN_APP_TAG=sd2e/xplan:2.0
-XPLAN_DESIGN_APP_ID=xplan_design-0.0.1
-REMOTE_WORK_DIR=data-tacc-work-dbryce
-REACTOR_TAG=sd2e/xplan-reactor:2.0
+# remote
+REMOTE_WORK_DIR=data-tacc-work-${XPLAN_USER}
+
+#
+# xplan design app
+#
+APP_NAME=${XPLAN_USER}_xplan2_design
+APP_DEPLOYMENT_SYSTEM=data-tacc-work-${XPLAN_USER}
+APP_EXECUTION_SYSTEM=hpc-tacc-wrangler-${XPLAN_USER}
+APP_VERSION=0.0.1
+
+# docker
+APP_DOCKER_NAMESPACE=${XPLAN_DOCKER_NAMESPACE}
+APP_DOCKER_REPO=xplan2_design
+APP_DOCKER_TAG=${APP_VERSION}
+
+#
+# xplan reactor
+#
 REACTOR_NAME=xplan2-reactor
+REACTOR_ALIAS=xplan2
+
+# docker
+REACTOR_DOCKER_HUB_ORG=${XPLAN_DOCKER_NAMESPACE}
+REACTOR_DOCKER_IMAGE_TAG=xplan2
+REACTOR_DOCKER_IMAGE_VERSION=2.0
+
