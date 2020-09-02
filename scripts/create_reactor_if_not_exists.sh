@@ -27,6 +27,7 @@ REACTOR_DIR="${DIR}/../actors/xplan_coordinate"
 # refresh backup files
 cp ${REACTOR_DIR}/config.yml ${REACTOR_DIR}/config.yml.back
 cp ${REACTOR_DIR}/reactor.rc ${REACTOR_DIR}/reactor.rc.back
+cp ${REACTOR_DIR}/Dockerfile ${REACTOR_DIR}/Dockerfile.back
 
 cd ${REACTOR_DIR}
 # reactor.rc
@@ -66,6 +67,7 @@ rm -rf ./xplan_submit
 # Reset from back files
 mv ${REACTOR_DIR}/config.yml.back ${REACTOR_DIR}/config.yml
 mv ${REACTOR_DIR}/reactor.rc.back ${REACTOR_DIR}/reactor.rc
+mv ${REACTOR_DIR}/Dockerfile.back ${REACTOR_DIR}/Dockerfile
 
 set +x # deactivate debugging
 
