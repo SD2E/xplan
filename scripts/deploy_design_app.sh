@@ -7,7 +7,7 @@ set -x # activate debugging
 
 DESIGN_DIR="${DIR}/../apps/xplan_design"
 
-$DIR/build_design.app.sh
+$DIR/build_design_app.sh
 docker push ${APP_CONTAINER_FULL_NAME}
 
 ## tapis requires that docker build context is the same as the working directory
