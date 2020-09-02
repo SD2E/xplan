@@ -15,7 +15,7 @@ from xplan_submit.lab.strateos.write_parameters import design_to_parameters
 class XPlanDesignMessage(AbacoMessage):
 
     JOB_SPEC = AttrDict({
-        "app_id": "jladwig_xplan_design-0.0.1",
+        "app_id": "jladwig_xplan2_design-0.0.1",
         "base_name": "xplan_design_job-",
         "batchQueue": "all",
         "max_run_time": "01:00:00",

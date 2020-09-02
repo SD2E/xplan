@@ -6,7 +6,7 @@ ADD ./xplan_coordinate_reactor /xplan_coordinate_reactor
 
 ## Replace the design app id in the reactor, so it points to the correct app
 ENV XPLAN_DESIGN_APP_ID="jladwig_xplan2_design-0.0.1"
-RUN sed -i "s@jladwig_xplan_design-0.0.1@${XPLAN_DESIGN_APP_ID}@g" /xplan_coordinate_reactor/src/xplan_coordinate_reactor/messagetypes/xplandesignmessage.py
+RUN sed -i "s@jladwig_xplan2_design-0.0.1@${XPLAN_DESIGN_APP_ID}@g" /xplan_coordinate_reactor/src/xplan_coordinate_reactor/messagetypes/xplandesignmessage.py
 
 # FIXME this is more the "reactor archive system" than "app deployment system"
 # but I am currently forcing it to use the app deployment system until we

@@ -44,8 +44,8 @@ fi
 
 ## abaco won't pass along build args, so have to sed in the arg value into the Dockerfile
 echo $XPLAN_DESIGN_APP_ID
-# echo "sed -i "s@XPLAN_DESIGN_APP_ID=['\"]jladwig_xplan_design-0.0.1['\"]@XPLAN_DESIGN_APP_ID=\"${XPLAN_DESIGN_APP_ID}\"@g" Dockerfile"
-sed -i "s@XPLAN_DESIGN_APP_ID=['\"]jladwig_xplan_design-0.0.1['\"]@XPLAN_DESIGN_APP_ID=\"${XPLAN_DESIGN_APP_ID}\"@g" Dockerfile
+# echo "sed -i "s@XPLAN_DESIGN_APP_ID=['\"]jladwig_xplan2_design-0.0.1['\"]@XPLAN_DESIGN_APP_ID=\"${XPLAN_DESIGN_APP_ID}\"@g" Dockerfile"
+sed -i "s@XPLAN_DESIGN_APP_ID=['\"]jladwig_xplan2_design-0.0.1['\"]@XPLAN_DESIGN_APP_ID=\"${XPLAN_DESIGN_APP_ID}\"@g" Dockerfile
 sed -i "s@APP_DEPLOYMENT_SYSTEM=['\"]data-tacc-work-jladwig['\"]@APP_DEPLOYMENT_SYSTEM=\"${APP_DEPLOYMENT_SYSTEM}\"@g" Dockerfile
 
 cat Dockerfile
