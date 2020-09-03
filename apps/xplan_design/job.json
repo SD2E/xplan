@@ -1,6 +1,6 @@
 {
   "name": "xplan_design-job-1592257880145",
-  "appId": "xplan_design-0.0.1",
+  "appId": "dbryce_xplan2_design-0.0.1 ",
   "batchQueue": "all",
   "maxRunTime": "01:00:00",
   "memoryPerNode": "1GB",
