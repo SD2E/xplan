@@ -249,3 +249,6 @@ def download_dir(r: Reactor, downloadURI: str, destPath: str, *, recursive=True,
         out_path = os.path.join(out_dir, os.path.basename(file))
         with open(out_path, 'wb') as f:
             f.write(resp.content)
+            if verbose is True:
+                r.logger.info("Wrote file: {}".format(out_path))
+

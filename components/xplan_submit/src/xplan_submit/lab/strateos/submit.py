@@ -21,6 +21,7 @@ def  submit_experiment(experiment_id, challenge_problem,
                        input_dir=".", out_dir=".", batches=None, mock=False):
     challenge_in_dir = os.path.join(input_dir, challenge_problem)
     challenge_out_dir = os.path.join(out_dir, challenge_problem)
+    experiment_out_dir = os.path.join(challenge_out_dir, 'experiments', experiment_id)
     experiment_design = get_experiment_design(experiment_id, challenge_in_dir)
     experiment_request = get_experiment_request(experiment_id, challenge_in_dir)
 
@@ -44,7 +45,7 @@ def  submit_experiment(experiment_id, challenge_problem,
                                                      batch['id'],
                                                      challenge_problem,
                                                      challenge_in_dir,
-                                                     challenge_out_dir,
+                                                     experiment_out_dir,
                                                      mock,
                                                      tx_proj_id,
                                                      protocol_id,
@@ -98,6 +99,7 @@ def submit_plate(experiment_id, plate_id, challenge_problem, in_dir, out_dir,
                                                  challenge_problem,
                                                  out_dir,
                                                  tx_cfg,
+                                                 plate_id,
                                                  test_mode=tx_test_mode)
             submit_id = submit_resp['id']
         else:
@@ -110,7 +112,7 @@ def submit_plate(experiment_id, plate_id, challenge_problem, in_dir, out_dir,
 
 
 def submit_to_transcriptic(project_id, protocol_id,
-                           params, challenge_problem, out_dir, tx_cfg, test_mode=True):
+                           params, challenge_problem, out_dir, tx_cfg, plate_id, test_mode=True):
     """Submit to transcriptic and record response"""
 
     launch_request_id = None
@@ -130,7 +132,7 @@ def submit_to_transcriptic(project_id, protocol_id,
         l.info("Transcriptic.launch_protocol")
 
         # print(params)
-        launch_request = _create_launch_request(params, test_mode=test_mode, out_dir=out_dir)
+        launch_request = _create_launch_request(params, plate_id, test_mode=test_mode, out_dir=out_dir)
         l.debug("get launch_protocol " + str(launch_request))
         try:
             launch_protocol = conn.launch_protocol(launch_request,
@@ -183,14 +185,14 @@ def submit_to_transcriptic(project_id, protocol_id,
         raise TranscripticApiError(exc)
 
 
-def _create_launch_request(params, bsl=1, test_mode=False, out_dir='.'):
+def _create_launch_request(params, plate_id, bsl=1, test_mode=False, out_dir='.'):
     """Creates launch_request from input params"""
     params_dict = dict()
     params_dict["launch_request"] = params
     params_dict["launch_request"]["bsl"] = bsl
     params_dict["launch_request"]["test_mode"] = test_mode
 
-    with open(os.path.join(out_dir, 'launch_request.json'), 'w') as lr:
+    with open(os.path.join(out_dir, 'launch_request_{}.json'.foramt(plate_id)), 'w') as lr:
         json.dump(params_dict, lr, sort_keys=True,
                   indent=2, separators=(',', ': '))
     return json.dumps(params_dict)

@@ -118,7 +118,8 @@ class XPlanDesignMessage(AbacoMessage):
                                   experiment_id,
                                   challenge_problem,
                                   self.get_lab_configuration(r, msg),
-                                  local_out)
+                                  local_out,
+                                  test_mode=test_mode)
 
         # Upload the finished experiment files
         r.logger.info("Upload:\n  from: {}\n  to: {}".format(
@@ -150,13 +151,12 @@ class XPlanDesignMessage(AbacoMessage):
         return cfg_resp.json()
 
     def handle_design_output(self, r: Reactor, experiment_id, challenge_problem, lab_cfg, out_dir: str):
-        challenge_out_dir = self.get_challenge_dir(experiment_id, challenge_problem, out_dir)
 
         design_to_parameters(experiment_id,
                              challenge_problem,
                              lab_cfg,
-                             input_dir=challenge_out_dir,
-                             out_dir=challenge_out_dir)
+                             input_dir=out_dir,
+                             out_dir=out_dir)
         r.logger.info("design_to_parameters:\n{}\n".format(experiment_id))
 
         # FIXME don't hardcode this?
