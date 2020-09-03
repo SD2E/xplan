@@ -37,7 +37,7 @@ build-xplan-design-app:
 test-xplan-design-app: build-xplan-design-app test-xplan-design-app-local
 
 test-xplan-design-app-local: build-xplan-design-app
-	sh scripts/run_docker.sh ${TMP_OUT} ${APP_CONTAINER_FULL_NAME} invocation_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json
+	sh scripts/run_docker.sh ${TMP_OUT} ${APP_CONTAINER_FULL_NAME} experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves YEAST_STATES
 
 test-xplan-design-app-remote: deploy-xplan-design-app
 	tapis auth init

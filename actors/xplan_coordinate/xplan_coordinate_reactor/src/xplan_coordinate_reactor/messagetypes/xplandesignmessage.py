@@ -26,7 +26,8 @@ class XPlanDesignMessage(AbacoMessage):
         "archiveSystem": "data-tacc-work-jladwig",
         "archivePath": "xplan2/archive/jobs/job-${JOB_ID}",
         "inputs": [
-            "invocation",
+            "experiment_id",
+            "challenge_problem",
             "lab_configuration",
             "out_dir"
         ],
@@ -35,7 +36,8 @@ class XPlanDesignMessage(AbacoMessage):
 
     def process_message(self, r: Reactor):
         msg = getattr(self, 'body')
-        msg_invocation = msg.get('invocation')
+        msg_experiment_id = msg.get('experiment_id')
+        msg_challenge_problem = msg.get('challenge_problem')
         msg_lab_configuration = msg.get('lab_configuration')
         msg_out_dir = msg.get('out_dir')
         (out_dir_system, out_dir_path) = split_agave_uri(msg_out_dir)
@@ -50,7 +52,7 @@ class XPlanDesignMessage(AbacoMessage):
         # slightly different for the finalize stage. But it should
         # resolve issues with consecutive runes massively increasing
         # storage use (due to pulling in archive data)
-        data_path = os.path.join(out_dir_path, "data")
+        data_path = os.path.join(out_dir_path, msg_challenge_problem)
         ensure_path_on_system(r, out_dir_system, data_path, verbose=True)
         msg['out_dir'] = make_agave_uri(out_dir_system, data_path)
 
@@ -59,8 +61,8 @@ class XPlanDesignMessage(AbacoMessage):
         custom_job_spec['archivePath'] = archive_path
 
         r.logger.info(
-            "Process xplan design message \n  Invocation: {}\n  Lab Configuration: {}\n  OutDir: {}\n  Data Path: {}\n  Archive Path: {}\n  Archive System: {}"
-            .format(msg_invocation, msg_lab_configuration, msg_out_dir, data_path, archive_path, archive_system))
+            "Process xplan design message \n  Experiment ID: {}\n Challenge Problem: {}\n  Lab Configuration: {}\n  OutDir: {}\n  Data Path: {}\n  Archive Path: {}\n  Archive System: {}"
+            .format(msg_experiment_id, msg_challenge_problem, msg_lab_configuration, msg_out_dir, data_path, archive_path, archive_system))
 
         job_id = launch_job(r, msg, custom_job_spec)
         if (job_id is None):
@@ -85,13 +87,14 @@ class XPlanDesignMessage(AbacoMessage):
         archive_system = job.get("archiveSystem")
         archive_path = job.get("archivePath")
 
-        invocation_uri = msg.get('invocation')
-        invocation_resp = download_file(r, invocation_uri)
-        if not invocation_resp.ok:
-            raise XPlanDesignMessageError("Failed to download invocation file")
-        invocation = invocation_resp.json()
+        #invocation_uri = msg.get('invocation')
+        #invocation_resp = download_file(r, invocation_uri)
+        #if not invocation_resp.ok:
+        #    raise XPlanDesignMessageError("Failed to download invocation file")
+        #invocation = invocation_resp.json()
 
-        challenge_problem = invocation.get('challenge_problem')
+        experiment_id = msg.get('experiment_id')
+        challenge_problem = msg.get('challenge_problem')
         r.logger.info("challenge_problem = " + challenge_problem)
         archive_out_dir = os.path.join(archive_path, out_basename)
         upload_out_dir = os.path.join(out_path)
@@ -112,7 +115,8 @@ class XPlanDesignMessage(AbacoMessage):
 
         # Do final processing
         self.handle_design_output(r,
-                                  invocation,
+                                  experiment_id,
+                                  challenge_problem,
                                   self.get_lab_configuration(r, msg),
                                   local_out)
 
@@ -133,13 +137,8 @@ class XPlanDesignMessage(AbacoMessage):
             f.write(resp.content)
 
     # TODO make helper
-    def get_challenge_dir(self, invocation, out_dir):
-        base_dir = invocation.get('base_dir', '.')
-        challenge_problem = invocation.get('challenge_problem')
-        if base_dir == ".":
-            return os.path.join(out_dir, challenge_problem)
-        else:
-            return os.path.join(out_dir, base_dir, challenge_problem)
+    def get_challenge_dir(self, experiment_id, challenge_problem, out_dir):
+        return os.path.join(out_dir, challenge_problem, 'experiments', experiment_id)
 
     # TODO resolve how multiple labs work in this system
     def get_lab_configuration(self, r: Reactor, msg):
@@ -150,18 +149,15 @@ class XPlanDesignMessage(AbacoMessage):
                 "Failed to download lab_configuration file")
         return cfg_resp.json()
 
-    def handle_design_output(self, r: Reactor, invocation, lab_cfg, out_dir: str):
-        xplan_config = r.settings['xplan_config']
-        experiment_id = invocation.get('experiment_id')
+    def handle_design_output(self, r: Reactor, experiment_id, challenge_problem, lab_cfg, out_dir: str):
+        challenge_out_dir = self.get_challenge_dir(experiment_id, challenge_problem, out_dir)
 
-        challenge_out_dir = self.get_challenge_dir(invocation, out_dir)
-        design = get_experiment_design(experiment_id, challenge_out_dir)
-
-        parameters = design_to_parameters(invocation,
-                                          design,
-                                          lab_cfg,
-                                          out_dir=challenge_out_dir)
-        r.logger.info("design_to_parameters:\n{}\n".format(parameters))
+        design_to_parameters(experiment_id,
+                             challenge_problem,
+                             lab_cfg,
+                             input_dir=challenge_out_dir,
+                             out_dir=challenge_out_dir)
+        r.logger.info("design_to_parameters:\n{}\n".format(experiment_id))
 
         # FIXME don't hardcode this?
         transcriptic_params = {
@@ -174,13 +170,7 @@ class XPlanDesignMessage(AbacoMessage):
             }
         }
 
-        # If submit is present and True then we are not doing
-        # a mock submission. If submit is False or not present
-        # then do a mock submission.
-        mock = not invocation.get('submit', False)
-        r.logger.info("mock: {}".format(mock))
-
-        submit_experiment(invocation, xplan_config, lab_cfg, transcriptic_params, out_dir=out_dir, mock=mock)
+        submit_experiment(experiment_id, challenge_problem, lab_cfg, transcriptic_params, input_dir=out_dir, out_dir=out_dir)
 
 
 class XPlanDesignMessageError(AbacoMessageError):

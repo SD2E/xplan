@@ -20,9 +20,16 @@
   "version": "{{ app.version }}",
   "defaultMaxRunTime": "00:30:00",
   "inputs": [    {
-    "id": "invocation",
+    "id": "experiment_id",
     "details": {
-      "label": "Invocation File"
+      "label": "Experiment ID"
+    },
+    "semantics": {}
+  },
+    {
+    "id": "challenge_problem",
+    "details": {
+      "label": "Challenge Problem"
     },
     "semantics": {}
   },
