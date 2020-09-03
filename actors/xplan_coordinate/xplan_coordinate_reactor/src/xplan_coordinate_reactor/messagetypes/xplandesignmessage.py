@@ -26,12 +26,13 @@ class XPlanDesignMessage(AbacoMessage):
         "archiveSystem": "data-tacc-work-jladwig",
         "archivePath": "xplan2/archive/jobs/job-${JOB_ID}",
         "inputs": [
-            "experiment_id",
-            "challenge_problem",
             "lab_configuration",
             "out_dir"
         ],
-        "parameters": []
+        "parameters": [
+            "experiment_id",
+            "challenge_problem"
+        ]
     })
 
     def process_message(self, r: Reactor):
@@ -52,9 +53,8 @@ class XPlanDesignMessage(AbacoMessage):
         # slightly different for the finalize stage. But it should
         # resolve issues with consecutive runes massively increasing
         # storage use (due to pulling in archive data)
-        data_path = os.path.join(out_dir_path, msg_challenge_problem)
-        ensure_path_on_system(r, out_dir_system, data_path, verbose=True)
-        msg['out_dir'] = make_agave_uri(out_dir_system, data_path)
+        ensure_path_on_system(r, out_dir_system, out_dir_path, verbose=True)
+        msg['out_dir'] = make_agave_uri(out_dir_system, out_dir_path)
 
         custom_job_spec = AttrDict(self.JOB_SPEC.copy())
         custom_job_spec['archiveSystem'] = archive_system
@@ -62,7 +62,7 @@ class XPlanDesignMessage(AbacoMessage):
 
         r.logger.info(
             "Process xplan design message \n  Experiment ID: {}\n Challenge Problem: {}\n  Lab Configuration: {}\n  OutDir: {}\n  Data Path: {}\n  Archive Path: {}\n  Archive System: {}"
-            .format(msg_experiment_id, msg_challenge_problem, msg_lab_configuration, msg_out_dir, data_path, archive_path, archive_system))
+            .format(msg_experiment_id, msg_challenge_problem, msg_lab_configuration, msg_out_dir, out_dir_path, archive_path, archive_system))
 
         job_id = launch_job(r, msg, custom_job_spec)
         if (job_id is None):

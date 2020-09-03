@@ -39,7 +39,7 @@ test-xplan-design-app: build-xplan-design-app test-xplan-design-app-local
 test-xplan-design-app-local: build-xplan-design-app
 	sh scripts/run_docker.sh ${TMP_OUT} ${APP_CONTAINER_FULL_NAME} experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves YEAST_STATES
 
-test-xplan-design-app-remote: deploy-xplan-design-app
+test-xplan-design-app-remote:
 	tapis auth init
 	sh scripts/run_tapis_app.sh ${REMOTE_WORK_DIR}
 
@@ -64,5 +64,5 @@ clean-deploy-xplan-design-app:
 deploy-xplan-reactor:
 	scripts/create_reactor_if_not_exists.sh
 
-test-xplan-reactor-remote: deploy-xplan-design-app deploy-xplan-reactor
+test-xplan-reactor-remote:
 	scripts/run_reactor.sh
