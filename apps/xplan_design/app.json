@@ -19,20 +19,7 @@
   "testPath": "tester.sh",
   "version": "{{ app.version }}",
   "defaultMaxRunTime": "00:30:00",
-  "inputs": [    {
-    "id": "experiment_id",
-    "details": {
-      "label": "Experiment ID"
-    },
-    "semantics": {}
-  },
-    {
-    "id": "challenge_problem",
-    "details": {
-      "label": "Challenge Problem"
-    },
-    "semantics": {}
-  },
+  "inputs": [
   {
     "id": "lab_configuration",
     "details": {
@@ -48,6 +35,30 @@
     "semantics": {}
   }],
   "parameters": [
+        {
+    "id": "experiment_id",
+    "details": {
+      "label": "Experiment ID"
+    },
+    "semantics": {},
+    "value": {
+      "visible": true,
+      "required": true,
+      "type": "string"
+    }
+  },
+    {
+    "id": "challenge_problem",
+    "details": {
+      "label": "Challenge Problem"
+    },
+    "semantics": {},
+    "value": {
+      "visible": true,
+      "required": true,
+      "type": "string"
+    }
+  },
     {
       "id": "CONTAINER_IMAGE",
       "value": {
