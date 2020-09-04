@@ -3,6 +3,7 @@ import logging
 from xplan_design.design import generate_design
 from xplan_submit.lab.strateos.submit import submit_experiment
 from xplan_submit.lab.strateos.write_parameters import design_to_parameters
+from agavepy import Agave
 
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
@@ -16,8 +17,9 @@ def coordinate_submission(experiment_id, challenge_problem, transcriptic_cfg, tr
     :param out_dir:
     :return:
     """
-    #generate_design(experiment_id, challenge_problem, transcriptic_cfg, input_dir=input_dir, out_dir=out_dir)
-
+    """
+    generate_design(experiment_id, challenge_problem, transcriptic_cfg, input_dir=input_dir, out_dir=out_dir)
+    """
     design_to_parameters(experiment_id,
                          challenge_problem,
                          transcriptic_cfg,
@@ -25,5 +27,6 @@ def coordinate_submission(experiment_id, challenge_problem, transcriptic_cfg, tr
                          out_dir = out_dir)
 
     submit_experiment(experiment_id, challenge_problem, transcriptic_cfg, transcriptic_params,
-                      input_dir=out_dir, out_dir=out_dir,
+                      input_dir=out_dir, out_dir=out_dir, batches=[ "3", "4"],
                       mock=mock)
+

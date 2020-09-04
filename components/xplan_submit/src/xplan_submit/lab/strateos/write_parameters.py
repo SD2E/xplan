@@ -212,7 +212,9 @@ def get_matching_aliquots(strains, container_id, merge_key="Name", blank_wells=[
 
 
 def get_src_wells_from_aliquots(container_id, matching_aliquots):
-    return [{"containerId": container_id, "wellIndex": x} for x in matching_aliquots.index.tolist()]
+    wells = matching_aliquots.index.tolist()
+    wells.sort()
+    return [{"containerId": container_id, "wellIndex": x} for x in wells]
 
 
 def get_matching_container(strains, transcriptic_api, strain_property="Name", container_search_string="",
@@ -435,8 +437,11 @@ def get_container_for_batch(batch, batch_samples, design, condition_space,
         samples = get_src_wells_from_aliquots(container_id, matching_aliquots)
         matching_aliquots['used'] = False
     else:
-        samples = [{"containerId": container_id, "wellIndex": source_container.container_type.robotize(x)}
-                   for x in batch_samples[batch_samples.strain != "MediaControl"].aliquot.unique()]
+        wells = batch_samples[batch_samples.strain != "MediaControl"].aliquot.unique()
+        wells = [source_container.container_type.robotize(x) for x in wells]
+        wells.sort()
+        samples = [{"containerId": container_id, "wellIndex": x}
+                   for x in wells]
 
     ## This function will pick an aliquot in matching_samples to use for a sample
     def assign_output_id(x):
