@@ -19,6 +19,7 @@ cd ${DESIGN_DIR}
 
 cp Dockerfile Dockerfile.back
 cp project.ini project.ini.back
+cp job.json job.json.back
 
 # app
 sed -i "s@name = jladwig_xplan2_design@name = ${APP_NAME}@g" project.ini
@@ -29,6 +30,12 @@ sed -i "s@version = 0.0.1@version = ${APP_VERSION}@g" project.ini
 sed -i "s@namespace = jladwigsift@namespace = ${APP_DOCKER_NAMESPACE}@g" project.ini
 sed -i "s@repo = xplan_design@repo = ${APP_DOCKER_REPO}@g" project.ini
 sed -i "s@tag = 0.0.1@tag = ${APP_DOCKER_TAG}@g" project.ini
+
+sed -i "s@data-tacc-work-jladwig@${APP_DEPLOYMENT_SYSTEM}@g" job.json
+sed -i "s@['\"]jladwig_xplan2_design-0.0.1['\"]@${XPLAN_DESIGN_APP_ID}@g" job.json
+if [ -n "${XPLAN_EMAIL}" ]; then
+    sed -i "s/\"url\": null/\"url\": ${XPLAN_EMAIL}/g" job.json
+fi
 
 cd ${OLD_DIR}
 set +x # deactivate debugging

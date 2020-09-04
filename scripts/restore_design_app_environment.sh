@@ -20,6 +20,7 @@ cd ${DESIGN_DIR}
 # Reset from back files
 mv Dockerfile.back Dockerfile 
 mv project.ini.back project.ini 
+mv job.json.back job.json
 
 cd ${OLD_DIR}
 set +x # deactivate debugging

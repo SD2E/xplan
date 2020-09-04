@@ -41,8 +41,7 @@ test-xplan-design-app-local: build-xplan-design-app
 
 test-xplan-design-app-remote:
 	tapis auth init
-	sh scripts/run_tapis_app.sh ${REMOTE_WORK_DIR}
-
+	bash scripts/run_tapis_app.sh ${REMOTE_WORK_DIR}
 
 test-components:
 
