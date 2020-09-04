@@ -1,6 +1,6 @@
 {
   "name": "xplan_design-job-1592257880145",
-  "appId": "dbryce_xplan2_design-0.0.1 ",
+  "appId": "jladwig_xplan2_design-0.0.1",
   "batchQueue": "all",
   "maxRunTime": "01:00:00",
   "memoryPerNode": "1GB",
@@ -8,8 +8,8 @@
   "processorsPerNode": 1,
   "archive": true,
   "inputs": {
-    "lab_configuration": "agave://data-tacc-work-dbryce/xplan2/secrets/tx_secrets.json",
-    "out_dir": "agave://data-tacc-work-dbryce/xplan2"
+    "lab_configuration": "agave://data-tacc-work-jladwig/xplan2/secrets/tx_secrets.json",
+    "out_dir": "agave://data-tacc-work-jladwig/xplan2"
   },
   "parameters": {
     "experiment_id": "experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves",
@@ -19,7 +19,7 @@
     {
       "event": "*",
       "persistent": true,
-      "url": "dbryce@sift.net"
+      "url": null
     }
   ]
 }
