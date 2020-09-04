@@ -66,7 +66,7 @@ class XPlanDesignMessage(AbacoMessage):
         if file_exists_at_agave_uri(r, state_uri, verbose=True):
             return
         # this ensures the state json has the expected fields in it.
-        # Our state merging during the finalize step need this to 
+        # Our state merging during the finalize step need this to
         # avoid issues when multiple jobs are run back to back on a
         # challenge problem with no initial state.
         preseed_state ={
@@ -142,12 +142,6 @@ class XPlanDesignMessage(AbacoMessage):
         archive_system = job.get("archiveSystem")
         archive_path = job.get("archivePath")
 
-        #invocation_uri = msg.get('invocation')
-        #invocation_resp = download_file(r, invocation_uri)
-        #if not invocation_resp.ok:
-        #    raise XPlanDesignMessageError("Failed to download invocation file")
-        #invocation = invocation_resp.json()
-
         experiment_id = msg.get('experiment_id')
         challenge_problem = msg.get('challenge_problem')
         r.logger.info("challenge_problem = " + challenge_problem)
@@ -184,14 +178,17 @@ class XPlanDesignMessage(AbacoMessage):
                                   experiment_id,
                                   challenge_problem,
                                   self.get_lab_configuration(r, msg),
-                                  local_out)
-                                  #test_mode=test_mode)
+                                  local_out,
+                                  test_mode=test_mode)
 
         # Upload the finished experiment files
         r.logger.info("Upload:\n  from: {}\n  to: {}".format(
             local_out, upload_uri))
         upload_dir(r, local_out, upload_uri, verbose=True)
         r.logger.info("Upload: Complete")
+
+        if not r.local:
+            self.notify_control_annotator(r, experiment_id, challenge_problem, upload_uri)
 
         r.logger.info("Finalize ended with success")
 
@@ -207,7 +204,7 @@ class XPlanDesignMessage(AbacoMessage):
         if not resp.ok:
             raise XPlanDesignMessageError("Failed to download challenge state file at {}".format(challenge_state_uri))
         challenge_state = resp.json()
-        
+
         state_diff = jp.JsonPatch.from_string(diff_str)
         r.logger.info("Found diff: {}".format(diff_str))
 
@@ -263,6 +260,23 @@ class XPlanDesignMessage(AbacoMessage):
         mock = r.settings['xplan_config'].get('mock', False)
         r.logger.info("Mock = {}".format(mock))
         submit_experiment(experiment_id, challenge_problem, lab_cfg, transcriptic_params, input_dir=out_dir, out_dir=out_dir, mock=mock)
+
+    def notify_control_annotator(self, r: Reactor, experiment_id, challenge_problem, upload_uri):
+        ## Send SR Reactor a response with path to design
+        design_path = "{}/{}/experiments/{}/design_{}.json".format(upload_uri, challenge_problem, experiment_id, experiment_id)
+        r.logger.info("Sending design to SRR: %s", design_path)
+        ag = r.client  # Agave client
+        ag.token = os.getenv('_abaco_access_token')
+
+        resp = ag.actors.sendMessage(
+            actorId="control-annotator.prod",
+            body={'message': {
+                "xplan_uri" : design_path,
+                "set_submit" : True
+                }},
+            environment={'x-session' : ''})
+        exid = resp.get('executionId', 'Message Failed')
+        r.logger.info("control-annotator.prod Execution Id: %s", exid)
 
 
 class XPlanDesignMessageError(AbacoMessageError):

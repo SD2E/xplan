@@ -64,7 +64,7 @@ def  submit_experiment(experiment_id, challenge_problem,
 
         design_df = pd.read_json(experiment_design['design'])
         design_df['lab_id'] = design_df.apply(assign_run_id, axis=1)
-
+    design_df['protocol_id'] = protocol_id
     experiment_design['design'] = design_df.to_json()
     put_experiment_design(experiment_design, challenge_out_dir)
 
@@ -192,7 +192,7 @@ def _create_launch_request(params, plate_id, bsl=1, test_mode=False, out_dir='.'
     params_dict["launch_request"]["bsl"] = bsl
     params_dict["launch_request"]["test_mode"] = test_mode
 
-    with open(os.path.join(out_dir, 'launch_request_{}.json'.foramt(plate_id)), 'w') as lr:
+    with open(os.path.join(out_dir, 'launch_request_{}.json'.format(plate_id)), 'w') as lr:
         json.dump(params_dict, lr, sort_keys=True,
                   indent=2, separators=(',', ': '))
     return json.dumps(params_dict)
