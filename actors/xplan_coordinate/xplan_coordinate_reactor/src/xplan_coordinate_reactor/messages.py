@@ -28,6 +28,8 @@ def typed_message_from_dict(message_dict):
 
     if XPlanDesignMessage.validate(message_dict) is True:
         return XPlanDesignMessage(message=message_dict)
+    if GenExperimentRequestMessageFactors.validate(message_dict) is True:
+        return GenExperimentRequestMessageFactors(message=message_dict)
     elif FileMessage.validate(message_dict) is True:
         return FileMessage(typed_message_from_context, message=message_dict)
     else:

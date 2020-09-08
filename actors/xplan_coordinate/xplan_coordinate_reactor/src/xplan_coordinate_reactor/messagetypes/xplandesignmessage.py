@@ -35,7 +35,7 @@ class XPlanDesignMessage(AbacoMessage):
         ]
     })
 
-    def process_message(self, r: Reactor):
+    def process_message(self, r: Reactor, *, user_data=None):
         msg = getattr(self, 'body')
         msg_experiment_id = msg.get('experiment_id')
         msg_challenge_problem = msg.get('challenge_problem')
@@ -73,7 +73,7 @@ class XPlanDesignMessage(AbacoMessage):
             job_id, r.elapsed()))
         return job_id
 
-    def finalize_message(self, r: Reactor, job: JobCompletionMessage):
+    def finalize_message(self, r: Reactor, job: JobCompletionMessage, *, user_data=None):
         msg = getattr(self, 'body')
         r.logger.info("Finalize xplan design message: {}".format(msg))
 
@@ -118,8 +118,8 @@ class XPlanDesignMessage(AbacoMessage):
                                   experiment_id,
                                   challenge_problem,
                                   self.get_lab_configuration(r, msg),
-                                  local_out,
-                                  test_mode=test_mode)
+                                  local_out)
+                                  #test_mode=test_mode)
 
         # Upload the finished experiment files
         r.logger.info("Upload:\n  from: {}\n  to: {}".format(
@@ -170,7 +170,9 @@ class XPlanDesignMessage(AbacoMessage):
             }
         }
 
-        submit_experiment(experiment_id, challenge_problem, lab_cfg, transcriptic_params, input_dir=out_dir, out_dir=out_dir)
+        mock = r.settings['xplan_config'].get('mock', False)
+        r.logger.info("Mock = {}".format(mock))
+        submit_experiment(experiment_id, challenge_problem, lab_cfg, transcriptic_params, input_dir=out_dir, out_dir=out_dir, mock=mock)
 
 
 class XPlanDesignMessageError(AbacoMessageError):

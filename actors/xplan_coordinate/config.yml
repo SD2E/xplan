@@ -1,6 +1,13 @@
 ---
 xplan_config:
   state_file: state.json
+  mock: True
+  out_dir:
+    system: data-tacc-work-jladwig
+    path: xplan2
+  lab_configuration:
+    system: data-tacc-work-jladwig
+    path: xplan2/secrets/tx_secrets.json
   jobs:
     email: ~
 

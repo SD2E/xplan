@@ -5,10 +5,10 @@ from attrdict import AttrDict
 
 class JobCompletionMessage(AbacoMessage):
 
-    def process_message(self, r):
+    def process_message(self, r, *, user_data=None):
         pass
 
-    def finalize_message(self, r, job):
+    def finalize_message(self, r, job, *, user_data=None):
         pass
 
     def get(self, prop):

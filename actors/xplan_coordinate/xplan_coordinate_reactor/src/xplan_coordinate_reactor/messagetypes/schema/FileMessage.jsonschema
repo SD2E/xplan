@@ -6,7 +6,8 @@
     "definitions": {     
     },
     "properties": {
-        "file" : { "type" : "string" }
+        "file" : { "type" : "string" },
+        "lab_configuration" : { "type" : "string" }
     },
     "required": ["file"]
 }

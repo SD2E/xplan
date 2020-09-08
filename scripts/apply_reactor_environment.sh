@@ -33,6 +33,7 @@ sed -i "s@DOCKER_IMAGE_VERSION=2.0@DOCKER_IMAGE_VERSION=${REACTOR_DOCKER_IMAGE_V
 if [ -n "${XPLAN_EMAIL}" ]; then
     sed -i "s/email: ~/email: ${XPLAN_EMAIL}/g" config.yml
 fi
+sed -i "s@data-tacc-work-jladwig@${APP_DEPLOYMENT_SYSTEM}@g" config.yml
 
 ## abaco won't pass along build args, so have to sed in the arg value into the Dockerfile
 echo "XPLAN_DESIGN_APP_ID=${XPLAN_DESIGN_APP_ID}"

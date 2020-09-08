@@ -1,7 +1,7 @@
 from .abacomessage import AbacoMessage, AbacoMessageError
 from attrdict import AttrDict
 from json import load
-from ..files import download_file
+from ..files import download_file, make_agave_uri
 import os
 
 
@@ -10,10 +10,20 @@ class FileMessage(AbacoMessage):
         super().__init__(**kwargs)
         self.typed_message_from_context = typed_message_from_context
 
-    def process_message(self, r):
+    def process_message(self, r, *, user_data=None):
         r.logger.info("Found file message")
 
-        fileToDownload = getattr(self, 'body').get('file')
+        body = getattr(self, 'body')
+        fileToDownload = body.get('file')
+
+        lab_configuration = None
+        if 'lab_configuration' in body:
+            lab_configuration = body.get('lab_configuration')
+        if lab_configuration is None:
+            lc_settings = r.settings['xplan_config']['lab_configuration']
+            lc_system = lc_settings['system']
+            lc_path = lc_settings['path']
+            lab_configuration = make_agave_uri(lc_system, lc_path)
 
         # if we get a non-agave path print an error
         if 'agave://' not in fileToDownload:
@@ -28,8 +38,17 @@ class FileMessage(AbacoMessage):
             fileJson = fileRequest.json()
             fmsg = self.typed_message_from_context(
                 AttrDict({"message_dict": fileJson}))
-            r.logger.info("Json: %s", fileJson)
-            return fmsg.process_message(r)
+            # r.logger.info("Json: %s", fileJson)
+
+            # send along the extra data so that messages down the
+            # chain can search for and use the properties sourced
+            # from the original message
+            user_data = {
+                'file': fileToDownload,
+                'lab_configuration': lab_configuration
+            }
+            r.logger.info("Sending extra user data: %s", user_data)
+            return fmsg.process_message(r, user_data=user_data)
 
         # r.logger.info("Reading file: %s", fileToParse)
         # with open(fileToParse, 'r') as f:
@@ -44,7 +63,7 @@ class FileMessage(AbacoMessage):
             "Failed to process FileMessage: %s", fileRequest.text)
         return None
 
-    def finalize_message(self, r, job):
+    def finalize_message(self, r, job, *, user_data=None):
         pass
 
 

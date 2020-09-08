@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "GenExperimentRequest",
+    "description": "Generate an Experiment Request",
+    "$comment": "",
+    "definitions": {     
+    },
+    "properties": {
+        "challenge_problem" : { "type" : "string" },
+        "experiment_id": { "type" : "string" },
+        "solver_type" : { "type" : "string" },
+        "condition_space" : {
+            "type" : "object",
+            "properties" : {
+                "factors": {
+                           "type" : "object"
+                }
+            },
+            "required" : [ "factors" ]
+        },
+        "batches" : {
+                  "anyOf": [
+                           { "type" : "object"},
+                           { "type" : "array",
+                             "items" : {
+                              "type" : "object"
+                              }
+                           }
+                           ]
+        },
+        "defaults" : {
+            "type" : "object",
+            "constants" : {
+                        "type" : "object"
+            },
+            "properties" : {
+                "parameters": { "type" : "object" },
+                "conditions": { "type" : "array",
+                                "items" : {
+                                        "type" : "object"
+                                }
+                              }                
+            },
+            "required" : [ "parameters", "constants", "conditions" ]
+        }
+    },
+    "required": ["experiment_id", "challenge_problem", "batches", "condition_space", "defaults"]
+}
