@@ -1,7 +1,10 @@
-import json
-
-from xplan_design.design import generate_design
 import argparse
+import json
+import logging
+import os
+import shutil
+import sys
+from xplan_design.design import generate_design
 
 def _parser():
     parser = argparse.ArgumentParser(description='XPlan Generate Design')
@@ -11,10 +14,7 @@ def _parser():
     parser.add_argument("out_dir", help="Base directory for output", default=".")
     return parser
 
-def main():
-    parser = _parser()
-    args = parser.parse_args()
-
+def run(args):
     experiment_id = args.experiment_id
     challenge_problem = args.challenge_problem
     lab_configuration = args.lab_configuration
@@ -24,6 +24,58 @@ def main():
     with open(lab_configuration, "r") as lab_secret:
         generate_design(experiment_id, challenge_problem, json.load(lab_secret),
                         input_dir=out_dir, out_dir=out_dir)
+
+def cleanup_dir(path, *, prefix_str = ' ', prefix_step = 2, prefix_offset = 0):
+    prefix = prefix_str*prefix_offset
+    print("{}{}".format(prefix, path))
+    prefix += prefix_str*prefix_step
+    if not os.path.exists(path):
+        print("{}Failed to remove {}. Does not exist.".format(prefix, path))
+        return
+    if not os.path.isdir(path):
+        print("{}Failed to remove {}. Not a directory.".format(prefix, path))
+        return
+    shutil.rmtree(path)
+    print("{}Removed directory: {}".format(prefix, path))
+
+def cleanup_file(path, *, prefix_str = ' ', prefix_step = 2, prefix_offset = 0):
+    prefix = prefix_str*prefix_offset
+    print("{}{}".format(prefix, path))
+    prefix += prefix_str*prefix_step
+    if not os.path.exists(path):
+        print("{}Failed to remove {}. Does not exist.".format(prefix, path))
+        return
+    if not os.path.isfile(path):
+        print("{}Failed to remove {}. Not a file".format(prefix, path))
+        return
+    os.remove(path)
+    print("{}Removed file: {}".format(prefix, path))
+
+def cleanup(out):
+    print("Cleaning up...")
+    print("  Removing unwanted out_dir files...")
+    cleanup_dir(os.path.join(out, 'archive'), prefix_offset=4)
+    cleanup_dir(os.path.join(out, 'secrets'), prefix_offset=4)
+    cleanup_dir(os.path.join(out, 'test'), prefix_offset=4)
+    cleanup_file('tx_secrets.json', prefix_offset=4)
+
+def main():
+    try:
+        parser = _parser()
+        args = parser.parse_args()
+
+        # ensure the logger is configured
+        h1 = logging.StreamHandler(sys.stdout)
+        h1.setLevel(logging.INFO)
+        h1.addFilter(lambda record: record.levelno <= logging.INFO)
+        h2 = logging.StreamHandler(sys.stderr)
+        h2.setLevel(logging.WARNING)
+        logging.basicConfig(handlers = [h1, h2], format='%(levelname)s:%(message)s')
+        
+        run(args)
+    finally:
+        cleanup(args.out_dir)
+        logging.shutdown()
 
 
 if __name__ == '__main__':
