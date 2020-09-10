@@ -1,5 +1,6 @@
 import argparse
 import json
+import jsonpatch
 import logging
 import os
 import shutil
@@ -59,6 +60,13 @@ def cleanup(out):
     cleanup_dir(os.path.join(out, 'test'), prefix_offset=4)
     cleanup_file('tx_secrets.json', prefix_offset=4)
 
+def read_state(path: str) -> str:
+    res = {}
+    if os.path.exists(path):
+        with open(path, 'r') as state:
+            res = json.load(state)
+    return res
+
 def main():
     try:
         parser = _parser()
@@ -66,13 +74,23 @@ def main():
 
         # ensure the logger is configured
         h1 = logging.StreamHandler(sys.stdout)
-        h1.setLevel(logging.INFO)
+        h1.setLevel(logging.DEBUG)
         h1.addFilter(lambda record: record.levelno <= logging.INFO)
         h2 = logging.StreamHandler(sys.stderr)
         h2.setLevel(logging.WARNING)
         logging.basicConfig(handlers = [h1, h2], format='%(levelname)s:%(message)s')
-        
+
+        state_path = os.path.join(args.out_dir, args.challenge_problem, "state.json")
+        state_before = read_state(state_path)
         run(args)
+        state_after = read_state(state_path)
+        state_diff = jsonpatch.make_patch(state_before, state_after)
+
+        print("State before: {}".format(state_before))
+        print("State after: {}".format(state_after))
+        print("State diff: {}".format(state_diff))
+        with open('state.diff', 'w') as f:
+            f.write(state_diff.to_string())
     finally:
         cleanup(args.out_dir)
         logging.shutdown()

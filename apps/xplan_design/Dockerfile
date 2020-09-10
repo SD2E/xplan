@@ -1,6 +1,8 @@
 FROM sd2e/python3:latest
 
 RUN pip3 install --upgrade pip
+RUN pip3 install jsonpatch==1.26
+
 # RUN pip3 install --upgrade setuptools
 RUN pip3 install git+https://github.com/SD2E/synbiohub_adapter.git@v1.3
 

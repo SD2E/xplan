@@ -12,6 +12,8 @@ setup(name='xplan_coordinate_reactor',
       package_data={'xplan_coordinate_reactor': [
           'messagetypes/schema/*.jsonschema'
       ]},
-      install_requires=[],
+      install_requires=[
+          'jsonpatch==1.26'
+      ],
       tests_require=["pytest"],
       zip_safe=False)

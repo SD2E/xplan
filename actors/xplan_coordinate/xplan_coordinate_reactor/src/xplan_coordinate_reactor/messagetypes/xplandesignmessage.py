@@ -1,4 +1,4 @@
-from ..files import download_file, upload_file, download_dir, upload_dir, split_agave_uri, make_agave_uri, ensure_path_on_system
+from ..files import download_file, upload_file, download_dir, upload_dir, split_agave_uri, make_agave_uri, ensure_path_on_system, file_exists_at_agave_uri
 from ..jobs import launch_job
 from .abacomessage import AbacoMessage, AbacoMessageError
 from attrdict import AttrDict
@@ -7,6 +7,7 @@ from .jobcompletionmessage import JobCompletionMessage
 from xplan_utils.helpers import ensure_experiment_dir, get_design_file_name, get_experiment_design
 import os
 import json
+import jsonpatch as jp
 from xplan_design.experiment_design import ExperimentDesign
 from xplan_submit.lab.strateos.submit import submit_experiment
 from xplan_submit.lab.strateos.write_parameters import design_to_parameters
@@ -111,7 +112,18 @@ class XPlanDesignMessage(AbacoMessage):
         r.logger.info("Download:\n  to: {}\n  from: {}".format(
             local_out, archive_uri))
         download_dir(r, archive_uri, local_out, verbose=True)
-        r.logger.info("Download: Complete")
+
+        state_diff_path = os.path.join(archive_path, 'state.diff')
+        state_diff_uri = make_agave_uri(archive_system, state_diff_path)
+        r.logger.info("state_diff_uri = {}".format(state_diff_uri))
+        if file_exists_at_agave_uri(r, state_diff_uri, verbose=True):
+            r.logger.info("Downloading state diff from: {}".format(state_diff_uri))
+            resp = download_file(r, state_diff_uri)
+            if not resp.ok:
+                raise XPlanDesignMessageError("Failed to download state diff at {}".format(state_diff_uri))
+            self.rectify_state(r, resp.text, local_out, upload_system, upload_out_dir, challenge_problem)
+        else:
+            r.logger.info("No state diff found. Continuing as though job made no state changes...")
 
         # Do final processing
         self.handle_design_output(r,
@@ -129,17 +141,40 @@ class XPlanDesignMessage(AbacoMessage):
 
         r.logger.info("Finalize ended with success")
 
-    # TODO move to files as a generic download to disk function
-    def download_state(self, r: Reactor, source_uri, dest_path):
-        resp = download_file(r, source_uri)
-        if not resp.ok:
-            raise XPlanDesignMessageError("Failed to download state.json file")
-        with open(dest_path, 'wb') as f:
-            f.write(resp.content)
+    def rectify_state(self, r: Reactor, diff_str: str, local_out: str, upload_system: str, upload_path: str, challenge_problem: str):
+        r.logger.info("Rectifying state...")
+        challenge_dir = self.get_challenge_dir(upload_path, challenge_problem)
+        challenge_state_uri = make_agave_uri(upload_system, os.path.join(challenge_dir, 'state.json'))
+        if not file_exists_at_agave_uri(r, challenge_state_uri, verbose=True):
+            r.logger.info("No challenge state found at {}. Continuing as though job state is true state...".format(challenge_state_uri))
+            return
 
-    # TODO make helper
-    def get_challenge_dir(self, experiment_id, challenge_problem, out_dir):
-        return os.path.join(out_dir, challenge_problem, 'experiments', experiment_id)
+        resp = download_file(r, challenge_state_uri, verbose=True)
+        if not resp.ok:
+            raise XPlanDesignMessageError("Failed to download challenge state file at {}".format(challenge_state_uri))
+        challenge_state = resp.json()
+        
+        state_diff = jp.JsonPatch.from_string(diff_str)
+        r.logger.info("Found diff: {}".format(diff_str))
+
+        # blindly patch the state with the diff
+        r.logger.info("Patching state: {}".format(challenge_state))
+        final_state = state_diff.apply(challenge_state)
+
+        # HACK custom patch rules to account for running the same job back to back.
+        # This will likely need more attention.
+        # if 'experiment_requests' in final_state:
+            # ensure unique list
+            # final_state['experiment_requests'] = list(set(final_state['experiment_requests']))
+
+        r.logger.info("Final state: {}".format(final_state))
+        with open(os.path.join(local_out, challenge_problem, 'state.json'), 'w') as f:
+            f.write(json.dumps(final_state))
+
+
+    def get_challenge_dir(self, out_dir, challenge_problem):
+        return os.path.join(out_dir, challenge_problem)
+
 
     # TODO resolve how multiple labs work in this system
     def get_lab_configuration(self, r: Reactor, msg):

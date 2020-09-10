@@ -77,6 +77,23 @@ def ensure_agave_uri(r: Reactor, uri: str, *, verbose=False, retrys=3, retry_del
     ensure_path_on_system(r, system_id, path, verbose=verbose, retrys=retrys, retry_delay=retry_delay)
 
 
+
+def file_exists_on_system(r: Reactor, system_id: str, path: str, *, verbose=False, retrys=3, retry_delay=0.1):
+    directory = os.path.dirname(path)
+    filename = os.path.basename(path)
+    contents = list_dir_on_system(r, system_id, directory, verbose=verbose, retrys=retrys, retry_delay=retry_delay)
+    ls = [c['name'] for c in contents if c['type'] == 'file']
+    if verbose is True:
+        r.logger.info("Checking file_exists_on_system: {} on {}".format(path, system_id))
+        r.logger.info("Searching for {} in {}".format(filename, ls))
+    return filename in ls
+
+
+def file_exists_at_agave_uri(r: Reactor, uri: str, *, verbose=False, retrys=3, retry_delay=0.1):
+    system_id, path = split_agave_uri(uri)
+    return file_exists_on_system(r, system_id, path, verbose=verbose, retrys=retrys, retry_delay=retry_delay)
+
+
 def upload_dir(r: Reactor, sourceDir: str, destinationURI: str, *, verbose=False, retrys=3, retry_delay=0.1):
     system_id, destPath = split_agave_uri(destinationURI)
 
