@@ -41,23 +41,22 @@ def download_file(r: Reactor, downloadURI: str, *, verbose=False, retrys=3, retr
 
 
 def upload_file_to_system(r: Reactor, sourcePath: str, destSystem: str, destPath: str, *, name: str = None, verbose=False, retrys=3, retry_delay=0.1):
-    if verbose is True:
-        r.logger.info("upload {} to {} on {}".format(
-            sourcePath, destPath, destSystem))
     try:
         with open(sourcePath, 'rb') as f:
             if name is None:
-                r.client.files.importData(
-                    filePath=destPath, systemId=destSystem, fileToUpload=f)
+                if verbose is True:
+                    r.logger.info("upload {} to {} on {}".format(sourcePath, destPath, destSystem))
+                r.client.files.importData(filePath=destPath, systemId=destSystem, fileToUpload=f)
             else:
-                r.client.files.importData(
-                    filePath=destPath, systemId=destSystem, fileName=name, fileToUpload=f)
+                if verbose is True:
+                    r.logger.info("upload {} as {} to {} on {}".format(sourcePath, name, destPath, destSystem))
+                r.client.files.importData(filePath=destPath, systemId=destSystem, fileName=name, fileToUpload=f)
     except Exception as exc:
         r.logger.error(exc)
         if retrys > 0:
             time.sleep(retry_delay)
-            r.logger.info("retrying...\n  upload {} to {} on {}".format(sourcePath, destPath, destSystem))
-            upload_file_to_system(r, sourcePath, destSystem, destPath, verbose=False, retrys=retrys - 1, retry_delay=retry_delay)
+            r.logger.info("retrying upload...")
+            upload_file_to_system(r, sourcePath, destSystem, destPath, name=name, verbose=verbose, retrys=retrys - 1, retry_delay=retry_delay)
         else:
             r.logger.error("Failed to upload file! {} to {}".format(sourcePath, make_agave_uri(destSystem, destPath)))
 

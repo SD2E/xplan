@@ -1,6 +1,7 @@
 ---
 xplan_config:
   state_file: state.json
+  is_production: False
   mock: True
   out_dir:
     system: data-tacc-work-jladwig

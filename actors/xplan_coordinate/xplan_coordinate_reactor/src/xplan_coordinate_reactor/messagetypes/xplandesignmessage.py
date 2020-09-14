@@ -11,6 +11,7 @@ import jsonpatch as jp
 from xplan_design.experiment_design import ExperimentDesign
 from xplan_submit.lab.strateos.submit import submit_experiment
 from xplan_submit.lab.strateos.write_parameters import design_to_parameters
+from xplan_utils import persist
 
 
 class XPlanDesignMessage(AbacoMessage):
@@ -36,6 +37,27 @@ class XPlanDesignMessage(AbacoMessage):
         ]
     })
 
+    def clear_assigned_containers(self, r: Reactor, system, out_dir):
+        state_uri = make_agave_uri(system, os.path.join(out_dir, 'state.json'))
+        if not file_exists_at_agave_uri(r, state_uri, verbose=True):
+            return
+        r.logger.info("Downloading state.json...")
+        resp = download_file(r, state_uri, verbose=True)
+        if not resp.ok:
+            raise XPlanDesignMessageError("Failed to download state json from {}".format(state_uri))
+        state = resp.json()
+        r.logger.info("Checking state.json for assigned_cotainers...")
+        if 'assigned_containers' in state:
+            r.logger.info("Clearing assigned_cotainers...")
+            state['assigned_containers'] = []
+            state_path = "state.json"
+            with open(state_path, 'w') as f:
+                f.write(json.dumps(state))
+            state_dir = make_agave_uri(system, os.path.join(out_dir))
+            upload_file(r, state_path, state_dir, verbose=True)
+
+            
+
     def process_message(self, r: Reactor, *, user_data=None):
         msg = getattr(self, 'body')
         msg_experiment_id = msg.get('experiment_id')
@@ -48,6 +70,12 @@ class XPlanDesignMessage(AbacoMessage):
         archive_path = os.path.join(out_dir_path, "archive", "jobs")
         ensure_path_on_system(r, archive_system, archive_path, verbose=True)
         archive_path = os.path.join(archive_path, "job-${JOB_ID}")
+
+        challenge_dir = self.get_challenge_dir(out_dir_path, msg_challenge_problem)
+        is_production = r.settings['xplan_config'].get('is_production', False)
+        if not is_production:
+            r.logger.info("Not in production mode")
+            self.clear_assigned_containers(r, out_dir_system, challenge_dir)
 
         # TODO this is a bit of a hack in that I change the
         # message the is seen my the process stage to something
