@@ -1,0 +1,492 @@
+{
+    "parameters": {
+        "exp_info": {
+            "inc_temp": "warm_37",
+            "media_well_strings": "0,84",
+            "src_samples": [
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 1
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 2
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 3
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 4
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 5
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 6
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 7
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 8
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 9
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 10
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 11
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 12
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 13
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 14
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 15
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 16
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 17
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 18
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 19
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 20
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 21
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 22
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 23
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 24
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 25
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 26
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 27
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 28
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 29
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 30
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 31
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 32
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 33
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 34
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 35
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 36
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 37
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 38
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 39
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 40
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 41
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 42
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 43
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 44
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 45
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 46
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 47
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 48
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 49
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 50
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 51
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 52
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 53
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 54
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 55
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 56
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 57
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 58
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 59
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 60
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 61
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 62
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 63
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 64
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 65
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 66
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 67
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 68
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 69
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 70
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 71
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 72
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 73
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 74
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 75
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 76
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 77
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 78
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 79
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 80
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 81
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 82
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 83
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 85
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 86
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 87
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 88
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 89
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 90
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 91
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 92
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 93
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 94
+                },
+                {
+                    "containerId": "ct1et97frwr78dx",
+                    "wellIndex": 95
+                }
+            ]
+        },
+        "experimental_info": {
+            "experiment_id": "experiment.transcriptic.2020-08-12-Plan-Requirements-UCSB-E-coli-nissle-antibiotic-TimeSeriesTitration-Strateos",
+            "experiment_reference": "Plan-Requirements-UCSB-E-coli-nissle-antibiotic-TimeSeriesTitration-Strateos",
+            "experiment_reference_url": "https://docs.google.com/document/d/1YKACI6n5_AYc-RF5oAuZDnBlJxMwMnx9K5yDKuckamA"
+        },
+        "induction_info": {
+            "induction_reagents": {
+                "ind_cult_vol": "10:microliter",
+                "inducer": {
+                    "containerId": "ct1eu5gay44n9nm",
+                    "wellIndex": 0
+                },
+                "inducer_layout": {
+                    "inputs": {
+                        "select_cols": {
+                            "col_and_conc": [
+                                {
+                                    "col_num": 1,
+                                    "conc": 0.0
+                                },
+                                {
+                                    "col_num": 10,
+                                    "conc": 16.0
+                                },
+                                {
+                                    "col_num": 11,
+                                    "conc": 64.0
+                                },
+                                {
+                                    "col_num": 12,
+                                    "conc": 32.0
+                                },
+                                {
+                                    "col_num": 2,
+                                    "conc": 128.0
+                                },
+                                {
+                                    "col_num": 3,
+                                    "conc": 8.0
+                                },
+                                {
+                                    "col_num": 4,
+                                    "conc": 4.0
+                                },
+                                {
+                                    "col_num": 5,
+                                    "conc": 1.0
+                                },
+                                {
+                                    "col_num": 6,
+                                    "conc": 2.0
+                                },
+                                {
+                                    "col_num": 7,
+                                    "conc": 0.25
+                                },
+                                {
+                                    "col_num": 8,
+                                    "conc": 0.5
+                                },
+                                {
+                                    "col_num": 9,
+                                    "conc": 0.125
+                                }
+                            ],
+                            "inducer_unit": "microgram/milliliter"
+                        }
+                    },
+                    "value": "select_cols"
+                },
+                "induction_base_media": "LB Miller",
+                "media_vol": "1000:microliter"
+            },
+            "induction_time": {
+                "sample_points": "16,18,20,22,24"
+            },
+            "sampling_info": {
+                "flow_cult_vol": "200:microliter",
+                "flow_solv": "PBS",
+                "flow_solv_vol": "0:microliter",
+                "read_cult_vol": "20:microliter",
+                "read_solv": "PBS",
+                "read_solv_vol": "80:microliter",
+                "stain_before_flow": "None"
+            }
+        },
+        "inoc_info": {
+            "inc_time_1": "18:hour",
+            "inoc_media_vol": "1000:microliter",
+            "inoc_vol": "15:microliter",
+            "inoculation_media": "LB Miller"
+        },
+        "plate_reader_info": {
+            "fluor_em": "623:nanometer",
+            "fluor_ex": "594:nanometer",
+            "gain": 0.25
+        },
+        "recovery_info": [],
+        "run_info": {
+            "only_endpoint_flow": true,
+            "read_each_induction": true,
+            "read_each_recovery": true,
+            "save_for_rnaseq": false,
+            "skip_first_flow": true
+        },
+        "validate_samples": false
+    }
+}
