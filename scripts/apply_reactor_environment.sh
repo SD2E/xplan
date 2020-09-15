@@ -34,12 +34,14 @@ if [ -n "${XPLAN_EMAIL}" ]; then
     sed -i "s/email: ~/email: ${XPLAN_EMAIL}/g" config.yml
 fi
 sed -i "s@data-tacc-work-jladwig@${APP_DEPLOYMENT_SYSTEM}@g" config.yml
+sed -i "s@xplan2@${REACTOR_BASE_PATH}@g" config.yml
 
 ## abaco won't pass along build args, so have to sed in the arg value into the Dockerfile
 echo "XPLAN_DESIGN_APP_ID=${XPLAN_DESIGN_APP_ID}"
 # echo "sed -i "s@XPLAN_DESIGN_APP_ID=['\"]jladwig_xplan2_design-0.0.1['\"]@XPLAN_DESIGN_APP_ID=\"${XPLAN_DESIGN_APP_ID}\"@g" Dockerfile"
 sed -i "s@XPLAN_DESIGN_APP_ID=['\"]jladwig_xplan2_design-0.0.1['\"]@XPLAN_DESIGN_APP_ID=\"${XPLAN_DESIGN_APP_ID}\"@g" Dockerfile
 sed -i "s@APP_DEPLOYMENT_SYSTEM=['\"]data-tacc-work-jladwig['\"]@APP_DEPLOYMENT_SYSTEM=\"${APP_DEPLOYMENT_SYSTEM}\"@g" Dockerfile
+sed -i "s@REACTOR_BASE_PATH=['\"]xplan2['\"]@REACTOR_BASE_PATH=\"${REACTOR_BASE_PATH}\"@g" Dockerfile
 
 cd ${OLD_DIR}
 set +x # deactivate debugging

@@ -14,6 +14,9 @@ RUN sed -i "s@jladwig_xplan2_design-0.0.1@${XPLAN_DESIGN_APP_ID}@g" /xplan_coord
 ENV APP_DEPLOYMENT_SYSTEM="data-tacc-work-jladwig"
 RUN sed -i "s@data-tacc-work-jladwig@${APP_DEPLOYMENT_SYSTEM}@g" /xplan_coordinate_reactor/src/xplan_coordinate_reactor/messagetypes/xplandesignmessage.py
 
+ENV REACTOR_BASE_PATH="xplan2"
+RUN sed -i "s@\"archivePath\": \"xplan2@\"archivePath\": \"${REACTOR_BASE_PATH}@g" /xplan_coordinate_reactor/src/xplan_coordinate_reactor/messagetypes/xplandesignmessage.py
+
 RUN pip3 install --no-cache-dir /xplan_coordinate_reactor \
     && rm -rf /xplan_coordinate_reactor
 

@@ -29,6 +29,7 @@ echo "=========== end design job.json =========="
 echo "=========================================="
 
 echo tapis jobs submit -F ${DESIGN_DIR}/job.json
+tapis jobs submit -F ${DESIGN_DIR}/job.json
 
 $DIR/restore_design_app_environment.sh
 ##########################################

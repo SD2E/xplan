@@ -15,6 +15,7 @@ export APP_DOCKER_REPO
 export APP_DOCKER_TAG
 export REACTOR_NAME
 export REACTOR_ALIAS
+export REACTOR_BASE_PATH
 export REACTOR_DOCKER_HUB_ORG
 export REACTOR_DOCKER_IMAGE_TAG
 export REACTOR_DOCKER_IMAGE_VERSION
@@ -30,6 +31,8 @@ build: build-xplan-design-app
 test: test-apps test-components
 
 test-apps: test-xplan-design-app
+
+test-apps-remote: test-xplan-design-app-remote
 
 build-xplan-design-app:
 	scripts/build_design_app.sh
@@ -63,5 +66,10 @@ clean-deploy-xplan-design-app:
 deploy-xplan-reactor:
 	scripts/create_reactor_if_not_exists.sh
 
-test-xplan-reactor-remote:
-	scripts/run_reactor.sh
+test-xplan-reactor-remote: test-xplan-reactor-remote1 test-xplan-reactor-remote2
+
+test-xplan-reactor-remote1:
+	CHALLENGE_PROBLEM=YEAST_STATES EXPERIMENT_ID=experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves scripts/run_reactor.sh
+
+test-xplan-reactor-remote2:
+	CHALLENGE_PROBLEM=YEAST_STATES EXPERIMENT_ID=experiment.transcriptic.2020-03-06-YeastSTATES-Beta-Estradiol-OR-Gate-Plant-TF-Dose-Response scripts/run_reactor.sh

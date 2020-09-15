@@ -1,7 +1,7 @@
 # general
-XPLAN_USER=jladwig
-XPLAN_EMAIL=
-XPLAN_DOCKER_NAMESPACE=jladwigsift
+XPLAN_USER=dbryce
+XPLAN_EMAIL=dbryce@sift.net
+XPLAN_DOCKER_NAMESPACE=danbryce
 
 # remote
 REMOTE_WORK_DIR=data-tacc-work-${XPLAN_USER}
