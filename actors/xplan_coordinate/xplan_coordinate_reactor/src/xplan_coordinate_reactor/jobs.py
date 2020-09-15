@@ -31,10 +31,10 @@ def num_jobs(r :Reactor):
     job_map = state[JOB_STATE]
     return len(job_map)
 
-def register_job(r :Reactor, job_id, msg):
+def register_job(r :Reactor, job_id, data):
     state = get_state(r)
     r.logger.info("Before register: {}".format(state))
-    state[JOB_STATE].update({job_id: msg})
+    state[JOB_STATE].update({job_id: data})
     r.logger.info("After register: {}".format(state))
     set_state(state)
 
@@ -67,6 +67,7 @@ def create_job_definition(r: Reactor, msg, job_spec):
 
     user_email = r.settings['xplan_config']['jobs']['email']
 
+    webhooks = {}
     job_def = {
         "appId": job_spec.app_id,
         "name": job_spec.base_name + r.nickname,
@@ -120,16 +121,18 @@ def create_job_definition(r: Reactor, msg, job_spec):
         ]
 
     if r.local is not True:
+        finished_webhook = r.create_webhook()
         job_def["notifications"].append({
             "event": "FINISHED",
             "persistent": True,
-            "url": r.create_webhook(maxuses=1, actorId=r.uid) + "&id=${JOB_ID}"
+            "url": finished_webhook + "&id=${JOB_ID}"
         })
+        webhooks['finished'] = finished_webhook
     else:
         r.logger.debug(
             "Skipping webhook notification because we are in local mode")
 
-    return job_def
+    return (job_def, webhooks)
 
 
 def submit_job(r: Reactor, job_def):
@@ -157,9 +160,12 @@ def submit_job(r: Reactor, job_def):
 
 
 def launch_job(r: Reactor, msg :AbacoMessage, job_spec):
-    job_def = create_job_definition(r, msg, job_spec)
+    (job_def, webhooks) = create_job_definition(r, msg, job_spec)
     r.logger.info('Job Def: {}'.format(job_def))
     job_id = submit_job(r, job_def)
     if job_id is not None:
-        register_job(r, job_id, msg)
+        register_job(r, job_id, {
+            "msg": msg,
+            "webhooks": webhooks
+        })
     return job_id

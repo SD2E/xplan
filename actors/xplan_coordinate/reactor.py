@@ -15,9 +15,23 @@ def process_job_message(r: Reactor, job: JobCompletionMessage):
 
     if status == "FINISHED":
         r.logger.debug("Processing completed job with id " + job_id)
-        raw_msg = deregister_job(r, job_id)
-        if raw_msg is None:
+        job_data = deregister_job(r, job_id)
+        if job_data is None:
             r.logger.debug(
+                "Failed to find data associated with job id: " + job_id)
+            return
+
+        webhooks = job_data['webhooks']
+        # deregister all webhooks
+        if webhooks is not None:
+            for key in webhooks:
+                webhook = webhooks[key]
+                r.logger.info("Deregister webhook: {}".format(webhook))
+                r.delete_webhook(webhook)
+
+        raw_msg = job_data['msg']
+        if raw_msg is None:
+            r.logger.error(
                 "Failed to find message associated with job id: " + job_id)
             return
 
