@@ -4,13 +4,13 @@ XPLAN_EMAIL=dbryce@sift.net
 XPLAN_DOCKER_NAMESPACE=sd2e
 
 # remote
-REMOTE_WORK_DIR=data-sd2e-projects.sd2e-project-14
+REMOTE_WORK_DIR=data-sd2e-projects.sd2e-project-45
 
 #
 # xplan design app
 #
 APP_NAME=xplan2_design
-APP_DEPLOYMENT_SYSTEM=data-tacc-work-${XPLAN_USER}
+APP_DEPLOYMENT_SYSTEM=${REMOTE_WORK_DIR}
 APP_EXECUTION_SYSTEM=hpc-tacc-wrangler-${XPLAN_USER}
 APP_VERSION=0.0.1
 

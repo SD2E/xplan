@@ -4,7 +4,8 @@ from .abacomessage import AbacoMessage, AbacoMessageError
 from attrdict import AttrDict
 from reactors.runtime import Reactor, agaveutils
 from .jobcompletionmessage import JobCompletionMessage
-from xplan_utils.helpers import ensure_experiment_dir, get_design_file_name, get_experiment_design
+from xplan_utils.helpers import ensure_experiment_dir, get_design_file_name, get_experiment_design, \
+    get_experiment_request
 import os
 import json
 import jsonpatch as jp
@@ -186,7 +187,15 @@ class XPlanDesignMessage(AbacoMessage):
         upload_dir(r, local_out, upload_uri, verbose=True)
         r.logger.info("Upload: Complete")
 
-        if not r.local:
+        experiment_request = get_experiment_request(experiment_id, os.path.join(local_out, challenge_problem))
+        if 'test_mode' in experiment_request['defaults']:
+            test_mode = experiment_request['defaults']['test_mode']
+        else:
+            test_mode = False
+
+        r.logger.info("Is Reactor Local? {}, Is test_mode? {}".format(r.local, test_mode))
+
+        if not r.local and not test_mode:
             self.notify_control_annotator(r, experiment_id, challenge_problem, upload_uri)
 
         r.logger.info("Finalize ended with success")

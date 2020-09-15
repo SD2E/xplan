@@ -28,7 +28,11 @@ def  submit_experiment(experiment_id, challenge_problem,
     experiment_id = experiment_request['experiment_id']
     base_dir = experiment_request.get('base_dir', ".")
     protocol_id = experiment_request['defaults']['protocol_id']
-    test_mode = experiment_request['defaults']['test_mode']
+
+    if 'test_mode' in experiment_request['defaults']:
+        test_mode = experiment_request['defaults']['test_mode']
+    else:
+        test_mode = False
 
     tx_test_mode = test_mode
     tx_proj_key = tx_params.get('default')
