@@ -137,6 +137,7 @@
         }
     ],
     "defaults": {
+        "protocol_id" : "pr1et35enzypn2f",
         "constants": {
             "lab": "Strateos",
             "container_search_string": [

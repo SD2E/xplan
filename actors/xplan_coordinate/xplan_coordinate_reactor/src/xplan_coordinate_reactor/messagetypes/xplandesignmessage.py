@@ -178,8 +178,7 @@ class XPlanDesignMessage(AbacoMessage):
                                   experiment_id,
                                   challenge_problem,
                                   self.get_lab_configuration(r, msg),
-                                  local_out,
-                                  test_mode=test_mode)
+                                  local_out)
 
         # Upload the finished experiment files
         r.logger.info("Upload:\n  from: {}\n  to: {}".format(
