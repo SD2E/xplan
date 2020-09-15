@@ -55,8 +55,32 @@ class XPlanDesignMessage(AbacoMessage):
                 f.write(json.dumps(state))
             state_dir = make_agave_uri(system, os.path.join(out_dir))
             upload_file(r, state_path, state_dir, verbose=True)
+            # I was originally making a differently named file
+            # and uploading it with the `fileName` keyword but
+            # that keyword is not working as expected so just
+            # make the file and delete it after upload
+            os.remove(state_path)
 
-            
+    def ensure_state_json(self, r: Reactor, system, out_dir):
+        state_uri = make_agave_uri(system, os.path.join(out_dir, 'state.json'))
+        if file_exists_at_agave_uri(r, state_uri, verbose=True):
+            return
+        # this ensures the state json has the expected fields in it.
+        # Our state merging during the finalize step need this to 
+        # avoid issues when multiple jobs are run back to back on a
+        # challenge problem with no initial state.
+        preseed_state ={
+            "experiment_requests": [],
+            "experiment_submissions": {},
+            "assigned_containers": [],
+            "runs": {}
+        }
+        state_path = "state.json"
+        with open(state_path, 'w') as f:
+            f.write(json.dumps(preseed_state))
+        state_dir = make_agave_uri(system, os.path.join(out_dir))
+        upload_file(r, state_path, state_dir, verbose=True)
+        os.remove(state_path)
 
     def process_message(self, r: Reactor, *, user_data=None):
         msg = getattr(self, 'body')
@@ -76,6 +100,8 @@ class XPlanDesignMessage(AbacoMessage):
         if not is_production:
             r.logger.info("Not in production mode")
             self.clear_assigned_containers(r, out_dir_system, challenge_dir)
+        # preseed the state.json if it does not exist in the challenge_dir
+        self.ensure_state_json(r, out_dir_system, challenge_dir)
 
         # TODO this is a bit of a hack in that I change the
         # message the is seen my the process stage to something
@@ -190,10 +216,11 @@ class XPlanDesignMessage(AbacoMessage):
         final_state = state_diff.apply(challenge_state)
 
         # HACK custom patch rules to account for running the same job back to back.
-        # This will likely need more attention.
-        # if 'experiment_requests' in final_state:
-            # ensure unique list
-            # final_state['experiment_requests'] = list(set(final_state['experiment_requests']))
+        # This will likely need more attention in the future.
+        if 'experiment_requests' in final_state:
+            # It is technically possible for duplicates to make it in via the diff patching.
+            # Ensure unique experiments_requests list by stripping any duplicates.
+            final_state['experiment_requests'] = list(set(final_state['experiment_requests']))
 
         r.logger.info("Final state: {}".format(final_state))
         with open(os.path.join(local_out, challenge_problem, 'state.json'), 'w') as f:
