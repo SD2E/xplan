@@ -11,6 +11,7 @@ def write_params(experiment_id, input_dir = "../resources", challenge_problem="Y
         design_to_parameters(experiment_id,
                              challenge_problem,
                              json.load(tx_secret),
+                             input_dir=input_dir,
                              out_dir=out_dir)
 
 
@@ -21,4 +22,8 @@ def test_submit_growth_curve():
 
 def test_write_round_1_1():
     experiment_id = "experiment.transcriptic.2020-08-28-YeastSTATES-1-0-Time-Series-Round-1-1"
+    write_params(experiment_id)
+
+def test_write_dr_params():
+    experiment_id = "experiment.transcriptic.2020-03-06-YeastSTATES-Beta-Estradiol-OR-Gate-Plant-TF-Dose-Response"
     write_params(experiment_id)

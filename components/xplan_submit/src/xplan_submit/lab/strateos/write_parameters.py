@@ -259,7 +259,7 @@ def add_reagent_concentrations(invocation_params, batch_samples, reagents, param
 
             ## If there are multiple reagents in the ER, then need to select the right one for this plate
             reagent_name = reagent.split("_concentration")[0]
-            if 'inducers' in parameters['induction_info.induction_reagents']:
+            if 'induction_info.induction_reagents' in parameters and 'inducers' in parameters['induction_info.induction_reagents']:
                 for k, v in parameters['induction_info.induction_reagents']['inducers'][reagent_name].items():
                     make_entry(invocation_params, k, v)
 
