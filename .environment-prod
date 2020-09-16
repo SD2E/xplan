@@ -4,7 +4,7 @@ XPLAN_EMAIL=dbryce@sift.net
 XPLAN_DOCKER_NAMESPACE=sd2e
 
 # remote
-REMOTE_WORK_DIR=data-sd2e-projects.sd2e-project-45
+REMOTE_WORK_DIR=data-sd2e-projects.sd2e-project-14
 
 #
 # xplan design app
