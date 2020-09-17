@@ -17,6 +17,8 @@ xplan-dev-env
 /apps/xplan_design/xplan_utils/
 /components/xplan_design/.eggs/
 /components/xplan_design/build/
+/components/xplan_submit/build/
+/components/xplan_utils/build/
 /secrets/tx_secrets.json
 /components/xplan_design/test/experiments/state.json
 /components/xplan_design/test/experiments/dan.csv
