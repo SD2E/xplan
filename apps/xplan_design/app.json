@@ -20,45 +20,63 @@
   "version": "{{ app.version }}",
   "defaultMaxRunTime": "00:30:00",
   "inputs": [
-  {
-    "id": "lab_configuration",
-    "details": {
-      "label": "Lab Configuration"
-    },
-    "semantics": {}
-  },
-  {
-    "id": "out_dir",
-    "details": {
-      "label": "Output directory"
-    },
-    "semantics": {}
-  }],
-  "parameters": [
-        {
-    "id": "experiment_id",
-    "details": {
-      "label": "Experiment ID"
-    },
-    "semantics": {},
-    "value": {
-      "visible": true,
-      "required": true,
-      "type": "string"
-    }
-  },
     {
-    "id": "challenge_problem",
-    "details": {
-      "label": "Challenge Problem"
+      "id": "lab_configuration_uri",
+      "details": {
+        "label": "Lab Configuration"
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "required": false
+      }
     },
-    "semantics": {},
-    "value": {
-      "visible": true,
-      "required": true,
-      "type": "string"
+    {
+      "id": "out_dir",
+      "details": {
+        "label": "Output directory"
+      },
+      "semantics": {}
     }
-  },
+  ],
+  "parameters": [
+    {
+      "id": "lab_configuration_json",
+      "details": {
+        "label": "Lab Configuration"
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "enquote": true,
+        "required": false,
+        "type": "string"
+      }
+    },
+    {
+      "id": "experiment_id",
+      "details": {
+        "label": "Experiment ID"
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "required": true,
+        "type": "string"
+      }
+    },
+    {
+      "id": "challenge_problem",
+      "details": {
+        "label": "Challenge Problem"
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "required": true,
+        "type": "string"
+      }
+    },
     {
       "id": "CONTAINER_IMAGE",
       "value": {

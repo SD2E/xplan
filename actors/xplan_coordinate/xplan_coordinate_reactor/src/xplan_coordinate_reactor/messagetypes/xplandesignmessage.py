@@ -2,6 +2,7 @@ from ..files import download_file, upload_file, download_dir, upload_dir, split_
 from ..jobs import launch_job
 from .abacomessage import AbacoMessage, AbacoMessageError
 from attrdict import AttrDict
+import base64
 from reactors.runtime import Reactor, agaveutils
 from .jobcompletionmessage import JobCompletionMessage
 from xplan_utils.helpers import ensure_experiment_dir, get_design_file_name, get_experiment_design, \
@@ -29,7 +30,6 @@ class XPlanDesignMessage(AbacoMessage):
         "archiveSystem": "data-tacc-work-jladwig",
         "archivePath": "xplan2/archive/jobs/job-${JOB_ID}",
         "inputs": [
-            "lab_configuration",
             "out_dir"
         ],
         "parameters": [
@@ -45,7 +45,8 @@ class XPlanDesignMessage(AbacoMessage):
         r.logger.info("Downloading state.json...")
         resp = download_file(r, state_uri, verbose=True)
         if not resp.ok:
-            raise XPlanDesignMessageError("Failed to download state json from {}".format(state_uri))
+            raise XPlanDesignMessageError(
+                "Failed to download state json from {}".format(state_uri))
         state = resp.json()
         r.logger.info("Checking state.json for assigned_cotainers...")
         if 'assigned_containers' in state:
@@ -70,7 +71,7 @@ class XPlanDesignMessage(AbacoMessage):
         # Our state merging during the finalize step need this to
         # avoid issues when multiple jobs are run back to back on a
         # challenge problem with no initial state.
-        preseed_state ={
+        preseed_state = {
             "experiment_requests": [],
             "experiment_submissions": {},
             "assigned_containers": [],
@@ -92,11 +93,15 @@ class XPlanDesignMessage(AbacoMessage):
         (out_dir_system, out_dir_path) = split_agave_uri(msg_out_dir)
         archive_system = out_dir_system
 
+        # For testing as though a dict was passed in directly
+        # msg_lab_configuration = self.get_lab_configuration(r, msg)
+
         archive_path = os.path.join(out_dir_path, "archive", "jobs")
         ensure_path_on_system(r, archive_system, archive_path, verbose=True)
         archive_path = os.path.join(archive_path, "job-${JOB_ID}")
 
-        challenge_dir = self.get_challenge_dir(out_dir_path, msg_challenge_problem)
+        challenge_dir = self.get_challenge_dir(
+            out_dir_path, msg_challenge_problem)
         is_production = r.settings['xplan_config'].get('is_production', False)
         if not is_production:
             r.logger.info("Not in production mode")
@@ -115,6 +120,17 @@ class XPlanDesignMessage(AbacoMessage):
         custom_job_spec = AttrDict(self.JOB_SPEC.copy())
         custom_job_spec['archiveSystem'] = archive_system
         custom_job_spec['archivePath'] = archive_path
+
+        if isinstance(msg_lab_configuration, str):
+            custom_job_spec['inputs'].append('lab_configuration_uri')
+            msg['lab_configuration_uri'] = msg_lab_configuration
+        elif isinstance(msg_lab_configuration, dict):
+            custom_job_spec['parameters'].append('lab_configuration_json')
+            # NOTE: base64 encode the dict so it survives through the bash env
+            payload = json.dumps(msg_lab_configuration, separators=(',', ':'))
+            msg['lab_configuration_json'] = base64.b64encode(payload.encode('ascii')).decode('ascii')
+        else:
+            raise XPlanDesignMessageError("invalid lab_configuration")
 
         r.logger.info(
             "Process xplan design message \n  Experiment ID: {}\n Challenge Problem: {}\n  Lab Configuration: {}\n  OutDir: {}\n  Data Path: {}\n  Archive Path: {}\n  Archive System: {}"
@@ -166,13 +182,17 @@ class XPlanDesignMessage(AbacoMessage):
         state_diff_uri = make_agave_uri(archive_system, state_diff_path)
         r.logger.info("state_diff_uri = {}".format(state_diff_uri))
         if file_exists_at_agave_uri(r, state_diff_uri, verbose=True):
-            r.logger.info("Downloading state diff from: {}".format(state_diff_uri))
+            r.logger.info(
+                "Downloading state diff from: {}".format(state_diff_uri))
             resp = download_file(r, state_diff_uri)
             if not resp.ok:
-                raise XPlanDesignMessageError("Failed to download state diff at {}".format(state_diff_uri))
-            self.rectify_state(r, resp.text, local_out, upload_system, upload_out_dir, challenge_problem)
+                raise XPlanDesignMessageError(
+                    "Failed to download state diff at {}".format(state_diff_uri))
+            self.rectify_state(r, resp.text, local_out,
+                               upload_system, upload_out_dir, challenge_problem)
         else:
-            r.logger.info("No state diff found. Continuing as though job made no state changes...")
+            r.logger.info(
+                "No state diff found. Continuing as though job made no state changes...")
 
         # Do final processing
         self.handle_design_output(r,
@@ -187,30 +207,36 @@ class XPlanDesignMessage(AbacoMessage):
         upload_dir(r, local_out, upload_uri, verbose=True)
         r.logger.info("Upload: Complete")
 
-        experiment_request = get_experiment_request(experiment_id, os.path.join(local_out, challenge_problem))
+        experiment_request = get_experiment_request(
+            experiment_id, os.path.join(local_out, challenge_problem))
         if 'test_mode' in experiment_request['defaults']:
             test_mode = experiment_request['defaults']['test_mode']
         else:
             test_mode = False
 
-        r.logger.info("Is Reactor Local? {}, Is test_mode? {}".format(r.local, test_mode))
+        r.logger.info(
+            "Is Reactor Local? {}, Is test_mode? {}".format(r.local, test_mode))
 
         if not r.local and not test_mode:
-            self.notify_control_annotator(r, experiment_id, challenge_problem, upload_uri)
+            self.notify_control_annotator(
+                r, experiment_id, challenge_problem, upload_uri)
 
         r.logger.info("Finalize ended with success")
 
     def rectify_state(self, r: Reactor, diff_str: str, local_out: str, upload_system: str, upload_path: str, challenge_problem: str):
         r.logger.info("Rectifying state...")
         challenge_dir = self.get_challenge_dir(upload_path, challenge_problem)
-        challenge_state_uri = make_agave_uri(upload_system, os.path.join(challenge_dir, 'state.json'))
+        challenge_state_uri = make_agave_uri(
+            upload_system, os.path.join(challenge_dir, 'state.json'))
         if not file_exists_at_agave_uri(r, challenge_state_uri, verbose=True):
-            r.logger.info("No challenge state found at {}. Continuing as though job state is true state...".format(challenge_state_uri))
+            r.logger.info("No challenge state found at {}. Continuing as though job state is true state...".format(
+                challenge_state_uri))
             return
 
         resp = download_file(r, challenge_state_uri, verbose=True)
         if not resp.ok:
-            raise XPlanDesignMessageError("Failed to download challenge state file at {}".format(challenge_state_uri))
+            raise XPlanDesignMessageError(
+                "Failed to download challenge state file at {}".format(challenge_state_uri))
         challenge_state = resp.json()
 
         state_diff = jp.JsonPatch.from_string(diff_str)
@@ -225,24 +251,32 @@ class XPlanDesignMessage(AbacoMessage):
         if 'experiment_requests' in final_state:
             # It is technically possible for duplicates to make it in via the diff patching.
             # Ensure unique experiments_requests list by stripping any duplicates.
-            final_state['experiment_requests'] = list(set(final_state['experiment_requests']))
+            final_state['experiment_requests'] = list(
+                set(final_state['experiment_requests']))
 
         r.logger.info("Final state: {}".format(final_state))
         with open(os.path.join(local_out, challenge_problem, 'state.json'), 'w') as f:
             f.write(json.dumps(final_state))
 
-
     def get_challenge_dir(self, out_dir, challenge_problem):
         return os.path.join(out_dir, challenge_problem)
 
-
     # TODO resolve how multiple labs work in this system
+
     def get_lab_configuration(self, r: Reactor, msg):
-        cfg_uri = msg.get('lab_configuration')
+        lab_config = msg.get('lab_configuration')
+        if isinstance(lab_config, str):
+            cfg_uri = lab_config
+        elif isinstance(lab_config, dict):
+            return lab_config
+        else:
+            raise XPlanDesignMessageError(
+                "invalid lab_configuration")
+
         cfg_resp = download_file(r, cfg_uri)
         if not cfg_resp.ok:
             raise XPlanDesignMessageError(
-                "Failed to download lab_configuration file")
+                "Failed to download lab_configuration from {}".format(cfg_uri))
         return cfg_resp.json()
 
     def handle_design_output(self, r: Reactor, experiment_id, challenge_problem, lab_cfg, out_dir: str):
@@ -267,11 +301,13 @@ class XPlanDesignMessage(AbacoMessage):
 
         mock = r.settings['xplan_config'].get('mock', False)
         r.logger.info("Mock = {}".format(mock))
-        submit_experiment(experiment_id, challenge_problem, lab_cfg, transcriptic_params, input_dir=out_dir, out_dir=out_dir, mock=mock)
+        submit_experiment(experiment_id, challenge_problem, lab_cfg,
+                          transcriptic_params, input_dir=out_dir, out_dir=out_dir, mock=mock)
 
     def notify_control_annotator(self, r: Reactor, experiment_id, challenge_problem, upload_uri):
-        ## Send SR Reactor a response with path to design
-        design_path = "{}/{}/experiments/{}/design_{}.json".format(upload_uri, challenge_problem, experiment_id, experiment_id)
+        # Send SR Reactor a response with path to design
+        design_path = "{}/{}/experiments/{}/design_{}.json".format(
+            upload_uri, challenge_problem, experiment_id, experiment_id)
         r.logger.info("Sending design to SRR: %s", design_path)
         ag = r.client  # Agave client
         ag.token = os.getenv('_abaco_access_token')
@@ -279,10 +315,10 @@ class XPlanDesignMessage(AbacoMessage):
         resp = ag.actors.sendMessage(
             actorId="control-annotator.prod",
             body={'message': {
-                "xplan_uri" : design_path,
-                "set_submit" : True
-                }},
-            environment={'x-session' : ''})
+                "xplan_uri": design_path,
+                "set_submit": True
+            }},
+            environment={'x-session': ''})
         exid = resp.get('executionId', 'Message Failed')
         r.logger.info("control-annotator.prod Execution Id: %s", exid)
 

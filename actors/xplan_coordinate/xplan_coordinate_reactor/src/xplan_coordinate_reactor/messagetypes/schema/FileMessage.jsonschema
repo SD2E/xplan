@@ -7,7 +7,7 @@
     },
     "properties": {
         "file" : { "type" : "string" },
-        "lab_configuration" : { "type" : "string" }
+        "lab_configuration" : { "type" : ["string", "object"] }
     },
     "required": ["file"]
 }

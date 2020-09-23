@@ -18,8 +18,10 @@ class FileMessage(AbacoMessage):
 
         lab_configuration = None
         if 'lab_configuration' in body:
+            # load the lab_configuation in from the message
             lab_configuration = body.get('lab_configuration')
         if lab_configuration is None:
+            # Read the fallback lab_configuration out of the config.yml
             lc_settings = r.settings['xplan_config']['lab_configuration']
             lc_system = lc_settings['system']
             lc_path = lc_settings['path']

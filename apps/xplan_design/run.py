@@ -1,4 +1,5 @@
 import argparse
+import base64
 import json
 import jsonpatch
 import logging
@@ -11,20 +12,11 @@ def _parser():
     parser = argparse.ArgumentParser(description='XPlan Generate Design')
     parser.add_argument('experiment_id', help='Experiment ID')
     parser.add_argument('challenge_problem', help='Challenge Problem')
-    parser.add_argument('lab_configuration', help='Lab LIMS credentials')
     parser.add_argument("out_dir", help="Base directory for output", default=".")
+    parser.add_argument('--lab_configuration_json', help='Lab LIMS credentials')
+    parser.add_argument('--lab_configuration_uri', help='Lab LIMS credentials')
     return parser
 
-def run(args):
-    experiment_id = args.experiment_id
-    challenge_problem = args.challenge_problem
-    lab_configuration = args.lab_configuration
-    out_dir = args.out_dir
-    #out_dir = "/work/projects/SD2E-Community/prod/projects/sd2e-project-14/xplan-reactor"
-
-    with open(lab_configuration, "r") as lab_secret:
-        generate_design(experiment_id, challenge_problem, json.load(lab_secret),
-                        input_dir=out_dir, out_dir=out_dir)
 
 def cleanup_dir(path, *, prefix_str = ' ', prefix_step = 2, prefix_offset = 0):
     prefix = prefix_str*prefix_offset
@@ -71,6 +63,19 @@ def main():
     try:
         parser = _parser()
         args = parser.parse_args()
+        if args.lab_configuration_json is not None:
+            lc = base64.b64decode(args.lab_configuration_json.encode('ascii')).decode('ascii')
+            lab_secret = json.loads(lc)
+        elif args.lab_configuration_uri is not None:
+            lc = args.lab_configuration_uri
+            with open(lc, "r") as f:
+                lab_secret = json.load(f)
+        else:
+            raise Exception("lab_configuration must be provided")
+
+        experiment_id = args.experiment_id
+        challenge_problem = args.challenge_problem
+        out_dir = args.out_dir
 
         # ensure the logger is configured
         h1 = logging.StreamHandler(sys.stdout)
@@ -80,9 +85,11 @@ def main():
         h2.setLevel(logging.WARNING)
         logging.basicConfig(handlers = [h1, h2], format='%(levelname)s:%(message)s')
 
-        state_path = os.path.join(args.out_dir, args.challenge_problem, "state.json")
+        state_path = os.path.join(out_dir, challenge_problem, "state.json")
         state_before = read_state(state_path)
-        run(args)
+        generate_design(experiment_id, challenge_problem, lab_secret,
+                        input_dir=out_dir, out_dir=out_dir)
+
         state_after = read_state(state_path)
         state_diff = jsonpatch.make_patch(state_before, state_after)
 

@@ -33,6 +33,7 @@ def download_file_from_system(r: Reactor, system_id: str, path: str, *, verbose=
             download_file_from_system(r, system_id, path, verbose=False, retrys=retrys - 1, retry_delay=retry_delay)
         else:
             r.logger.error("Failed to download file! {}".format(make_agave_uri(system_id, path)))
+            raise exc
 
 
 def download_file(r: Reactor, downloadURI: str, *, verbose=False, retrys=3, retry_delay=0.1):
@@ -59,6 +60,7 @@ def upload_file_to_system(r: Reactor, sourcePath: str, destSystem: str, destPath
             upload_file_to_system(r, sourcePath, destSystem, destPath, name=name, verbose=verbose, retrys=retrys - 1, retry_delay=retry_delay)
         else:
             r.logger.error("Failed to upload file! {} to {}".format(sourcePath, make_agave_uri(destSystem, destPath)))
+            raise exc
 
 
 def upload_file(r: Reactor, sourcePath: str, destinationURI: str, *, name: str = None, verbose=False, retrys=3, retry_delay=0.1):
@@ -146,6 +148,7 @@ def mkdir_on_system(r: Reactor, system_id: str, path: str, dirpath: str, *, verb
             mkdir_on_system(r, system_id, path, dirpath, verbose=False, retrys=retrys - 1, retry_delay=retry_delay)
         else:
             r.logger.error("Failed to mkdir! {}".format(make_agave_uri(system_id, os.path.join(path, dirpath))))
+            raise exc
 
 
 
@@ -169,6 +172,7 @@ def list_dir_on_system(r: Reactor, system_id: str, path: str, *, limit: int = 25
             return list_dir_on_system(r, system_id, path, limit=limit, offset=offset, verbose=False, retrys=retrys - 1, retry_delay=retry_delay)
         else:
             r.logger.error("Failed to listdir! {}".format(make_agave_uri(system_id, path)))
+            raise exc
 
 
 def list_dir(r: Reactor, uri: str, *, limit: int = 250, offset: int = 0, verbose=False, retrys=3, retry_delay=0.1):
