@@ -9,7 +9,7 @@ from xplan_models.condition import ConditionSpace
 import logging
 
 from xplan_utils.container_data_conversion import container_to_dict, generate_container
-from xplan_utils.helpers import put_experiment_request, \
+de put_experiment_request, \
     put_aliquot_properties, put_experiment_design, do_convert_ftypes, get_experiment_request
 from xplan_utils.lab.strateos.utils import get_transcriptic_api, TranscripticApiError, get_tx_containers, \
     get_usable_tx_containers, generate_test_container, get_container_id, add_run_container_to_factor
@@ -98,10 +98,10 @@ def generate_design(experiment_id, challenge_problem, transcriptic_cfg, input_di
             l.error("Failed connecting to Transcriptic")
             raise TranscripticApiError(exc)
 
-        if "generate" == constants['container_search_string']:
+        if "container_search_string" in constants and "generate" == constants['container_search_string']:
             containers = None
             usable_containers = None
-        else:
+        elif "container_search_string" in constants:
             containers = get_tx_containers(transcriptic_api, constants['container_search_string'])
             #if 'assigned_containers' in state:
                 #containers = [x for x in containers if get_container_id(x) not in state['assigned_containers']]
@@ -111,6 +111,9 @@ def generate_design(experiment_id, challenge_problem, transcriptic_cfg, input_di
                 "defaults": {"source_plates": None},
                 "containers": containers})
             l.info("Usable containers: %s", [get_container_id(x) for x in usable_containers])
+        else:
+            usable_containers = None
+            l.info("Not assigning to containers...")
 
         if 'lab_id' in condition_space.factors:
             condition_space.factors['lab_id'] = add_run_container_to_factor(condition_space.factors['lab_id'], containers)
@@ -280,10 +283,13 @@ def generate_experiment_request_smt(conditions,
                                     test_mode=True,
                                     submit=False):
     l.debug("Strain Name: %s", strain_name)
-    c2ds = get_containers(usable_containers,
-                          batches,
-                          strip_aliquot_properties=strip_aliquot_properties,
-                          strain_name=strain_name)
+    if usable_containers:
+        c2ds = get_containers(usable_containers,
+                              batches,
+                              strip_aliquot_properties=strip_aliquot_properties,
+                              strain_name=strain_name)
+    else:
+        c2ds = None
 
     factors = do_convert_ftypes(condition_space.factors)
     l.debug("factors: %s", {x: y['ftype'] for x, y in factors.items()})

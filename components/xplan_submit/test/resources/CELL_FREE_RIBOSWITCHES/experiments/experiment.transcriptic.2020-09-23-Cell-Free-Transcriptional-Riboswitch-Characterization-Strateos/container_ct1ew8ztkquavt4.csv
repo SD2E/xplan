@@ -1,0 +1,7 @@
+Well Index,Well Label,Vol (uL),inducer1_concentration,inducer2_concentration
+A1,Test DNA2,50,1.0,0.0
+A1,Test DNA2,50,0.0,2.0
+A1,Test DNA2,50,0.0,3.0
+A1,Test DNA2,50,0.0,1.0
+A1,Test DNA2,50,2.0,0.0
+A1,Test DNA2,50,3.0,0.0

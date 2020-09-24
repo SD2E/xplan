@@ -80,7 +80,9 @@ def get_params_file_path(experiment_id, batch_id, out_dir):
 
 def do_convert_ftypes(factors):
     for factor_id, factor in factors.items():
-        if factor_id == "strain" or factor_id == "replicate":
+        if factor_id == "strain":
+            factor['ftype'] = 'aliquot'
+        elif  factor_id == "replicate" and factor['ftype'] != "sample":
             factor['ftype'] = 'aliquot'
         elif factor_id == "timepoint" or factor_id == "measurement_type":
             factor['ftype'] = 'sample'

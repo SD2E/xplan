@@ -53,6 +53,11 @@ def test_generate_growth_curve_design():
     experiment_id = "experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves"
     gen_design(experiment_id)
 
+def test_generate_cell_free_riboswitches_design():
+    experiment_id = "experiment.transcriptic.2020-09-23-Cell-Free-Transcriptional-Riboswitch-Characterization-Strateos"
+    challenge_problem = "CELL_FREE_RIBOSWITCHES"
+    gen_design(experiment_id, challenge_problem=challenge_problem)
+
 
 def test_generate_round2_design():
     experiment_id = "experiment.transcriptic.2020-09-29-YeastSTATES-1-0-Time-Series-Round-2-0"
