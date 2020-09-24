@@ -128,15 +128,12 @@ class XPlanDesignMessage(AbacoMessage):
             # store this in the message in case we want to find it later
             msg['lab_configuration_uri'] = msg_lab_configuration
             # Force the lab_configuration to a dictionary
-            msg_lab_configuration = self.get_lab_configuration(r, msg)
+            msg_lab_configuration = self.get_lab_config_as_dict(r, msg)
 
         if not isinstance(msg_lab_configuration, dict):
             raise Exception("lab_configuration did not resolve to a dictionary")
 
-        # NOTE: base64 encode the dict so it survives through the bash env
-        lc_payload = json.dumps(msg_lab_configuration, separators=(',', ':'))
-        # ensure the msg lab config is a dict
-        msg['lab_configuration'] = base64.b64encode(lc_payload.encode('ascii')).decode('ascii')
+        msg['lab_configuration'] = self.lab_config_to_base64(msg_lab_configuration)
 
         r.logger.info("Process xplan design message \n  Experiment ID: {}\n  Challenge Problem: {}\n  OutDir: {}\n  Data Path: {}\n  Archive Path: {}\n  Archive System: {}"
             .format(msg_experiment_id, msg_challenge_problem, msg_out_dir, out_dir_path, archive_path, archive_system))
@@ -194,11 +191,12 @@ class XPlanDesignMessage(AbacoMessage):
         else:
             r.logger.info("No state diff found. Continuing as though job made no state changes...")
 
+        lab_secrets = self.lab_config_from_base64(msg.get('lab_configuration'))
         # Do final processing
         self.handle_design_output(r,
                                   experiment_id,
                                   challenge_problem,
-                                  self.get_lab_configuration(r, msg),
+                                  lab_secrets,
                                   local_out)
 
         # Upload the finished experiment files
@@ -256,7 +254,14 @@ class XPlanDesignMessage(AbacoMessage):
 
     # TODO resolve how multiple labs work in this system
 
-    def get_lab_configuration(self, r: Reactor, msg):
+    def lab_config_to_base64(self, lab_config):
+        lc_payload = json.dumps(lab_config, separators=(',', ':'))
+        return base64.b64encode(lc_payload.encode('ascii')).decode('ascii')
+
+    def lab_config_from_base64(self, lc_str):
+        return json.loads(base64.b64decode(lc_str.encode('ascii')).decode('ascii'))
+
+    def get_lab_config_as_dict(self, r: Reactor, msg):
         lab_config = msg.get('lab_configuration')
         if isinstance(lab_config, str):
             cfg_uri = lab_config

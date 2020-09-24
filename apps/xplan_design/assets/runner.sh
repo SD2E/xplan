@@ -26,5 +26,5 @@ fi
 
 # set +x
 COMMAND="python3"
-PARAMS="/run.py ${experiment_id} ${challenge_problem} ${lab_configuration} ${out_path} ${experiment_dir}"
+PARAMS="/run.py ${experiment_id} ${challenge_problem} ${lab_configuration} ${out_path} ${experiment_dir} ${state_json}"
 container_exec ${CONTAINER_IMAGE} ${COMMAND} ${PARAMS}

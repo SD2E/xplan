@@ -15,7 +15,7 @@ def _parser():
     parser.add_argument('lab_configuration', help='Lab LIMS credentials')
     parser.add_argument("out_path", help="Base directory for output", default=".")
     parser.add_argument("experiment_dir", help="Experiment directory for input")
-    # parser.add_argument("state_json", help="Path to state json")
+    parser.add_argument("state_json", help="Path to state json")
     return parser
 
 
@@ -87,8 +87,8 @@ def main():
         experiment_in_dir = args.experiment_dir
         challenge_problem = args.challenge_problem
         out_dir = args.out_path
-        # state_in_path = args.state_json
-        state_in_path = 'state.json'
+        state_in_path = args.state_json
+        # state_in_path = 'state.json'
 
         # copy the input into the output
         challenge_dir = os.path.join(out_dir, challenge_problem)
