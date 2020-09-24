@@ -30,9 +30,11 @@ class XPlanDesignMessage(AbacoMessage):
         "archiveSystem": "data-tacc-work-jladwig",
         "archivePath": "xplan2/archive/jobs/job-${JOB_ID}",
         "inputs": [
-            "out_dir"
+            "experiment_dir",
+            "state_json"
         ],
         "parameters": [
+            "out_path",
             "lab_configuration",
             "experiment_id",
             "challenge_problem"
@@ -66,7 +68,7 @@ class XPlanDesignMessage(AbacoMessage):
     def ensure_state_json(self, r: Reactor, system, out_dir):
         state_uri = make_agave_uri(system, os.path.join(out_dir, 'state.json'))
         if file_exists_at_agave_uri(r, state_uri, verbose=True):
-            return
+            return state_uri
         # this ensures the state json has the expected fields in it.
         # Our state merging during the finalize step need this to
         # avoid issues when multiple jobs are run back to back on a
@@ -83,6 +85,7 @@ class XPlanDesignMessage(AbacoMessage):
         state_dir = make_agave_uri(system, os.path.join(out_dir))
         upload_file(r, state_path, state_dir, verbose=True)
         os.remove(state_path)
+        return state_uri
 
     def process_message(self, r: Reactor, *, user_data=None):
         msg = getattr(self, 'body')
@@ -92,6 +95,8 @@ class XPlanDesignMessage(AbacoMessage):
         msg_out_dir = msg.get('out_dir')
         (out_dir_system, out_dir_path) = split_agave_uri(msg_out_dir)
         archive_system = out_dir_system
+
+        ensure_path_on_system(r, out_dir_system, out_dir_path, verbose=True)
 
         archive_path = os.path.join(out_dir_path, "archive", "jobs")
         ensure_path_on_system(r, archive_system, archive_path, verbose=True)
@@ -103,15 +108,17 @@ class XPlanDesignMessage(AbacoMessage):
             r.logger.info("Not in production mode")
             self.clear_assigned_containers(r, out_dir_system, challenge_dir)
         # preseed the state.json if it does not exist in the challenge_dir
-        self.ensure_state_json(r, out_dir_system, challenge_dir)
+        state_uri = self.ensure_state_json(r, out_dir_system, challenge_dir)
+        msg['state_json'] = state_uri
 
-        # TODO this is a bit of a hack in that I change the
-        # message the is seen my the process stage to something
-        # slightly different for the finalize stage. But it should
-        # resolve issues with consecutive runes massively increasing
-        # storage use (due to pulling in archive data)
-        ensure_path_on_system(r, out_dir_system, out_dir_path, verbose=True)
-        msg['out_dir'] = make_agave_uri(out_dir_system, out_dir_path)
+        # create the path that we will send as input to the design app
+        experiments_dir = os.path.join(challenge_dir, 'experiments')
+        experiment_path = os.path.join(experiments_dir, msg_experiment_id)
+        ensure_path_on_system(r, out_dir_system, experiment_path, verbose=True)
+        msg['experiment_dir'] = make_agave_uri(out_dir_system, experiment_path)
+        # tell the app where to output the data that the finalize step
+        # will merge with the actual out_dir agave uri
+        msg['out_path'] = os.path.basename(out_dir_path.rstrip('/'))
 
         custom_job_spec = AttrDict(self.JOB_SPEC.copy())
         custom_job_spec['archiveSystem'] = archive_system

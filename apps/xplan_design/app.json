@@ -21,14 +21,35 @@
   "defaultMaxRunTime": "00:30:00",
   "inputs": [
     {
-      "id": "out_dir",
+      "id": "experiment_dir",
       "details": {
-        "label": "Output directory"
+        "label": "Experiment Directory",
+        "description": "The directory the design app will use to source the initial experiment files."
+      },
+      "semantics": {}
+    },
+    {
+      "id": "state_json",
+      "details": {
+        "label": "State Json"
       },
       "semantics": {}
     }
   ],
   "parameters": [
+    {
+      "id": "out_path",
+      "details": {
+        "label": "Output Path",
+        "description": "The directory the design app will use to output the resulting experiment files."
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "required": true,
+        "type": "string"
+      }
+    },
     {
       "id": "experiment_id",
       "details": {

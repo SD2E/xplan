@@ -8,9 +8,11 @@
   "processorsPerNode": 1,
   "archive": true,
   "inputs": {
-    "out_dir": "agave://data-tacc-work-jladwig/xplan2"
+    "experiment_dir": "agave://data-tacc-work-jladwig/xplan2/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves",
+    "state_json": "agave://data-tacc-work-jladwig/xplan2/YEAST_STATES/state.json"
   },
   "parameters": {
+    "out_path": "xplan2",
     "experiment_id": "experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves",
     "lab_configuration": "agave://data-tacc-work-jladwig/xplan2/secrets/tx_secrets.json",
     "challenge_problem" : "YEAST_STATES"
