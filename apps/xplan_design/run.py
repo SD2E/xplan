@@ -12,9 +12,8 @@ def _parser():
     parser = argparse.ArgumentParser(description='XPlan Generate Design')
     parser.add_argument('experiment_id', help='Experiment ID')
     parser.add_argument('challenge_problem', help='Challenge Problem')
+    parser.add_argument('lab_configuration', help='Lab LIMS credentials')
     parser.add_argument("out_dir", help="Base directory for output", default=".")
-    parser.add_argument('--lab_configuration_json', help='Lab LIMS credentials')
-    parser.add_argument('--lab_configuration_uri', help='Lab LIMS credentials')
     return parser
 
 
@@ -63,13 +62,13 @@ def main():
     try:
         parser = _parser()
         args = parser.parse_args()
-        if args.lab_configuration_json is not None:
-            lc = base64.b64decode(args.lab_configuration_json.encode('ascii')).decode('ascii')
+        if args.lab_configuration is not None:
+            lc = base64.b64decode(args.lab_configuration.encode('ascii')).decode('ascii')
             lab_secret = json.loads(lc)
-        elif args.lab_configuration_uri is not None:
-            lc = args.lab_configuration_uri
-            with open(lc, "r") as f:
-                lab_secret = json.load(f)
+        # elif args.lab_configuration_uri is not None:
+        #     lc = args.lab_configuration_uri
+        #     with open(lc, "r") as f:
+        #         lab_secret = json.load(f)
         else:
             raise Exception("lab_configuration must be provided")
 

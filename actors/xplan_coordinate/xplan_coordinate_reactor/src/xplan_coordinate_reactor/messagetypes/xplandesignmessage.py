@@ -33,6 +33,7 @@ class XPlanDesignMessage(AbacoMessage):
             "out_dir"
         ],
         "parameters": [
+            "lab_configuration",
             "experiment_id",
             "challenge_problem"
         ]
@@ -92,9 +93,6 @@ class XPlanDesignMessage(AbacoMessage):
         (out_dir_system, out_dir_path) = split_agave_uri(msg_out_dir)
         archive_system = out_dir_system
 
-        # For testing as though a dict was passed in directly
-        # msg_lab_configuration = self.get_lab_configuration(r, msg)
-
         archive_path = os.path.join(out_dir_path, "archive", "jobs")
         ensure_path_on_system(r, archive_system, archive_path, verbose=True)
         archive_path = os.path.join(archive_path, "job-${JOB_ID}")
@@ -120,19 +118,21 @@ class XPlanDesignMessage(AbacoMessage):
         custom_job_spec['archivePath'] = archive_path
 
         if isinstance(msg_lab_configuration, str):
-            custom_job_spec['inputs'].append('lab_configuration_uri')
+            # store this in the message in case we want to find it later
             msg['lab_configuration_uri'] = msg_lab_configuration
-        elif isinstance(msg_lab_configuration, dict):
-            custom_job_spec['parameters'].append('lab_configuration_json')
-            # NOTE: base64 encode the dict so it survives through the bash env
-            payload = json.dumps(msg_lab_configuration, separators=(',', ':'))
-            msg['lab_configuration_json'] = base64.b64encode(payload.encode('ascii')).decode('ascii')
-        else:
-            raise XPlanDesignMessageError("invalid lab_configuration")
+            # Force the lab_configuration to a dictionary
+            msg_lab_configuration = self.get_lab_configuration(r, msg)
 
-        r.logger.info(
-            "Process xplan design message \n  Experiment ID: {}\n Challenge Problem: {}\n  Lab Configuration: {}\n  OutDir: {}\n  Data Path: {}\n  Archive Path: {}\n  Archive System: {}"
-            .format(msg_experiment_id, msg_challenge_problem, msg_lab_configuration, msg_out_dir, out_dir_path, archive_path, archive_system))
+        if not isinstance(msg_lab_configuration, dict):
+            raise Exception("lab_configuration did not resolve to a dictionary")
+
+        # NOTE: base64 encode the dict so it survives through the bash env
+        lc_payload = json.dumps(msg_lab_configuration, separators=(',', ':'))
+        # ensure the msg lab config is a dict
+        msg['lab_configuration'] = base64.b64encode(lc_payload.encode('ascii')).decode('ascii')
+
+        r.logger.info("Process xplan design message \n  Experiment ID: {}\n  Challenge Problem: {}\n  OutDir: {}\n  Data Path: {}\n  Archive Path: {}\n  Archive System: {}"
+            .format(msg_experiment_id, msg_challenge_problem, msg_out_dir, out_dir_path, archive_path, archive_system))
 
         job_id = launch_job(r, msg, custom_job_spec)
         if (job_id is None):

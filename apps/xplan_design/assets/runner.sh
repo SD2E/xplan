@@ -23,24 +23,8 @@ fi
 #
 
 # set -x
+
 # set +x
-
-# echo 'inputs'
-# echo "  experiment_id = ${experiment_id}"
-# echo "  lab_configuration_uri = ${lab_configuration_uri}"
-# echo 'parameters'
-# echo "  lab_configuration_json = ${lab_configuration_json}"
-# echo "  challenge_problem = ${challenge_problem}"
-# echo "  out_dir = ${out_dir}"
-
-if [ -z "${lab_configuration_json}" ]; then
-  echo 'Running with lab_configuration as agave uri'
-  PARAMS="/run.py ${experiment_id} ${challenge_problem} ${out_dir} --lab_configuration_uri ${lab_configuration_uri}"
-else
-  echo 'Running with lab_configuration as dict'
-  PARAMS="/run.py ${experiment_id} ${challenge_problem} ${out_dir} --lab_configuration_json ${lab_configuration_json}"
-fi
-
 COMMAND="python3"
-echo container_exec ${CONTAINER_IMAGE} ${COMMAND} ${PARAMS}
+PARAMS="/run.py ${experiment_id} ${challenge_problem} ${lab_configuration} ${out_dir}"
 container_exec ${CONTAINER_IMAGE} ${COMMAND} ${PARAMS}

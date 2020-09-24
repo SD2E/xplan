@@ -21,17 +21,6 @@
   "defaultMaxRunTime": "00:30:00",
   "inputs": [
     {
-      "id": "lab_configuration_uri",
-      "details": {
-        "label": "Lab Configuration"
-      },
-      "semantics": {},
-      "value": {
-        "visible": true,
-        "required": false
-      }
-    },
-    {
       "id": "out_dir",
       "details": {
         "label": "Output directory"
@@ -41,22 +30,21 @@
   ],
   "parameters": [
     {
-      "id": "lab_configuration_json",
+      "id": "experiment_id",
       "details": {
-        "label": "Lab Configuration"
+        "label": "Experiment ID"
       },
       "semantics": {},
       "value": {
         "visible": true,
-        "enquote": true,
-        "required": false,
+        "required": true,
         "type": "string"
       }
     },
     {
-      "id": "experiment_id",
+      "id": "lab_configuration",
       "details": {
-        "label": "Experiment ID"
+        "label": "Lab Configuration"
       },
       "semantics": {},
       "value": {
