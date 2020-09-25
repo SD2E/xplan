@@ -109,6 +109,8 @@ class XPlanDesignMessage(AbacoMessage):
         job_id = None
         try:
             msg = getattr(self, 'body')
+            log_info(r, "Process xplan design message: {}".format(msg))
+
             msg_experiment_id = msg.get('experiment_id')
             msg_challenge_problem = msg.get('challenge_problem')
             msg_lab_configuration = msg.get('lab_configuration')
@@ -178,7 +180,7 @@ class XPlanDesignMessage(AbacoMessage):
     def finalize_message(self, r: Reactor, job: JobCompletionMessage, process_data, *, user_data=None):
         try:
             msg = getattr(self, 'body')
-            log_info(r, "Finalize xplan design message")
+            log_info(r, "Finalize xplan design message: {}".format(msg))
 
             out_uri = msg.get('out_dir')
             upload_system, out_path = split_agave_uri(out_uri)
