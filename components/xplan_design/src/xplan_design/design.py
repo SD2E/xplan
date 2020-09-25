@@ -9,7 +9,7 @@ from xplan_models.condition import ConditionSpace
 import logging
 
 from xplan_utils.container_data_conversion import container_to_dict, generate_container
-de put_experiment_request, \
+from xplan_utils.helpers import put_experiment_request, \
     put_aliquot_properties, put_experiment_design, do_convert_ftypes, get_experiment_request
 from xplan_utils.lab.strateos.utils import get_transcriptic_api, TranscripticApiError, get_tx_containers, \
     get_usable_tx_containers, generate_test_container, get_container_id, add_run_container_to_factor

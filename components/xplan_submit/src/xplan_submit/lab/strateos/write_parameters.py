@@ -106,7 +106,7 @@ def get_invocation_parameters(batch,
     ## Get the protocol type to decide how to map design to lab parameters
     protocol = batch_samples.protocol.unique()[0]
     l.debug("Batch uses protocol: %s", str(protocol))
-    if protocol == 'timeseries' or protocol == 'obstacle_course' or protocol == 'growth_curve':
+    if protocol == 'timeseries' or protocol == 'obstacle_course' or protocol == 'growth_curve' or protocol == 'cell_free_riboswitches':
         return get_time_series_invocation_parameters(batch_samples, batch, parameters, condition_space, design,
                                                      transcriptic_api, experiment_id, experiment_reference,
                                                      experiment_reference_url, strain_property=strain_property,
@@ -541,7 +541,7 @@ def get_time_series_invocation_parameters(batch_samples,
     invocation_params = AutoVivification()
     exp_params = parameters.copy()
 
-    omit_parameters = ["induction_info.induction_reagents"]
+    omit_parameters = ["induction_info.induction_reagents", "inducers"]
 
     for k, v in exp_params.items():
         l.debug("Setting %s = %s", str(k), str(v))
@@ -597,6 +597,10 @@ def get_time_series_invocation_parameters(batch_samples,
         dilution_volume = int(get_obstacle_course_dilution_volume(batch_samples, int(culture_volume)))
         make_entry(invocation_params, 'exp_info.growth_volumes.media_volume',
                    "{}:{}".format(dilution_volume, culture_volume_units))
+    elif protocol == "cell_free_riboswitches":
+        ## Get the rxn_info list
+        rxn_info_list = get_rxn_info_list(batch_samples)
+        make_entry(invocation_params, "rxn_info", rxn_info_list)
 
     make_entry(invocation_params, 'experimental_info.experiment_id', experiment_id)
     make_entry(invocation_params, 'experimental_info.experiment_reference', experiment_reference)
@@ -605,6 +609,61 @@ def get_time_series_invocation_parameters(batch_samples,
     final_invocation_params = {"parameters": invocation_params}
     l.debug("after batch params, design: %s", str(design))
     return final_invocation_params, design, source_container
+
+def get_rxn_info_list(batch_samples):
+    """
+    Return a list of rxn_group constructs. Each is a sample and list of inducer concentrations.
+    batch_samples will have multiple inducers and one container, so need to segment into one for
+    each inducer.
+    :return:
+    """
+    inducers_defs = eval(next(iter(batch_samples.inducers.unique())))
+    inducers = [x for x in batch_samples.columns if "inducer" in x and x != "inducers"]
+    rxn_info = []
+    for inducer in inducers:
+        inducer_group = batch_samples.loc[batch_samples[inducer] != 0]
+        inducer_name = inducer.split("_concentration")[0]
+        inducer_container = inducers_defs[inducer_name]["containerId"]
+        inducer_well = inducers_defs[inducer_name]["wellIndex"]
+        inducer_units = inducers_defs[inducer_name]["units"]
+        rxn_inducer_groups = inducer_group.groupby(['container', 'aliquot', 'rxn_conc', 'neg_control', 'rnase_inh'])
+        for g, grp in rxn_inducer_groups:
+            rxn_conc = next(iter(grp.rxn_conc.unique()))
+            container_id = next(iter(grp.container.unique()))
+            aliquot = next(iter(grp.aliquot.unique()))
+            concentrations = list(grp[inducer].unique())
+            replicates = max(iter(grp.replicate.unique()))
+            neg_control = next(iter(grp.neg_control.unique()))
+            rnase_inh = eval(next(iter(grp.rnase_inh.unique()))) # convert "True" to True
+            rxn_group = {
+                "rxn_group": {
+                    "sample_info": {
+                        "src": {"containerId": container_id, "wellIndex": aliquot},
+                        "rxn_conc": rxn_conc
+                    },
+                    "inducer_info": {
+                        "inducer": {
+                            "containerId" : inducer_container,
+                            "wellIndex" : inducer_well
+                        },
+                        "inducer_concentrations": [
+                            {
+                                "value": conc,
+                                "units": inducer_units
+                            }
+                            for conc in concentrations
+                        ]
+                    },
+                    "rxn_info": {
+                        "n_replicates": replicates,
+                        "neg_control": neg_control,
+                        "rnase_inh": rnase_inh
+                    }
+                }
+            }
+            rxn_info.append(rxn_group)
+
+    return rxn_info
 
 def extract_timepoints(batch_samples):
     timepoints = list(batch_samples.timepoint.unique())

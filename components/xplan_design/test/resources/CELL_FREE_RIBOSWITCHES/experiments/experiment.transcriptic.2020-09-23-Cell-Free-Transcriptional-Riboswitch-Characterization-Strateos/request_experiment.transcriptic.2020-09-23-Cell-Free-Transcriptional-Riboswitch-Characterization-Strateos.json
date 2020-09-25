@@ -92,7 +92,7 @@
                 ],
                 "dtype": "float",
                 "otype": "Condition",
-                "ftype": "aliquot"
+                "ftype": "sample"
           },
           "rnase_inh" : {
                 "name": "rnase_inh",
@@ -101,11 +101,31 @@
                 ],
                 "dtype": "str",
                 "otype": "Condition",
-                "ftype": "aliquot"
+                "ftype": "sample"
+          },
+          "rxn_conc": {
+                "name": "rxn_conc",
+                "domain": [
+                  0, 100
+                ],
+                "dtype": "float",
+                "otype": "Condition",
+                "ftype": "sample"
           }
         }
     },
-
+    "batches": [
+        {
+            "id": "0",
+            "samples": 1,
+            "layout": "fixed"
+        },
+        {
+            "id": "1",
+            "samples": 1,
+            "layout": "fixed"
+        }
+    ],
     "defaults": {
         "constants": {
             "container_search_string" : ["ct1ew8ztkq5r5bg", "ct1ew8ztkquavt4"],
@@ -116,7 +136,19 @@
             "run_info.incubate_in_reader": false,
             "plate_reader_info.emission": "520:nanometer",
             "plate_reader_info.excitation": "480:nanometer",
-            "plate_reader_info.gain": 0.16
+            "plate_reader_info.gain": 0.16,
+            "inducers" : {
+                "inducer1" : {
+                    "units" : "uM",
+                    "containerId" : "ct1ew8ztkqh44mt",
+                    "wellIndex" : 0
+                },
+                "inducer2" : {
+                    "units" : "uM",
+                    "containerId" : "ct1ew8ztkr6hnyd",
+                    "wellIndex" : 0
+                }
+            }
         },
         "conditions": [
             {
@@ -162,6 +194,24 @@
                         "factor": "inducer2_concentration",
                         "values": [
                             0
+                        ]
+                    },
+                    {
+                        "factor": "rxn_conc",
+                        "values": [
+                            20
+                        ]
+                    },
+                    {
+                        "factor": "neg_control",
+                        "values": [
+                            1
+                        ]
+                    },
+                    {
+                        "factor": "rnase_inh",
+                        "values": [
+                            "True"
                         ]
                     }
                 ]
@@ -209,6 +259,24 @@
                         "factor": "inducer2_concentration",
                         "values": [
                             1, 2, 3
+                        ]
+                    },
+                    {
+                        "factor": "rxn_conc",
+                        "values": [
+                            20
+                        ]
+                    },
+                    {
+                        "factor": "neg_control",
+                        "values": [
+                            1
+                        ]
+                    },
+                    {
+                        "factor": "rnase_inh",
+                        "values": [
+                            "True"
                         ]
                     }
                 ]
