@@ -31,11 +31,11 @@ class AbacoMessage(object):
     def get_body(self):
         return getattr(self, "body")
 
-    def process_message(self, r, *, user_data=None):
+    def process_message(self, r, timestamp, *, user_data=None):
         raise AbacoMessageError(
             "process_message called on base abaco message type")
 
-    def finalize_message(self, r, job, *, user_data=None):
+    def finalize_message(self, r, job, process_data, *, user_data=None):
         raise AbacoMessageError(
             "finalize_message called on base abaco message type")
 

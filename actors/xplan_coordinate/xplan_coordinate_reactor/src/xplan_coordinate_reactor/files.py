@@ -6,6 +6,7 @@ from reactors.runtime import Reactor, agaveutils
 from requests.exceptions import HTTPError
 import os
 import time
+from .logs import log_info, log_error
 
 
 # split an agave uri into (system_id, path)
@@ -22,17 +23,16 @@ def make_agave_uri(system_id: str, path: str) -> str:
 
 def download_file_from_system(r: Reactor, system_id: str, path: str, *, verbose=False, retrys=3, retry_delay=0.1):
     if verbose is True:
-        r.logger.info("download {} from {}".format(path, system_id))
+        log_info(r, "download {} from {}".format(path, system_id))
     try:
         return r.client.files.download(filePath=path, systemId=system_id)
     except Exception as exc:
-        r.logger.error(exc)
+        log_error(r, exc)
         if retrys > 0:
             time.sleep(retry_delay)
-            r.logger.info("retrying...\n  download {} from {}".format(path, system_id))
             download_file_from_system(r, system_id, path, verbose=False, retrys=retrys - 1, retry_delay=retry_delay)
         else:
-            r.logger.error("Failed to download file! {}".format(make_agave_uri(system_id, path)))
+            log_error(r, "Failed to download file! {}".format(make_agave_uri(system_id, path)))
             raise exc
 
 
@@ -46,20 +46,19 @@ def upload_file_to_system(r: Reactor, sourcePath: str, destSystem: str, destPath
         with open(sourcePath, 'rb') as f:
             if name is None:
                 if verbose is True:
-                    r.logger.info("upload {} to {} on {}".format(sourcePath, destPath, destSystem))
+                    log_info(r, "upload {} to {} on {}".format(sourcePath, destPath, destSystem))
                 r.client.files.importData(filePath=destPath, systemId=destSystem, fileToUpload=f)
             else:
                 if verbose is True:
-                    r.logger.info("upload {} as {} to {} on {}".format(sourcePath, name, destPath, destSystem))
+                    log_info(r, "upload {} as {} to {} on {}".format(sourcePath, name, destPath, destSystem))
                 r.client.files.importData(filePath=destPath, systemId=destSystem, fileName=name, fileToUpload=f)
     except Exception as exc:
-        r.logger.error(exc)
+        log_error(r, exc)
         if retrys > 0:
             time.sleep(retry_delay)
-            r.logger.info("retrying upload...")
             upload_file_to_system(r, sourcePath, destSystem, destPath, name=name, verbose=verbose, retrys=retrys - 1, retry_delay=retry_delay)
         else:
-            r.logger.error("Failed to upload file! {} to {}".format(sourcePath, make_agave_uri(destSystem, destPath)))
+            log_error(r, "Failed to upload file! {} to {}".format(sourcePath, make_agave_uri(destSystem, destPath)))
             raise exc
 
 
@@ -85,8 +84,8 @@ def file_exists_on_system(r: Reactor, system_id: str, path: str, *, verbose=Fals
     contents = list_dir_on_system(r, system_id, directory, verbose=verbose, retrys=retrys, retry_delay=retry_delay)
     ls = [c['name'] for c in contents if c['type'] == 'file']
     if verbose is True:
-        r.logger.info("Checking file_exists_on_system: {} on {}".format(path, system_id))
-        r.logger.info("Searching for {} in {}".format(filename, ls))
+        log_info(r, "Checking file_exists_on_system: {} on {}".format(path, system_id))
+        log_info(r, "Searching for {} in {}".format(filename, ls))
     return filename in ls
 
 
@@ -131,7 +130,7 @@ def upload_dir(r: Reactor, sourceDir: str, destinationURI: str, *, verbose=False
 # files.manage(body=<BODY>, filePath=<FILEPATH>, systemId=<SYSTEMID>)
 def mkdir_on_system(r: Reactor, system_id: str, path: str, dirpath: str, *, verbose=False, retrys=3, retry_delay=0.1):
     if verbose is True:
-        r.logger.info("mkdir {} at {}".format(dirpath, make_agave_uri(system_id, path)))
+        log_info(r, "mkdir {} at {}".format(dirpath, make_agave_uri(system_id, path)))
     
     try:
         r.client.files.manage(systemId=system_id,
@@ -141,13 +140,12 @@ def mkdir_on_system(r: Reactor, system_id: str, path: str, dirpath: str, *, verb
                               },
                               filePath=path)
     except Exception as exc:
-        r.logger.error(exc)
+        log_error(r, exc)
         if retrys > 0:
             time.sleep(retry_delay)
-            r.logger.info("retrying...\n  mkdir {} at {}".format(dirpath, make_agave_uri(system_id, path)))
             mkdir_on_system(r, system_id, path, dirpath, verbose=False, retrys=retrys - 1, retry_delay=retry_delay)
         else:
-            r.logger.error("Failed to mkdir! {}".format(make_agave_uri(system_id, os.path.join(path, dirpath))))
+            log_error(r, "Failed to mkdir! {}".format(make_agave_uri(system_id, os.path.join(path, dirpath))))
             raise exc
 
 
@@ -160,18 +158,17 @@ def mkdir(r: Reactor, uri: str, dirpath: str, *, verbose=False, retrys=3, retry_
 # files.list(filePath=<FILEPATH>, limit=250, offset=0, systemId=<SYSTEMID>)
 def list_dir_on_system(r: Reactor, system_id: str, path: str, *, limit: int = 250, offset: int = 0, verbose=False, retrys=3, retry_delay=0.1):
     if verbose is True:
-        r.logger.info("list: {}".format(make_agave_uri(system_id, path)))
+        log_info(r, "list: {}".format(make_agave_uri(system_id, path)))
 
     try:
         return r.client.files.list(filePath=path, limit=limit, offset=offset, systemId=system_id)
     except Exception as exc:
-        r.logger.error(exc)
+        log_error(r, exc)
         if retrys > 0:
             time.sleep(retry_delay)
-            r.logger.info("retrying...\n  list: {}".format(make_agave_uri(system_id, path)))
             return list_dir_on_system(r, system_id, path, limit=limit, offset=offset, verbose=False, retrys=retrys - 1, retry_delay=retry_delay)
         else:
-            r.logger.error("Failed to listdir! {}".format(make_agave_uri(system_id, path)))
+            log_error(r, "Failed to listdir! {}".format(make_agave_uri(system_id, path)))
             raise exc
 
 
@@ -182,14 +179,14 @@ def list_dir(r: Reactor, uri: str, *, limit: int = 250, offset: int = 0, verbose
 
 def collect_relative_file_paths(r: Reactor, uri: str, *, recursive=True, depth=0, max_depth=10, path=None, verbose=False, retrys=3, retry_delay=0.1):
     if verbose is True:
-        r.logger.info("Collect files in {}".format(uri))
+        log_info(r, "Collect files in {}".format(uri))
     # base results
     results = []
 
     # attempt to avoid infinite loops
     depth = max(0, depth)
     if depth > max_depth:
-        r.logger.error("execute_on_dirs: max depth exceeded")
+        log_error(r, "execute_on_dirs: max depth exceeded")
         return results
 
     # collect all files in the current dir
@@ -243,18 +240,18 @@ def collect_file_paths(r: Reactor, uri: str, *, recursive=True, depth=0, max_dep
 
 def download_dir(r: Reactor, downloadURI: str, destPath: str, *, recursive=True, makedirs=True, verbose=False, retrys=3, retry_delay=0.1):
     if verbose is True:
-        r.logger.info("download_dir: {}".format(downloadURI))
+        log_info(r, "download_dir: {}".format(downloadURI))
 
     files = collect_relative_file_paths(r, downloadURI, recursive=recursive, verbose=verbose, retrys=retrys, retry_delay=retry_delay)
     for file in files:
         uri = "{}/{}".format(downloadURI, file)
 
         if verbose is True:
-            r.logger.info("Download file: {}".format(uri))
+            log_info(r, "Download file: {}".format(uri))
 
         resp = download_file(r, uri, retrys=retrys, retry_delay=retry_delay)
         if not resp.ok:
-            r.logger.error("Failed to download file: {}".format(uri))
+            log_error(r, "Failed to download file: {}".format(uri))
             continue
 
         directory = os.path.dirname(file)
@@ -263,12 +260,12 @@ def download_dir(r: Reactor, downloadURI: str, destPath: str, *, recursive=True,
             if makedirs is True:
                 os.makedirs(out_dir)
             else:
-                r.logger.error("Missing output directory: {}".format(out_dir))
+                log_error(r, "Missing output directory: {}".format(out_dir))
                 continue
 
         out_path = os.path.join(out_dir, os.path.basename(file))
         with open(out_path, 'wb') as f:
             f.write(resp.content)
             if verbose is True:
-                r.logger.info("Wrote file: {}".format(out_path))
+                log_info(r, "Wrote file: {}".format(out_path))
 

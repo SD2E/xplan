@@ -5,6 +5,7 @@ from .messagetypes import AbacoMessage
 from reactors.runtime import Reactor, agaveutils
 from requests.exceptions import HTTPError
 from xplan_utils import persist
+from .logs import log_debug, log_info, log_error
 
 
 JOB_STATE = "jobs"
@@ -12,13 +13,13 @@ JOB_STATE = "jobs"
 
 def get_state(r: Reactor):
     state = r.client.actors.getState(actorId=r.uid).get('state')
-    r.logger.info("Raw state: {}".format(state))
+    log_info(r, "Raw state: {}".format(state))
 
     if not isinstance(state, dict):
-        r.logger.info("Initializing state...")
+        log_info(r, "Initializing state...")
         state = {}
     if JOB_STATE not in state:
-        r.logger.info("Initializing job map...")
+        log_info(r, "Initializing job map...")
         state.update({JOB_STATE: {}})
 
     return state
@@ -33,35 +34,35 @@ def num_jobs(r :Reactor):
 
 def register_job(r :Reactor, job_id, data):
     state = get_state(r)
-    r.logger.info("Before register: {}".format(state))
+    # log_info(r, "Before register: {}".format(state))
     state[JOB_STATE].update({job_id: data})
-    r.logger.info("After register: {}".format(state))
+    log_info(r, "After register: {}".format(state))
     set_state(state)
 
 def deregister_job(r: Reactor, job_id):
     state = get_state(r)
     job_map = state[JOB_STATE]
-    r.logger.info("Before deregister: {}".format(state))
+    log_info(r, "Before deregister: {}".format(state))
     result = job_map.pop(job_id, None)
-    r.logger.info("After deregister: {}".format(state))
+    log_info(r, "After deregister: {}".format(state))
     set_state(state)
     return result
 
 
 def create_job_definition(r: Reactor, msg, job_spec):
-    r.logger.info("Creating job from message: {}".format(msg))
+    log_info(r, "Creating job from message: {}".format(msg))
 
     inputs = {}
     for i in job_spec.inputs:
         if i not in msg:
-            r.logger.info("Input missing: {}".format(i))
+            log_info(r, "Input missing: {}".format(i))
         else:
             inputs[i] = msg.get(i)
 
     parameters = {}
     for i in job_spec.parameters:
         if i not in msg:
-            r.logger.info("Parameter missing: {}".format(i))
+            log_info(r, "Parameter missing: {}".format(i))
         else:
             parameters[i] = msg.get(i)
 
@@ -83,10 +84,10 @@ def create_job_definition(r: Reactor, msg, job_spec):
         "archiveSystem" : job_spec.archiveSystem
     }
     if user_email is None:
-        r.logger.info("No email notifications")
+        log_info(r, "No email notifications")
         job_def["notifications"] = []
     else:
-        r.logger.info("User email for job notifications: {}".format(user_email))
+        log_info(r, "User email for job notifications: {}".format(user_email))
         job_def["notifications"] = [
             {
                 "event": "PENDING",
@@ -129,8 +130,7 @@ def create_job_definition(r: Reactor, msg, job_spec):
         })
         webhooks['finished'] = finished_webhook
     else:
-        r.logger.debug(
-            "Skipping webhook notification because we are in local mode")
+        log_debug(r, "Skipping webhook notification because we are in local mode")
 
     return (job_def, webhooks)
 
@@ -141,7 +141,7 @@ def submit_job(r: Reactor, job_def):
 
     try:
         resp = r.client.jobs.submit(body=job_def)
-        r.logger.debug("resp: {}".format(resp))
+        log_debug(r, "resp: {}".format(resp))
         if "id" in resp:
             return resp["id"]
         else:
@@ -159,13 +159,14 @@ def submit_job(r: Reactor, job_def):
     return None
 
 
-def launch_job(r: Reactor, msg :AbacoMessage, job_spec):
+def launch_job(r: Reactor, msg :AbacoMessage, job_spec, data):
     (job_def, webhooks) = create_job_definition(r, msg, job_spec)
-    r.logger.info('Job Def: {}'.format(job_def))
+    log_info(r, 'Job Def: {}'.format(job_def))
     job_id = submit_job(r, job_def)
     if job_id is not None:
         register_job(r, job_id, {
             "msg": msg,
-            "webhooks": webhooks
+            "webhooks": webhooks,
+            "data": data
         })
     return job_id

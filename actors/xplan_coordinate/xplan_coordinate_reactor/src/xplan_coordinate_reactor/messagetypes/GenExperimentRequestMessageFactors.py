@@ -1,5 +1,6 @@
 from ..files import split_agave_uri, make_agave_uri
 from ..jobs import launch_job
+from ..logs import log_info
 from .xplandesignmessage import XPlanDesignMessage
 from .abacomessage import AbacoMessage, AbacoMessageError
 from attrdict import AttrDict
@@ -7,7 +8,7 @@ from attrdict import AttrDict
 
 class GenExperimentRequestMessageFactors(AbacoMessage):
 
-    def process_message(self, r, *, user_data=None):
+    def process_message(self, r, timestamp, *, user_data=None):
         if user_data is None:
             raise GenExperimentRequestMessageFactorsError(
                 "user_data not provided")
@@ -28,9 +29,9 @@ class GenExperimentRequestMessageFactors(AbacoMessage):
         od_path = od_settings['path']
         out_dir = make_agave_uri(od_system, od_path)
         
-        r.logger.info(
-            "Processing GenExperimentRequestMessageFactors\n  Experiment ID: {}\n  Challenge Problem: {}\n  Lab Configuration: {}\n  OutDir: {}"
-            .format(experiment_id, challenge_problem, lab_configuration, out_dir))
+        log_info(r, 
+            "Processing GenExperimentRequestMessageFactors\n  Experiment ID: {}\n  Challenge Problem: {}\n OutDir: {}"
+            .format(experiment_id, challenge_problem, out_dir))
 
         # construct an XPlanDesignMessage and run process
         message_dict = {
@@ -39,12 +40,12 @@ class GenExperimentRequestMessageFactors(AbacoMessage):
             "lab_configuration" : lab_configuration,
             "out_dir" : out_dir
         }
-        r.logger.info("Constructing XPlanDesignMessage...")
+        log_info(r, "Constructing XPlanDesignMessage...")
         dmsg = XPlanDesignMessage(message=message_dict)
         # return dmsg.process_message(r, user_data=user_data)
-        return dmsg.process_message(r)
+        return dmsg.process_message(r, timestamp)
 
-    def finalize_message(self, r, job, *, user_data=None):
+    def finalize_message(self, r, job, timestamp, *, user_data=None):
         raise GenExperimentRequestMessageFactorsError(
             "finalize_message should not be called for GenExperimentRequestMessageFactors")
 

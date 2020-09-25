@@ -15,3 +15,4 @@ xplan_config:
 logs:
   level: DEBUG
   token: ~
+  file: xplan-reactor.log
