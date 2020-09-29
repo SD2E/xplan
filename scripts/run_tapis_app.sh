@@ -2,6 +2,15 @@
 
 REMOTE_WORKDIR=$1
 
+if [ -z "${APP_BASE_PATH}" ]; then
+    echo
+    echo "ERROR:"
+    echo "It appears APP_BASE_PATH has not been set in your .environment file."
+    echo "Please set it to run this test."
+    echo
+    exit 1
+fi
+
 tapis files mkdir agave://${REMOTE_WORKDIR} ${APP_BASE_PATH}/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves
 tapis files upload agave://${REMOTE_WORKDIR}/${APP_BASE_PATH}/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves components/xplan_design/test/resources/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves/request_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json
 

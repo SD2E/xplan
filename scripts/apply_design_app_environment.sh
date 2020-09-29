@@ -31,9 +31,18 @@ sed -i "s@namespace = jladwigsift@namespace = ${APP_DOCKER_NAMESPACE}@g" project
 sed -i "s@repo = xplan_design@repo = ${APP_DOCKER_REPO}@g" project.ini
 sed -i "s@tag = 0.0.1@tag = ${APP_DOCKER_TAG}@g" project.ini
 
-sed -i "s@data-tacc-work-jladwig/xplan2@${APP_DEPLOYMENT_SYSTEM}/${APP_BASE_PATH}@g" job.json
-sed -i "s@\"out_path\": \"xplan2\"@\"out_path\": \"${APP_BASE_PATH}\"@g" job.json
+if [ -z "${APP_BASE_PATH}" ]; then
+    echo "WARNING: Skipping some sed changes to job.json because APP_BASE_PATH is not set in the .environment"
+else
+    # these changes are currently only used by the 'run_tapis_app' script. That
+    # script will throw an error if the variable is not set so this is just extra
+    # handling in case I overlooked a use of the job.json
+    sed -i "s@data-tacc-work-jladwig/xplan2@${APP_DEPLOYMENT_SYSTEM}/${APP_BASE_PATH}@g" job.json
+    sed -i "s@\"out_path\": \"xplan2\"@\"out_path\": \"${APP_BASE_PATH}\"@g" job.json
+fi
+
 sed -i "s@['\"]jladwig_xplan2_design-0.0.1['\"]@${XPLAN_DESIGN_APP_ID}@g" job.json
+
 if [ -n "${XPLAN_EMAIL}" ]; then
     sed -i "s/\"url\": null/\"url\": \"${XPLAN_EMAIL}\"/g" job.json
 fi
