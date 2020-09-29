@@ -26,5 +26,13 @@ fi
 
 # set +x
 COMMAND="python3"
-PARAMS="/run.py ${experiment_id} ${challenge_problem} ${lab_configuration} ${out_path} ${experiment_dir} ${state_json}"
+if [ -z "${lab_configuration_uri}" ]
+then
+    echo "Running xplan design app with lab_configuration dictionary as input"
+    PARAMS="/run.py ${experiment_id} ${challenge_problem} ${out_path} ${experiment_dir} ${state_json} --lab_configuration ${lab_configuration}"
+else
+    echo "Running xplan design app with lab_configuration uri as input"
+    PARAMS="/run.py ${experiment_id} ${challenge_problem} ${out_path} ${experiment_dir} ${state_json} --lab_configuration_uri ${lab_configuration_uri}"
+fi
+# echo container_exec ${CONTAINER_IMAGE} ${COMMAND} ${PARAMS}
 container_exec ${CONTAINER_IMAGE} ${COMMAND} ${PARAMS}

@@ -34,6 +34,17 @@
         "label": "State Json"
       },
       "semantics": {}
+    },
+    {
+      "id": "lab_configuration_uri",
+      "details": {
+        "label": "Lab Configuration URI"
+      },
+      "semantics": {},
+      "value": {
+        "required": false,
+        "type": "string"
+      }
     }
   ],
   "parameters": [
@@ -70,7 +81,7 @@
       "semantics": {},
       "value": {
         "visible": true,
-        "required": true,
+        "required": false,
         "type": "string"
       }
     },

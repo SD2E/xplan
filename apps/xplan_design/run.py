@@ -12,10 +12,11 @@ def _parser():
     parser = argparse.ArgumentParser(description='XPlan Generate Design')
     parser.add_argument('experiment_id', help='Experiment ID')
     parser.add_argument('challenge_problem', help='Challenge Problem')
-    parser.add_argument('lab_configuration', help='Lab LIMS credentials')
     parser.add_argument("out_path", help="Base directory for output", default=".")
     parser.add_argument("experiment_dir", help="Experiment directory for input")
     parser.add_argument("state_json", help="Path to state json")
+    parser.add_argument('--lab_configuration', help='Lab LIMS credentials')
+    parser.add_argument('--lab_configuration_uri', help='Lab LIMS credentials')
     return parser
 
 
@@ -45,12 +46,8 @@ def cleanup_file(path, *, prefix_str = ' ', prefix_step = 2, prefix_offset = 0):
     os.remove(path)
     print("{}Removed file: {}".format(prefix, path))
 
-def cleanup(out):
+def cleanup():
     print("Cleaning up...")
-    print("  Removing unwanted out_dir files...")
-    # cleanup_dir(os.path.join(out, 'archive'), prefix_offset=4)
-    # cleanup_dir(os.path.join(out, 'secrets'), prefix_offset=4)
-    # cleanup_dir(os.path.join(out, 'test'), prefix_offset=4)
     print("  Removing secrets file...")
     cleanup_file('tx_secrets.json', prefix_offset=4)
 
@@ -71,15 +68,16 @@ def main():
         h2.setLevel(logging.WARNING)
         logging.basicConfig(handlers = [h1, h2], format='%(levelname)s:%(message)s')
 
+        print("Parsing args...")
         parser = _parser()
         args = parser.parse_args()
         if args.lab_configuration is not None:
             lc = base64.b64decode(args.lab_configuration.encode('ascii')).decode('ascii')
             lab_secret = json.loads(lc)
-        # elif args.lab_configuration_uri is not None:
-        #     lc = args.lab_configuration_uri
-        #     with open(lc, "r") as f:
-        #         lab_secret = json.load(f)
+        elif args.lab_configuration_uri is not None:
+            lc = args.lab_configuration_uri
+            with open(lc, "r") as f:
+                lab_secret = json.load(f)
         else:
             raise Exception("lab_configuration must be provided")
 
@@ -118,7 +116,7 @@ def main():
         with open('state.diff', 'w') as f:
             f.write(state_diff.to_string())
     finally:
-        cleanup(out_dir)
+        cleanup()
         logging.shutdown()
 
 

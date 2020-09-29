@@ -9,12 +9,12 @@
   "archive": true,
   "inputs": {
     "experiment_dir": "agave://data-tacc-work-jladwig/xplan2/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves",
-    "state_json": "agave://data-tacc-work-jladwig/xplan2/YEAST_STATES/state.json"
+    "state_json": "agave://data-tacc-work-jladwig/xplan2/YEAST_STATES/state.json",
+    "lab_configuration_uri": "agave://data-tacc-work-jladwig/xplan2/secrets/tx_secrets.json"
   },
   "parameters": {
     "out_path": "xplan2",
     "experiment_id": "experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves",
-    "lab_configuration": "agave://data-tacc-work-jladwig/xplan2/secrets/tx_secrets.json",
     "challenge_problem" : "YEAST_STATES"
   },
   "notifications": [

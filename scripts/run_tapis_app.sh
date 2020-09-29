@@ -2,11 +2,17 @@
 
 REMOTE_WORKDIR=$1
 
-tapis files mkdir agave://${REMOTE_WORKDIR} xplan2/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves
-tapis files upload agave://${REMOTE_WORKDIR}/xplan2/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves components/xplan_design/test/resources/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves/request_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json
+tapis files mkdir agave://${REMOTE_WORKDIR} ${APP_BASE_PATH}/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves
+tapis files upload agave://${REMOTE_WORKDIR}/${APP_BASE_PATH}/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves components/xplan_design/test/resources/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves/request_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json
 
-tapis files mkdir agave://${REMOTE_WORKDIR}/xplan2 secrets
-tapis files upload agave://${REMOTE_WORKDIR}/xplan2/secrets secrets/tx_secrets.json
+STATE_JSON=`tapis files list agave://data-tacc-work-jladwig/xplan-reactor/YEAST_STATES/ | grep "state.json"`
+if [ -z "$STATE_JSON" ]; then
+    echo "No state.json found. Uploading default state."
+    tapis files upload agave://${REMOTE_WORKDIR}/${APP_BASE_PATH}/YEAST_STATES/ components/xplan_design/test/defaults/state.json
+fi
+
+# tapis files mkdir agave://${REMOTE_WORKDIR}/${APP_BASE_PATH} secrets
+# tapis files upload agave://${REMOTE_WORKDIR}/${APP_BASE_PATH}/secrets secrets/tx_secrets.json
 
 OLD_DIR=`pwd`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
