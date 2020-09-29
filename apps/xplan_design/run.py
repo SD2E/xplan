@@ -112,12 +112,10 @@ def main():
         print("state_in_path = {}".format(state_in_path))
 
         state_path = os.path.join(out_dir, challenge_problem, "state.json")
-        state_before = read_state(state_path)
 
-        # clear the assigned containers after reading the initial state
-        # in an attempt to avoid mangling the state json during test
         if test is True:
             clear_assigned_containers(state_path)
+        state_before = read_state(state_path)
         
         generate_design(experiment_id, challenge_problem, lab_secret,
                         input_dir=out_dir, out_dir=out_dir)
