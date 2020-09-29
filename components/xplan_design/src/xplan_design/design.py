@@ -52,7 +52,7 @@ def generate_design(experiment_id, challenge_problem, transcriptic_cfg, input_di
     test_mode = defaults['test_mode'] if 'test_mode' in defaults else None
 
     if "exp_info.media_well_strings" in parameters:
-        blank_wells = eval(parameters["exp_info.media_well_strings"])
+        blank_wells = parameters["exp_info.media_well_strings"]
         num_blank_wells = len(blank_wells)
     else:
         num_blank_wells = 2  # Strateos requires two blank wells

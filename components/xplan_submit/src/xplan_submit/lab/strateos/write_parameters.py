@@ -45,7 +45,7 @@ def design_to_parameters(experiment_id,
     else:
         strain_property = 'Name'
     if "exp_info.media_well_strings" in parameters:
-        blank_wells = eval(parameters["exp_info.media_well_strings"])
+        blank_wells = parameters["exp_info.media_well_strings"]
         num_blank_wells = len(blank_wells)
     else:
         num_blank_wells = 2  # Strateos requires two blank wells

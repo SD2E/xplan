@@ -40,6 +40,10 @@ def test_coordinate_round_1_1():
     experiment_id = "experiment.transcriptic.2020-08-28-YeastSTATES-1-0-Time-Series-Round-1-1"
     coordinate(experiment_id)
 
+def test_coordinate_round_2():
+    experiment_id = "experiment.transcriptic.2020-09-29-YeastSTATES-1-0-Time-Series-Round-2-0"
+    coordinate(experiment_id)
+
 def test_coordinate_nissle():
     experiment_id = "experiment.transcriptic.2020-08-12-Plan-Requirements-UCSB-E-coli-nissle-antibiotic-TimeSeriesTitration-Strateos"
     coordinate(experiment_id, challenge_problem="NOVEL_CHASSIS")

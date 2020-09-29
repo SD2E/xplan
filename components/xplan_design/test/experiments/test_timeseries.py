@@ -54,3 +54,8 @@ def test_generate_live_dead_backpatch_design():
 def test_generate_growth_curve_design():
     experiment_id = "experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves"
     gen_design(experiment_id)
+
+
+def test_generate_round2_design():
+    experiment_id = "experiment.transcriptic.2020-09-29-YeastSTATES-1-0-Time-Series-Round-2-0"
+    gen_design(experiment_id)
