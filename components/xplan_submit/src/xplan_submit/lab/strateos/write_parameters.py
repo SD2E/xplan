@@ -45,7 +45,7 @@ def design_to_parameters(experiment_id,
     else:
         strain_property = 'Name'
     if "exp_info.media_well_strings" in parameters:
-        blank_wells = parameters["exp_info.media_well_strings"]
+        blank_wells = parameters["exp_info.media_well_strings"].replace("“", "").replace("”", "")
         num_blank_wells = len(blank_wells)
     else:
         num_blank_wells = 2  # Strateos requires two blank wells
@@ -246,6 +246,10 @@ def add_reagent_concentrations(invocation_params, batch_samples, reagents, param
                 }
             }
         })
+        if "induction_info.induction_reagents" in parameters:
+            for k, v in parameters["induction_info.induction_reagents"].items():
+                make_entry(invocation_params, f"induction_info.induction_reagents.{k}", v)
+                #{'ind_cult_vol': '10:microliter', 'inducer': {'containerId': 'ct1e7akbq2zqxyc', 'wellIndex': 0}, 'media_vol': '1000:microliter'}
     else:
 
         col_conc = []
@@ -514,7 +518,7 @@ def get_container_for_batch(batch, batch_samples, design, condition_space,
 
 def repair_parameter_value(k, v):
     if k == "exp_info.media_well_strings":
-        return v.replace(" ", "")
+        return v.replace(" ", "").replace("“", "").replace("”", "")
     else:
         return v
 
@@ -569,7 +573,7 @@ def get_time_series_invocation_parameters(batch_samples,
     elif protocol == 'timeseries':
         ## Add reagent column concentrations
         reagents = [factor_id for factor_id, factor in condition_space.factors.items() if factor['ftype'] == 'column']
-        invocation_params = add_reagent_concentrations(invocation_params, batch_samples, reagents, parameters)
+        invocation_params = add_reagent_concentrations(invocation_params, batch_samples, reagents, exp_params)
         make_entry(invocation_params, 'exp_info.src_samples', samples)
 
         timepoint_str = extract_timepoints(batch_samples)

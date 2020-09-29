@@ -1,0 +1,444 @@
+{
+  "launch_request": {
+    "bsl": 1,
+    "parameters": {
+      "exp_info": {
+        "inc_temp": "warm_37",
+        "media_well_strings": "94,95",
+        "src_samples": [
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 0
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 1
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 2
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 3
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 4
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 5
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 6
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 7
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 8
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 9
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 10
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 12
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 13
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 14
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 15
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 16
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 17
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 18
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 19
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 20
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 21
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 22
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 24
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 25
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 26
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 27
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 28
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 29
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 30
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 31
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 32
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 33
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 34
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 36
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 37
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 38
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 39
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 40
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 41
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 42
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 43
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 44
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 45
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 48
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 49
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 50
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 51
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 52
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 53
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 54
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 55
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 56
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 57
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 60
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 61
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 62
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 63
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 64
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 65
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 66
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 67
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 68
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 69
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 72
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 73
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 74
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 75
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 76
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 77
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 78
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 79
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 80
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 84
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 85
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 86
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 87
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 88
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 89
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 90
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 91
+          },
+          {
+            "containerId": "ct1dkt3jn8k4pcw",
+            "wellIndex": 92
+          }
+        ]
+      },
+      "experimental_info": {
+        "experiment_id": "experiment.transcriptic.2020-09-29-YeastSTATES-1-0-Time-Series-Round-2-0",
+        "experiment_reference": "YeastSTATES-1-0-Time-Series-Round-2-0",
+        "experiment_reference_url": "https://docs.google.com/document/d/1FeNmLXGjTwS7dQvgnNWw6KYtbMXr94RDS2tDPKZcRyA"
+      },
+      "induction_info": {
+        "induction_reagents": {
+          "ind_cult_vol": "10:microliter",
+          "inducer": {
+            "containerId": "ct1e7akbq2zqxyc",
+            "wellIndex": 0
+          },
+          "inducer_layout": {
+            "inputs": {
+              "select_cols": {
+                "col_and_conc": [
+                  {
+                    "col_num": 1,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 2,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 3,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 4,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 5,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 6,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 7,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 8,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 9,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 10,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 11,
+                    "conc": 0.0
+                  },
+                  {
+                    "col_num": 12,
+                    "conc": 0.0
+                  }
+                ]
+              }
+            },
+            "value": "select_cols"
+          },
+          "induction_base_media": "slow_media",
+          "media_vol": "1000:microliter"
+        },
+        "induction_time": {
+          "induction_plate_info": "same-induction-plate",
+          "sample_points": "3,6,9,12"
+        },
+        "sampling_info": {
+          "flow_cult_vol": "100:microliter",
+          "flow_solv": "None",
+          "flow_solv_vol": "0:microliter",
+          "read_cult_vol": "100:microliter",
+          "read_solv": "None",
+          "read_solv_vol": "0:microliter",
+          "stain_before_flow": "None"
+        }
+      },
+      "inoc_info": {
+        "inc_time_1": "16:hour",
+        "inoc_media_vol": "700:microliter",
+        "inoc_vol": "10:microliter",
+        "inoculation_media": "slow_media"
+      },
+      "plate_reader_info": {
+        "fluor_em": "530:nanometer",
+        "fluor_ex": "488:nanometer",
+        "gain": 0.16
+      },
+      "recovery_info": [],
+      "run_info": {
+        "only_endpoint_flow": true,
+        "read_each_induction": true,
+        "read_each_recovery": true,
+        "save_for_rnaseq": false,
+        "skip_first_flow": true
+      },
+      "validate_samples": false
+    },
+    "test_mode": false
+  }
+}
