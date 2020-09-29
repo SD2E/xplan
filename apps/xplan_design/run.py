@@ -17,6 +17,7 @@ def _parser():
     parser.add_argument("state_json", help="Path to state json")
     parser.add_argument('--lab_configuration', help='Lab LIMS credentials')
     parser.add_argument('--lab_configuration_uri', help='Lab LIMS credentials')
+    parser.add_argument('--test', action='store_true', help='Test flag')
     return parser
 
 
@@ -58,6 +59,14 @@ def read_state(path: str) -> str:
             res = json.load(state)
     return res
 
+def clear_assigned_containers(state_path):
+    state = read_state(state_path)
+    if 'assigned_containers' in state:
+        print("Clearing assigned_cotainers...")
+        state['assigned_containers'] = []
+        with open(state_path, 'w') as f:
+            f.write(json.dumps(state))
+
 def main():
     try:
         # ensure the logger is configured
@@ -87,6 +96,7 @@ def main():
         out_dir = args.out_path
         state_in_path = args.state_json
         # state_in_path = 'state.json'
+        test = args.test
 
         # copy the input into the output
         challenge_dir = os.path.join(out_dir, challenge_problem)
@@ -103,6 +113,11 @@ def main():
 
         state_path = os.path.join(out_dir, challenge_problem, "state.json")
         state_before = read_state(state_path)
+
+        # clear the assigned containers after reading the initial state
+        # in an attempt to avoid mangling the state json during test
+        if test is True:
+            clear_assigned_containers(state_path)
         
         generate_design(experiment_id, challenge_problem, lab_secret,
                         input_dir=out_dir, out_dir=out_dir)

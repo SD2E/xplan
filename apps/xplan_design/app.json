@@ -98,6 +98,18 @@
       }
     },
     {
+      "id": "xplan_test",
+      "details": {
+        "label": "Test flag"
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "required": false,
+        "type": "bool"
+      }
+    },
+    {
       "id": "CONTAINER_IMAGE",
       "value": {
         "default": "{{ docker.namespace }}/{{ docker.repo }}:{{ docker.tag }}",

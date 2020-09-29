@@ -43,30 +43,6 @@ class XPlanDesignMessage(AbacoMessage):
         ]
     })
 
-    def clear_assigned_containers(self, r: Reactor, system, out_dir):
-        state_uri = make_agave_uri(system, os.path.join(out_dir, 'state.json'))
-        if not file_exists_at_agave_uri(r, state_uri, verbose=True):
-            return
-        log_info(r, "Downloading state.json...")
-        resp = download_file(r, state_uri, verbose=True)
-        if not resp.ok:
-            raise XPlanDesignMessageError("Failed to download state json from {}".format(state_uri))
-        state = resp.json()
-        log_info(r, "Checking state.json for assigned_cotainers...")
-        if 'assigned_containers' in state:
-            log_info(r, "Clearing assigned_cotainers...")
-            state['assigned_containers'] = []
-            state_path = "state.json"
-            with open(state_path, 'w') as f:
-                f.write(json.dumps(state))
-            state_dir = make_agave_uri(system, os.path.join(out_dir))
-            upload_file(r, state_path, state_dir, verbose=True)
-            # I was originally making a differently named file
-            # and uploading it with the `fileName` keyword but
-            # that keyword is not working as expected so just
-            # make the file and delete it after upload
-            os.remove(state_path)
-
     def ensure_state_json(self, r: Reactor, system, out_dir):
         state_uri = make_agave_uri(system, os.path.join(out_dir, 'state.json'))
         if file_exists_at_agave_uri(r, state_uri, verbose=True):
@@ -126,10 +102,6 @@ class XPlanDesignMessage(AbacoMessage):
             archive_path = os.path.join(archive_base, "design_job")
 
             challenge_dir = self.get_challenge_dir(out_dir_path, msg_challenge_problem)
-            is_production = r.settings['xplan_config'].get('is_production', False)
-            if not is_production:
-                log_info(r, "Not in production mode")
-                self.clear_assigned_containers(r, out_dir_system, challenge_dir)
             # preseed the state.json if it does not exist in the challenge_dir
             state_uri = self.ensure_state_json(r, out_dir_system, challenge_dir)
             msg['state_json'] = state_uri
@@ -146,6 +118,12 @@ class XPlanDesignMessage(AbacoMessage):
             custom_job_spec = AttrDict(self.JOB_SPEC.copy())
             custom_job_spec['archiveSystem'] = archive_system
             custom_job_spec['archivePath'] = archive_path
+
+            is_production = r.settings['xplan_config'].get('is_production', False)
+            if not is_production:
+                log_info(r, "Not in production mode. Setting test flag...")
+                msg['xplan_test'] = True
+                custom_job_spec['parameters'].append('xplan_test')
 
             if isinstance(msg_lab_configuration, str):
                 # store this in the message in case we want to find it later
