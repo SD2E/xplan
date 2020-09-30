@@ -5,6 +5,8 @@ import jsonpatch
 import logging
 import os
 import shutil
+import distutils
+from distutils import dir_util
 import sys
 from xplan_design.design import generate_design
 
@@ -90,6 +92,8 @@ def main():
         else:
             raise Exception("lab_configuration must be provided")
 
+        print(args)
+
         experiment_id = args.experiment_id
         experiment_in_dir = args.experiment_dir
         challenge_problem = args.challenge_problem
@@ -101,7 +105,8 @@ def main():
         # copy the input into the output
         challenge_dir = os.path.join(out_dir, challenge_problem)
         experiments_dir = os.path.join(challenge_dir, 'experiments')
-        os.makedirs(experiments_dir)
+        if not os.path.exists(experiments_dir):
+            os.makedirs(experiments_dir)
         experiment_out_dir = os.path.join(experiments_dir, experiment_id)
         shutil.copytree(experiment_in_dir, experiment_out_dir)
         shutil.move(state_in_path, os.path.join(challenge_dir, 'state.json'))

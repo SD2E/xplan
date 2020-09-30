@@ -14,7 +14,7 @@ fi
 tapis files mkdir agave://${REMOTE_WORKDIR} ${APP_BASE_PATH}/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves
 tapis files upload agave://${REMOTE_WORKDIR}/${APP_BASE_PATH}/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves components/xplan_design/test/resources/YEAST_STATES/experiments/experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves/request_experiment.transcriptic.2020-05-04-YeastSTATES-1-0-Growth-Curves.json
 
-STATE_JSON=`tapis files list agave://data-tacc-work-jladwig/xplan-reactor/YEAST_STATES/ | grep "state.json"`
+STATE_JSON=`tapis files list agave://${REMOTE_WORKDIR}/${APP_BASE_PATH}/YEAST_STATES/ | grep "state.json"`
 if [ -z "$STATE_JSON" ]; then
     echo "No state.json found. Uploading default state."
     tapis files upload agave://${REMOTE_WORKDIR}/${APP_BASE_PATH}/YEAST_STATES/ components/xplan_design/test/defaults/state.json
