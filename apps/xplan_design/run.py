@@ -20,6 +20,7 @@ def _parser():
     parser.add_argument('--lab_configuration', help='Lab LIMS credentials')
     parser.add_argument('--lab_configuration_uri', help='Lab LIMS credentials')
     parser.add_argument('--test', action='store_true', help='Test flag')
+    parser.add_argument('--local', action='store_true', help='Are we running locally')
     return parser
 
 
@@ -101,20 +102,22 @@ def main():
         state_in_path = args.state_json
         # state_in_path = 'state.json'
         test = args.test
+        local = args.local
 
-        # copy the input into the output
-        challenge_dir = os.path.join(out_dir, challenge_problem)
-        experiments_dir = os.path.join(challenge_dir, 'experiments')
-        if not os.path.exists(experiments_dir):
-            os.makedirs(experiments_dir)
-        experiment_out_dir = os.path.join(experiments_dir, experiment_id)
-        shutil.copytree(experiment_in_dir, experiment_out_dir)
-        shutil.move(state_in_path, os.path.join(challenge_dir, 'state.json'))
+        if not local:
+            # copy the input into the output
+            challenge_dir = os.path.join(out_dir, challenge_problem)
+            experiments_dir = os.path.join(challenge_dir, 'experiments')
+            if not os.path.exists(experiments_dir):
+                os.makedirs(experiments_dir)
+            experiment_out_dir = os.path.join(experiments_dir, experiment_id)
+            shutil.copytree(experiment_in_dir, experiment_out_dir)
+            shutil.move(state_in_path, os.path.join(challenge_dir, 'state.json'))
 
-        print("challenge_dir = {}".format(challenge_dir))
-        print("experiment_out_dir = {}".format(experiment_out_dir))
-        print("out_dir = {}".format(out_dir))
-        print("state_in_path = {}".format(state_in_path))
+            print("challenge_dir = {}".format(challenge_dir))
+            print("experiment_out_dir = {}".format(experiment_out_dir))
+            print("out_dir = {}".format(out_dir))
+            print("state_in_path = {}".format(state_in_path))
 
         state_path = os.path.join(out_dir, challenge_problem, "state.json")
 

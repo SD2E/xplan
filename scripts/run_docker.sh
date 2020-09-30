@@ -15,5 +15,5 @@ cp -R ${RESOURCES}/${CHALLENGE_PROBLEM} ${TMP_OUT} # Inputs are same location as
 docker run --mount type=bind,source=${SECRETS},target=/${SECRETS},readonly \
            --mount type=bind,source=${TMP_OUT},target=/${TMP_OUT} \
            -t ${IMAGE} \
-           ${EXPERIMENT_ID} ${CHALLENGE_PROBLEM}  /${TMP_OUT} /${TMP_OUT} /${TMP_OUT}/state.json --lab_configuration_uri /${SECRETS}/tx_secrets.json
+           ${EXPERIMENT_ID} ${CHALLENGE_PROBLEM}  /${TMP_OUT} /${TMP_OUT} /${TMP_OUT}/state.json --lab_configuration_uri /${SECRETS}/tx_secrets.json --local
 echo "run_docker.sh Complete"
