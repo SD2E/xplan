@@ -18,5 +18,5 @@ def log_debug(r: Reactor, msg):
 def log_info(r: Reactor, msg):
     r.logger.info(redact_log_msg(msg))
     
-def log_error(r: Reactor, msg):
-    r.logger.error(redact_log_msg(msg))
+def log_error(r: Reactor, msg, *, exc_info=False):
+    r.logger.error(redact_log_msg(msg), exc_info=exc_info)

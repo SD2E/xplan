@@ -11,6 +11,7 @@ import arrow
 import logging
 import os
 import shutil
+import sys
 import json
 import jsonpatch as jp
 from xplan_design.experiment_design import ExperimentDesign
@@ -149,7 +150,8 @@ class XPlanDesignMessage(AbacoMessage):
 
             log_info(r, "Launched job {} in {} usec".format(job_id, r.elapsed()))
         except Exception as e:
-            log_error(r, e)
+            exc_info = sys.exc_info()
+            log_error(r, e, exc_info=exc_info)
         finally:
             # write logs to archive
             self.upload_reactor_logs(r, archive_system, archive_base, 'process.log')
@@ -224,7 +226,8 @@ class XPlanDesignMessage(AbacoMessage):
 
             log_info(r, "Finalize ended with success")
         except Exception as e:
-            log_error(r, e)
+            exc_info = sys.exc_info()
+            log_error(r, e, exc_info=exc_info)
         finally:
             # get log output from the original process step data
             d_archive_system = process_data['archive_system']
