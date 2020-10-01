@@ -48,9 +48,10 @@ class FileMessage(AbacoMessage):
             # from the original message
             user_data = {
                 'file': fileToDownload,
+                'file_json': fileJson,
                 'lab_configuration': lab_configuration
             }
-            log_info(r, "Sending extra user data: {}".format(user_data))
+            # log_info(r, "Sending extra user data: {}".format(user_data))
             return fmsg.process_message(r, timestamp, user_data=user_data)
 
         # log_info(r, "Reading file: %s", fileToParse)
