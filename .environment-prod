@@ -3,6 +3,9 @@ XPLAN_USER=dbryce
 XPLAN_EMAIL=dbryce@sift.net
 XPLAN_DOCKER_NAMESPACE=sd2e
 
+# shared naming
+XPLAN_BASE_PATH=xplan-reactor
+
 # remote
 REMOTE_WORK_DIR=data-sd2e-projects.sd2e-project-14
 
@@ -13,6 +16,7 @@ APP_NAME=xplan2_design
 APP_DEPLOYMENT_SYSTEM=${REMOTE_WORK_DIR}
 APP_EXECUTION_SYSTEM=hpc-tacc-wrangler-${XPLAN_USER}
 APP_VERSION=0.0.1
+APP_BASE_PATH=${XPLAN_BASE_PATH}
 
 # docker
 APP_DOCKER_NAMESPACE=${XPLAN_DOCKER_NAMESPACE}

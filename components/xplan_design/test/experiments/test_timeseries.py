@@ -31,21 +31,19 @@ def test_generate_timeseries_dr_design():
 
 def test_generate_timeseries_design():
     experiment_id = "experiment.transcriptic.2020-08-08-Plan-Requirements-UCSB-B-subtilis-CitT-PFA-TimeSeriesTitration-Strateos"
-    input_dir = "../resources/NOVEL_CHASSIS",
-    out_dir = "../test_out/NOVEL_CHASSIS"
-    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS", input_dir=input_dir, out_dir=out_dir)
+    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
 
 def test_generate_timeseries_design_small():
     experiment_id = "experiment.transcriptic.2020-08-08-Plan-Requirements-UCSB-B-subtilis-CitT-PFA-TimeSeriesTitration-Strateos-small"
-    input_dir = "../resources/NOVEL_CHASSIS",
-    out_dir = "../test_out/NOVEL_CHASSIS"
-    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS", input_dir=input_dir, out_dir=out_dir)
+    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
 
 def test_generate_timeseries_nissle_design():
     experiment_id = "experiment.transcriptic.2020-08-12-Plan-Requirements-UCSB-E-coli-nissle-antibiotic-TimeSeriesTitration-Strateos"
-    input_dir = "../resources/NOVEL_CHASSIS",
-    out_dir = "../test_out/NOVEL_CHASSIS"
-    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS", input_dir=input_dir, out_dir=out_dir)
+    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
+
+def test_generate_timeseries_protogens_design():
+    experiment_id = "experiment.transcriptic.2020-08-12-Plan-Requirements-UCSB-P-protegens-PF5-antibiotic-TimeSeriesTitration-Strateos"
+    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
 
 def test_generate_live_dead_backpatch_design():
     experiment_id = "experiment.transcriptic.2020-08-27-Strateos-YeastSTATES-Ethanol-Sytox-LiveDeadClassification"

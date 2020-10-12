@@ -8,6 +8,20 @@ from sbol import *
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
+def containers_have_known_contents(containers, factors, aliquot_factor_map):
+    for container_id, c in containers.items():
+        for aliquot, aliquot_properties in c['aliquots'].items():
+            for factor, level in aliquot_properties.items():
+                if factors[factor]['dtype'] == "str":
+                    if level not in aliquot_factor_map[factor] or aliquot_factor_map[factor][level] not in factors[factor]['domain']:
+                        l.exception(f"{level} from {container_id} {aliquot} is not part of the condition space for factor {factor}")
+                        return False
+                else:
+                    if level not in aliquot_factor_map[factor] or aliquot_factor_map[factor][level] < factors[factor]['domain'][0] or aliquot_factor_map[factor][level] > factors[factor]['domain'][1]:
+                        l.exception(f"{level} from {container_id} {aliquot} is not part of the condition space for factor {factor}")
+                        return False
+    return True
+
 
 def get_aliquot_row(aliquot, container):
     for row in container['rows']:

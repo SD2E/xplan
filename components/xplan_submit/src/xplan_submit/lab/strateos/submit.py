@@ -39,7 +39,7 @@ def  submit_experiment(experiment_id, challenge_problem,
     tx_proj = tx_params.get('projects').get(tx_proj_key)
     tx_proj_id = tx_proj.get('id')
 
-
+    design_df = pd.read_json(experiment_design['design'])
     for batch in experiment_request['batches']:
         if batches is not None:
             if batch['id'] not in batches:
@@ -66,7 +66,7 @@ def  submit_experiment(experiment_id, challenge_problem,
             else:
                 return None
 
-        design_df = pd.read_json(experiment_design['design'])
+
         design_df['lab_id'] = design_df.apply(assign_run_id, axis=1)
     design_df['protocol_id'] = protocol_id
     experiment_design['design'] = design_df.to_json()

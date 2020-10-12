@@ -12,7 +12,7 @@ from xplan_utils.container_data_conversion import container_to_dict, generate_co
 from xplan_utils.helpers import put_experiment_request, \
     put_aliquot_properties, put_experiment_design, do_convert_ftypes, get_experiment_request
 from xplan_utils.lab.strateos.utils import get_transcriptic_api, TranscripticApiError, get_tx_containers, \
-    get_usable_tx_containers, generate_test_container, get_container_id
+    get_usable_tx_containers, generate_test_container, get_container_id, add_run_container_to_factor
 
 from xplan_utils import persist
 
@@ -103,14 +103,17 @@ def generate_design(experiment_id, challenge_problem, transcriptic_cfg, input_di
             usable_containers = None
         else:
             containers = get_tx_containers(transcriptic_api, constants['container_search_string'])
-            if 'assigned_containers' in state:
-                containers = [x for x in containers if get_container_id(x) not in state['assigned_containers']]
+            #if 'assigned_containers' in state:
+                #containers = [x for x in containers if get_container_id(x) not in state['assigned_containers']]
 
             # robj.logger.info("Retrieved containers: " + str(containers))
             usable_containers = get_usable_tx_containers({
                 "defaults": {"source_plates": None},
                 "containers": containers})
             l.info("Usable containers: %s", [get_container_id(x) for x in usable_containers])
+
+        if 'lab_id' in condition_space.factors:
+            condition_space.factors['lab_id'] = add_run_container_to_factor(condition_space.factors['lab_id'], containers)
 
         if solver_type == "smt":
             if 'constraints' in defaults:

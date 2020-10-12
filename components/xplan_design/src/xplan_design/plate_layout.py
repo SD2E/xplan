@@ -6,7 +6,9 @@ from pysmt.typing import INT, REAL
 from pysmt.rewritings import conjunctive_partition
 from functools import reduce
 
-from xplan_design.plate_layout_utils import get_samples_from_condition_set, get_column_name, get_column_factors, get_column_id, get_row_name, get_row_factors, get_row_id, get_aliquot_row, get_aliquot_col, resolve_sbh_uri
+from xplan_design.plate_layout_utils import get_samples_from_condition_set, get_column_name, get_column_factors, \
+    get_column_id, get_row_name, get_row_factors, get_row_id, get_aliquot_row, get_aliquot_col, resolve_sbh_uri, \
+    containers_have_known_contents
 
 from xplan_utils.container_data_conversion import get_strain_count
 
@@ -16,7 +18,7 @@ import logging
 
 
 l = logging.getLogger(__file__)
-l.setLevel(logging.DEBUG)
+l.setLevel(logging.INFO)
 
 
 
@@ -297,6 +299,7 @@ def generate_variables1(inputs):
 
 
 
+
 def generate_constraints1(inputs, batch):
     """
     Generate constraints for plate layout encoding.
@@ -443,26 +446,11 @@ def generate_constraints1(inputs, batch):
             resolve_sbh_uri(level, sbh_user, sbh_password)
         else:
             return level
-    
-    aliquot_properties_constraint = \
-      And([
-          And(
-            ## Every aliquot must satisfy the aliquot factors defined by the container
-            And([#get_req_const(aliquot_factors[container_id][aliquot], factor, map_aliquot_property_level(level), factors)
-                 get_req_const(aliquot_factors[container_id][aliquot], factor, aliquot_factor_map[factor][level], factors)
-                 for factor, level in aliquot_properties.items() if factor in aliquot_factors[container_id][aliquot]]),
-                 #,
-            ## Every column factor implied by the container aliquots is satisfied
-            And([get_req_const(column_factor[get_column_name(get_aliquot_col(aliquot, c), container_id)], factor, level, factors)
-                 for factor, level in aliquot_properties.items() if factor in column_factor[get_column_name(get_aliquot_col(aliquot, c), container_id)]]),
-            ## Every row factor implied by the container aliquots is satisfied
-            And([get_req_const(row_factor[get_row_name(get_aliquot_row(aliquot, c), container_id)], factor, level, factors)
-                 for factor, level in aliquot_properties.items() if factor in row_factor[get_row_name(get_aliquot_row(aliquot, c), container_id)]])
-           )
-           for container_id, c in containers.items() if container_consistent_with_batch(container_id, container_assignment, batch)
-           for aliquot, aliquot_properties in c['aliquots'].items()
-        ])
-    
+
+    assert(containers_have_known_contents(containers, factors, aliquot_factor_map))
+
+
+    aliquot_properties_constraint = get_aliquot_properties_constraint(containers, container_assignment, factors, batch, column_factor, row_factor, aliquot_factors, aliquot_factor_map)
     #l.debug("aliquot_properties_constraint: %s", aliquot_properties_constraint)
     constraints.append(aliquot_properties_constraint)
 
@@ -549,6 +537,59 @@ def generate_constraints1(inputs, batch):
     #l.debug("Constraints: %s", f)
 
     return variables, f
+
+def get_aliquot_properties_constraint(containers, container_assignment, factors, batch, column_factor, row_factor, aliquot_factors, aliquot_factor_map):
+    aliquot_properties_constraints = []
+    for container_id, c in containers.items():
+        if container_consistent_with_batch(container_id, container_assignment, batch):
+            container_constraints = []
+            for aliquot, aliquot_properties in c['aliquots'].items():
+                aliquot_col = get_aliquot_col(aliquot, c)
+                aliquot_col_name = get_column_name(aliquot_col, container_id)
+                aliquot_col_id = get_column_id(aliquot_col)
+                aliquot_row = get_aliquot_row(aliquot, c)
+                aliquot_row_name = get_row_name(aliquot_row, container_id)
+                aliquot_row_id = get_row_id(aliquot_row)
+
+                aliquot_factor_constraint = And([
+                        # get_req_const(aliquot_factors[container_id][aliquot], factor, map_aliquot_property_level(level), factors)
+                        get_req_const(aliquot_factors[container_id][aliquot], factor, aliquot_factor_map[factor][level],
+                                      factors)
+                        for factor, level in aliquot_properties.items() if
+                        factor in aliquot_factors[container_id][aliquot]])
+                column_factor_constraint = And([get_req_const(column_factor[aliquot_col_name],
+                                       factor, level, factors)
+                         for factor, level in aliquot_properties.items() if
+                         factor in column_factor[aliquot_col_name]])
+                if 'column_id' in column_factor[aliquot_col_name]:
+                    column_id_constraint = Equals(column_factor[aliquot_col_name]['column_id'], Real(aliquot_col_id))
+                else:
+                    column_id_constraint = And()
+                if 'row_id' in row_factor[aliquot_row_name]:
+                    row_id_constraint = Equals(row_factor[aliquot_row_name]['row_id'], Real(aliquot_row_id))
+                else:
+                    row_id_constraint = And()
+                row_factor_constraint = And([get_req_const(row_factor[aliquot_row_name], factor,
+                                       level, factors)
+                         for factor, level in aliquot_properties.items() if
+                         factor in row_factor[aliquot_row_name]])
+                ## TODO row and column constraints don't need to be stated for each aliquot
+                aliquot_constraint = And(
+                    ## Every aliquot must satisfy the aliquot factors defined by the container
+                    aliquot_factor_constraint,
+                    ## Every column factor implied by the container aliquots is satisfied
+                    column_factor_constraint,
+                    ## Every row factor implied by the container aliquots is satisfied
+                    row_factor_constraint,
+                    ## If column_id is a factor, then assert the column_id of each aliquot
+                    column_id_constraint,
+                    ## If row_id is a factor, then assert the row_id of each aliquot
+                    row_id_constraint
+                )
+                container_constraints.append(aliquot_constraint)
+            aliquot_properties_constraints.append(And(container_constraints))
+    aliquot_properties_constraint = And(aliquot_properties_constraints)
+    return aliquot_properties_constraint
 
 def container_consistent_with_batch(container_id, container_assignment, batch):
     if container_assignment:
@@ -856,6 +897,16 @@ def aliquot_can_satisfy_requirement(aliquot, container_id, container, requiremen
                 return False
 
 
+    req_cols = [l  for f in requirement for l in f['values'] if f['factor'] == 'column_id']
+    if len(req_cols) > 0:
+        aliquot_col_id = get_column_id(get_aliquot_col(aliquot, container))
+        if aliquot_col_id not in req_cols:
+            return False
+    req_rows = [l  for f in requirement for l in f['values'] if f['factor'] == 'row_id']
+    if len(req_rows) > 0:
+        aliquot_row_id = get_row_id(get_aliquot_row(aliquot, container))
+        if aliquot_row_id not in req_rows:
+            return False
 
     for factor, level in aliquot_properties.items():
         # l.debug("checking: %s %s", factor, level)
@@ -915,33 +966,39 @@ def get_container_assignment(input):
 
     assert(len(batch_types) <= len(containers))
 
-    container_assignment = batch_types.reset_index(drop=True).to_dict('index')
+    #container_assignment = batch_types.reset_index(drop=True).to_dict('index')
 
-    ## Set keys to str
-    aliquot_factors = { x : y for x, y in input['factors'].items() if  y['ftype'] != 'sample'}
-    batch_aliquots = get_sample_types(aliquot_factors, input['requirements'])
-    batch_size = batch_aliquots.groupby(list(batch_factors.keys())).size().to_frame().reset_index()
-    container_assignment = {}
-    for batch_type_id, batch_type in batch_types.iterrows():
-        this_batch_size = batch_type.to_frame().transpose().merge(batch_size).loc[0,0]
-        if this_batch_size <= 0:
-            continue
-        ## Assign containers to this batch until covered
+    if 'lab_id' in batch_factors:
+        ## Get the container used in each run, rather than assign arbitrarily
+        lab_id_factor = batch_factors['lab_id']
+        lab_id_df = lab_id_factor.to_DataFrame()
+        container_assignment = batch_types.reset_index(drop=True).merge(lab_id_df, on="lab_id").reset_index().set_index('container').to_dict('index')
+    else:
+        ## Set keys to str
+        aliquot_factors = { x : y for x, y in input['factors'].items() if  y['ftype'] != 'sample'}
+        batch_aliquots = get_sample_types(aliquot_factors, input['requirements'])
+        batch_size = batch_aliquots.groupby(list(batch_factors.keys())).size().to_frame().reset_index()
+        container_assignment = {}
+        for batch_type_id, batch_type in batch_types.iterrows():
+            this_batch_size = batch_type.to_frame().transpose().merge(batch_size).loc[0,0]
+            if this_batch_size <= 0:
+                continue
+            ## Assign containers to this batch until covered
+            for container_id, container in containers.items():
+                if container_id in container_assignment:
+                    continue
+                container_size = len(container['aliquots'])
+                container_assignment[container_id] = json.loads(batch_type.to_json())
+                this_batch_size -= container_size
+                if this_batch_size <= 0:
+                    break
+
+        ## Add remaining containers to first batch
+        ## FIXME ensure that each container is compatible with batch
         for container_id, container in containers.items():
             if container_id in container_assignment:
                 continue
-            container_size = len(container['aliquots'])
-            container_assignment[container_id] = batch_type.to_dict()
-            this_batch_size -= container_size
-            if this_batch_size <= 0:
-                break
-
-    ## Add remaining containers to first batch
-    ## FIXME ensure that each container is compatible with batch
-    for container_id, container in containers.items():
-        if container_id in container_assignment:
-            continue
-        container_assignment[container_id] = batch_types.loc[0,].to_dict()
+            container_assignment[container_id] = json.loads(batch_types.loc[0,].to_json())
 
 #    container_assignment = { str(list(containers.keys())[k]):v for k,v in container_assignment.items() }
 
@@ -984,7 +1041,7 @@ def fill_empty_aliquots(factors, requirements, batch_aliquots):
 
 def _get_container_assignment_df(container_assignment):
     ca_df = pd.read_json(json.dumps(container_assignment), orient='index').reset_index().rename(
-        columns={"index": "container"})
+        columns={"level_0": "container"}).drop(columns=["index"])
     ca_df["container"] = ca_df["container"].astype(str)
     return ca_df
 
@@ -1455,7 +1512,13 @@ def get_aliquot_factor_map(c2ds, factors):
             level_intersection = {attribute: len(container_levels.intersection(factor_levels[attribute]))
                                   for attribute in factor_attributes}
             best_attribute = max(level_intersection, key=level_intersection.get)
-            factor_map = {factors[factor]['attributes'][level][best_attribute] : level for level in factors[factor]['domain']}
+            factor_map = {factors[factor]['attributes'][level][best_attribute] : level
+                          for level in factors[factor]['domain']
+                          if level in factors[factor]['attributes']}
+            factor_unmap = {level : level
+                             for level in factors[factor]['domain']
+                             if level not in factors[factor]['attributes']}
+            factor_map.update(factor_unmap)
             aliquot_factor_map[factor] = factor_map
 
 

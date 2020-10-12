@@ -141,3 +141,27 @@ def get_container_id(x):
         return x['id']
     else:
         return x.id
+
+def get_container_from_run_id(run_id, containers):
+    try:
+        run_obj = transcriptic.run(run_id)
+    except Exception as e:
+        run_obj = transcriptic.run(run_id)
+
+    try:
+        run_containers = run_obj.containers
+    except Exception as e:
+        run_containers = run_obj.containers
+    run_container_ids = run_containers.ContainerId.unique()
+    c = next(iter([container for container in containers if  get_container_id(container) in run_container_ids]))
+    return c
+
+def add_run_container_to_factor(lab_id_factor, containers):
+    if 'attributes' not in lab_id_factor:
+        lab_id_factor['attributes'] = { level : { } for level in lab_id_factor['domain']}
+
+    for lab_id in lab_id_factor['domain']:
+        container = get_container_from_run_id(lab_id, containers)
+        lab_id_factor['attributes'][lab_id]['container'] = get_container_id(container)
+
+    return lab_id_factor
