@@ -26,15 +26,11 @@
                         "inducer_concentrations": [
                             {
                                 "units": "uM",
-                                "value": 1
+                                "value": 10
                             },
                             {
                                 "units": "uM",
-                                "value": 2
-                            },
-                            {
-                                "units": "uM",
-                                "value": 3
+                                "value": 100
                             }
                         ]
                     },
@@ -62,15 +58,15 @@
                         "inducer_concentrations": [
                             {
                                 "units": "uM",
-                                "value": 2
+                                "value": 90
                             },
                             {
                                 "units": "uM",
-                                "value": 3
+                                "value": 100
                             },
                             {
                                 "units": "uM",
-                                "value": 1
+                                "value": 80
                             }
                         ]
                     },

@@ -65,6 +65,16 @@ def test_generate_cell_free_riboswitches_design():
     challenge_problem = "CELL_FREE_RIBOSWITCHES"
     gen_design(experiment_id, challenge_problem=challenge_problem)
 
+def test_generate_cell_free_riboswitches_auto_design():
+    experiment_id = "experiment.transcriptic.2020-10-13-Test-Cell-Free-Transcriptional-Riboswitch-Characterization"
+    challenge_problem = "CELL_FREE_RIBOSWITCHES"
+    gen_design(experiment_id, challenge_problem=challenge_problem)
+
+def test_generate_cell_free_riboswitches_1_32_design():
+    experiment_id = "experiment.transcriptic.2020-10-16-Cell-Free-Transcriptional-Riboswitch-Characterization-Sequences-1-32"
+    challenge_problem = "CELL_FREE_RIBOSWITCHES"
+    gen_design(experiment_id, challenge_problem=challenge_problem)
+
 
 def test_generate_round2_design():
     experiment_id = "experiment.transcriptic.2020-09-29-YeastSTATES-1-0-Time-Series-Round-2-0"

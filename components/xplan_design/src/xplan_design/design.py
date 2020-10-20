@@ -190,6 +190,7 @@ def generate_experiment_smt(conditions,
                                                                       usable_containers,
                                                                       batches,
                                                                       experiment_id,
+                                                                      protocol,
                                                                       tx_config=transcriptic_config,
                                                                       strain_name=strain_property,
                                                                       hand_coded_constraints=hand_coded_constraints,
@@ -228,8 +229,9 @@ def strip_aliquot_properties(container):
 
 
 def assign_batch_ids(design):
-    containers = design.container.unique()
-    design['batch'] = design.apply(lambda x: str(containers.tolist().index(x['container'])), axis=1)
+    if 'batch' not in design.columns:
+        containers = design.container.unique()
+        design['batch'] = design.apply(lambda x: str(containers.tolist().index(x['container'])), axis=1)
     return design
 
 
@@ -276,6 +278,7 @@ def generate_experiment_request_smt(conditions,
                                     usable_containers,
                                     batches,
                                     experiment_id,
+                                    protocol,
                                     tx_config=None,
                                     strip_aliquot_properties=False,
                                     strain_name="Name",
@@ -304,7 +307,8 @@ def generate_experiment_request_smt(conditions,
         "samples": None,
         "factors": factors,
         "requirements": conditions,
-        "containers": c2ds
+        "containers": c2ds,
+        "protocol" : protocol
     }
 
     solutions = solve1(inputs, hand_coded_constraints=hand_coded_constraints)

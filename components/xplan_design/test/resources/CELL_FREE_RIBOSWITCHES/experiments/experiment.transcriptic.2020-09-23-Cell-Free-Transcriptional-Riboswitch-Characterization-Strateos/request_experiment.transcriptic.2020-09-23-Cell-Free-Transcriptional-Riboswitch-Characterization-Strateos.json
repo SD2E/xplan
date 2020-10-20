@@ -70,7 +70,7 @@
             "inducer1_concentration": {
                 "name": "inducer1_concentration",
                 "domain": [
-                    0, 100
+                    0, 101
                 ],
                 "dtype": "float",
                 "otype": "Condition",
@@ -128,7 +128,7 @@
     ],
     "defaults": {
         "constants": {
-            "container_search_string" : ["ct1ew8ztkq5r5bg", "ct1ew8ztkquavt4"],
+                "container_search_string" : ["ct1ew8ztkq5r5bg", "ct1ew8ztkquavt4"],
             "lab": "Strateos"
         },
         "parameters": {
@@ -187,7 +187,7 @@
                     {
                         "factor": "inducer1_concentration",
                         "values": [
-                            1, 2, 3
+                            0, 10, 100
                         ]
                     },
                     {
@@ -258,7 +258,7 @@
                     {
                         "factor": "inducer2_concentration",
                         "values": [
-                            1, 2, 3
+                            80, 90, 100
                         ]
                     },
                     {
@@ -283,7 +283,7 @@
             }
         ],
         "submit": false,
-        "protocol_id": "pr1evkr88urjsbm",
+        "protocol_id": "pr1eyfj3r9f6pkm",
         "test_mode": true
     }
 }

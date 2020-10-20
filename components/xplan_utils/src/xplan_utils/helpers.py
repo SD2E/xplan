@@ -89,7 +89,7 @@ def do_convert_ftypes(factors):
 
     return factors
 
-def get_container_id(params_file_name):
+def get_container_ids(params_file_name):
     with open(params_file_name, 'r') as f:
         params_file = json.load(f)
         attr = None
@@ -97,17 +97,20 @@ def get_container_id(params_file_name):
             attr = "src_info"
         elif "exp_info" in params_file['parameters']:
             attr = "exp_info"
+
         if attr:
             if 'src_samples' in params_file['parameters'][attr]:
                 samples = params_file['parameters'][attr]['src_samples']
                 ## Get the first container
                 if len(samples) > 0:
                     container = samples[0]['containerId']
-                    return container
+                    return [container]
                 else:
                     raise Exception("Cannot find container for protocol with no src_samples")
+        elif 'rxn_info' in params_file['parameters']:
+            return [x['rxn_group']['sample_info']['src']['containerId'] for x in params_file['parameters']['rxn_info']]
         elif 'parameters' in params_file:
-            return params_file['parameters']['exp_params']['source_plate']
+            return [params_file['parameters']['exp_params']['source_plate']]
 
         else:
             raise Exception("Don't know how to get container id from this params file: %s", params_file_name)
@@ -146,8 +149,8 @@ def put_experiment_submission(experiment_id, batch_id, submit_id, params_file_na
 
     if 'assigned_containers' not in state:
         state['assigned_containers'] = []
-    container_id = get_container_id(params_file_name)
-    state['assigned_containers'].append(container_id)
+    container_ids = get_container_ids(params_file_name)
+    state['assigned_containers'] += container_ids
 
     if 'runs' not in state:
         state['runs'] = {submit_id: {"experiment_id": experiment_id, "batch_id": batch_id}}

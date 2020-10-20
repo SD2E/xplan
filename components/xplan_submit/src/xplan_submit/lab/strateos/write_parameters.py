@@ -56,6 +56,11 @@ def design_to_parameters(experiment_id,
         l.error("Failed connecting to Transcriptic")
         raise TranscripticApiError(exc)
 
+    if "batch" in design.columns:
+        batches = design.batch.unique()
+    else:
+        batches = [b['id'] for b in batches]
+
     params = {}
     for batch in batches:
         param, design, container = get_invocation_parameters(batch,
@@ -72,10 +77,10 @@ def design_to_parameters(experiment_id,
                                                              convert_ftypes=True)
         if param is not None:
             put_tx_parameters(experiment_id,
-                              str(batch['id']),
+                              str(batch),
                               json.dumps(param, indent=4, sort_keys=True, separators=(',', ': '), cls=NpEncoder),
                               challenge_out_dir)
-            params[batch['id']] = param
+            params[batch] = param
     return params
 
 
@@ -96,7 +101,7 @@ def get_invocation_parameters(batch,
     """
     l.debug("get_invocation_parameters for design: %s", str(design))
 
-    batch_samples = design.loc[design['batch'].astype(str) == str(batch['id'])]
+    batch_samples = design.loc[design['batch'] == batch]
 
     l.debug("Batch samples to parameters: " + str(batch_samples))
 
@@ -618,10 +623,15 @@ def get_rxn_info_list(batch_samples):
     :return:
     """
     inducers_defs = eval(next(iter(batch_samples.inducers.unique())))
-    inducers = [x for x in batch_samples.columns if "inducer" in x and x != "inducers"]
+    inducers = [x for x in batch_samples.columns for inducer in inducers_defs if inducer in x and x != "inducers"]
     rxn_info = []
     for inducer in inducers:
-        inducer_group = batch_samples.loc[batch_samples[inducer] != 0]
+
+        if len(inducers) > 1:
+            other_inducers = [f"{x} == 0" for x in inducers if x != inducer]
+            inducer_group = batch_samples.query(" and ".join(other_inducers))
+        else:
+            inducer_group = batch_samples
         inducer_name = inducer.split("_concentration")[0]
         inducer_container = inducers_defs[inducer_name]["containerId"]
         inducer_well = inducers_defs[inducer_name]["wellIndex"]
