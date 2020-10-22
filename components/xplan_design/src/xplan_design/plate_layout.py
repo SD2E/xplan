@@ -191,7 +191,8 @@ def generate_variables1(inputs):
 
     container_assignment = inputs['container_assignment']
     l.debug("container_assignment: %s", container_assignment)
-    container_assignment_dict = json.loads(container_assignment.set_index("container").to_json(orient='index'))
+
+    container_assignment_dict = container_assignment.groupby(["container"]).apply(lambda x : {k: set(v.values()) for k, v in json.loads(x.to_json()).items()}).to_json()
     variables['batch_factor'] = \
       {
           container : {

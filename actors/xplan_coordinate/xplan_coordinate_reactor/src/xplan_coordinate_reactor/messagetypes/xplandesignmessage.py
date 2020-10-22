@@ -294,12 +294,13 @@ class XPlanDesignMessage(AbacoMessage):
 
     def handle_design_output(self, r: Reactor, experiment_id, challenge_problem, lab_cfg, out_dir: str):
 
-        design_to_parameters(experiment_id,
+        params = design_to_parameters(experiment_id,
                              challenge_problem,
                              lab_cfg,
                              input_dir=out_dir,
-                             out_dir=out_dir)
-        log_info(r, "design_to_parameters:\n{}\n".format(experiment_id))
+                             out_dir=out_dir,
+                             logger=r.logger)
+        log_info(r, "design_to_parameters:\n{}\n{}\n".format(experiment_id, params))
 
         # FIXME don't hardcode this?
         transcriptic_params = {
@@ -314,7 +315,14 @@ class XPlanDesignMessage(AbacoMessage):
 
         mock = r.settings['xplan_config'].get('mock', False)
         log_info(r, "Mock = {}".format(mock))
-        submit_experiment(experiment_id, challenge_problem, lab_cfg, transcriptic_params, input_dir=out_dir, out_dir=out_dir, mock=mock)
+        submit_experiment(experiment_id,
+                          challenge_problem,
+                          lab_cfg,
+                          transcriptic_params,
+                          input_dir=out_dir,
+                          out_dir=out_dir,
+                          mock=mock,
+                          logger=r.logger)
 
     def notify_control_annotator(self, r: Reactor, experiment_id, challenge_problem, upload_uri):
         # Send SR Reactor a response with path to design

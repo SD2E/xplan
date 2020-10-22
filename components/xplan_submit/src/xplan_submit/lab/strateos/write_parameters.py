@@ -24,8 +24,10 @@ def design_to_parameters(experiment_id,
                          challenge_problem,
                          transcriptic_cfg,
                          input_dir=".",
-                         out_dir="."):
+                         out_dir=".",
+                         logger=l):
 
+    l=logger
     challenge_in_dir = os.path.join(input_dir, challenge_problem)
     challenge_out_dir = os.path.join(out_dir, challenge_problem)
 

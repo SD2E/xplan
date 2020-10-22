@@ -18,7 +18,8 @@ l.setLevel(logging.INFO)
 
 def  submit_experiment(experiment_id, challenge_problem,
                        tx_cfg, tx_params,
-                       input_dir=".", out_dir=".", batches=None, mock=False):
+                       input_dir=".", out_dir=".", batches=None, mock=False, logger=l):
+    l = logger
     challenge_in_dir = os.path.join(input_dir, challenge_problem)
     challenge_out_dir = os.path.join(out_dir, challenge_problem)
     experiment_out_dir = os.path.join(challenge_out_dir, 'experiments', experiment_id)
@@ -40,13 +41,19 @@ def  submit_experiment(experiment_id, challenge_problem,
     tx_proj_id = tx_proj.get('id')
 
     design_df = pd.read_json(experiment_design['design'])
-    for batch in experiment_request['batches']:
+
+    if "batch" in design_df.columns:
+        planned_batches = design_df.batch.unique()
+    else:
+        planned_batches = [b['id'] for b in batches]
+
+    for batch in planned_batches:
         if batches is not None:
-            if batch['id'] not in batches:
+            if str(batch) not in batches:
                 continue
 
         (submit_id, params_file_name) = submit_plate(experiment_id,
-                                                     batch['id'],
+                                                     str(batch),
                                                      challenge_problem,
                                                      challenge_in_dir,
                                                      experiment_out_dir,
@@ -54,12 +61,13 @@ def  submit_experiment(experiment_id, challenge_problem,
                                                      tx_proj_id,
                                                      protocol_id,
                                                      tx_test_mode,
-                                                     tx_cfg)
+                                                     tx_cfg,
+                                                     logger=l)
 
-        put_experiment_submission(experiment_id, batch['id'], submit_id, params_file_name, challenge_out_dir)
+        put_experiment_submission(experiment_id, str(batch), submit_id, params_file_name, challenge_out_dir)
 
         def assign_run_id(x):
-            if str(x['batch']) == batch['id']:
+            if str(x['batch']) == str(batch):
                 return submit_id
             elif 'lab_id' in x:
                 return x['lab_id']
@@ -86,7 +94,8 @@ def  submit_experiment(experiment_id, challenge_problem,
 
 
 def submit_plate(experiment_id, plate_id, challenge_problem, in_dir, out_dir,
-                 tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg):
+                 tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg, logger=l):
+    l = logger
     l.info("Handling plate: " + plate_id)
 
     params_file_name = get_params_file_path(experiment_id, plate_id, in_dir)
@@ -104,7 +113,8 @@ def submit_plate(experiment_id, plate_id, challenge_problem, in_dir, out_dir,
                                                  out_dir,
                                                  tx_cfg,
                                                  plate_id,
-                                                 test_mode=tx_test_mode)
+                                                 test_mode=tx_test_mode,
+                                                 logger=l)
             submit_id = submit_resp['id']
         else:
             l.info("Submitting Mock TX Experiment")
@@ -116,9 +126,10 @@ def submit_plate(experiment_id, plate_id, challenge_problem, in_dir, out_dir,
 
 
 def submit_to_transcriptic(project_id, protocol_id,
-                           params, challenge_problem, out_dir, tx_cfg, plate_id, test_mode=True):
+                           params, challenge_problem, out_dir, tx_cfg, plate_id,
+                           test_mode=True, logger=l):
     """Submit to transcriptic and record response"""
-
+    l = logger
     launch_request_id = None
     launch_protocol = None
 
@@ -178,7 +189,8 @@ def submit_to_transcriptic(project_id, protocol_id,
             protocol_id=protocol_id,
             project_id=project_id,
             title=req_title,
-            test_mode=test_mode)
+            test_mode=test_mode,
+            logger=l)
 
         l.info("submit_launch_request.response.id: {}".format(
             request_response['id']))
@@ -206,13 +218,15 @@ def _create_launch_request(params, plate_id, bsl=1, test_mode=False, out_dir='.'
 # the real protocol is available at Transcriptic
 @retry(stop=stop_after_delay(70), wait=wait_exponential(multiplier=1, max=16))
 def __submit_launch_request(conn, launch_request_id, protocol_id=None,
-                            project_id=None, title=None, test_mode=False):
+                            project_id=None, title=None, test_mode=False,
+                            logger=l):
+    l = logger
     try:
-        print("Launching: launch_request_id = " + launch_request_id)
-        print("Launching: protocol_id = " + protocol_id)
-        print("Launching: project_id = " + project_id)
-        print("Launching: title = " + title)
-        print("Launching: test_mode = " + str(test_mode))
+        l.info("Launching: launch_request_id = " + launch_request_id)
+        l.info("Launching: protocol_id = " + protocol_id)
+        l.info("Launching: project_id = " + project_id)
+        l.info("Launching: title = " + title)
+        l.info("Launching: test_mode = " + str(test_mode))
         lr = conn.submit_launch_request(launch_request_id,
                                         protocol_id=protocol_id,
                                         project_id=project_id,
