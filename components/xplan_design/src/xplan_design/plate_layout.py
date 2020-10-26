@@ -31,6 +31,7 @@ def generate_variables1(inputs):
     samples = inputs['samples']
     factors = inputs['factors']
     containers = inputs['containers']
+    aliquot_factor_map = inputs['aliquot_factor_map']
     aliquot_symmetry_samples = inputs['aliquot_symmetry_samples']
     aliquots = [a for c in containers for a in containers[c]['aliquots']]
 
@@ -52,13 +53,19 @@ def generate_variables1(inputs):
 #                variables['reverse_index'][var] = {}
 #            variables['reverse_index'][var].update({"sample": "x{}_{}".format(sample, aliquot), "aliquot" : aliquot})
 
-    def get_factor_symbols(factor, prefix, var=None, constraints=None):
+    def get_factor_symbols(factor, prefix, var=None, constraints=None, map=None):
         if factor['dtype'] == "str":
             if var is not None and constraints and var in constraints and constraints[var]:
                 #l.debug("setting levels of %s %s %s", var, factor['name'],  constraints[var][factor['name']])
-                levels = [ constraints[var][factor['name']] ]
+                if map:
+                    levels = [map[factor['name']][l] for l in [constraints[var][factor['name']]]]
+                else:
+                    levels = [ constraints[var][factor['name']] ]
             else:
-                levels = factor['domain']
+                if map:
+                    levels = [map[factor['name']][l] for l in factor['domain']]
+                else:
+                    levels = factor['domain']
             return  {
                 level : Symbol("{}={}".format(prefix, level))
                 for level in levels
@@ -77,7 +84,8 @@ def generate_variables1(inputs):
                 if factor['ftype'] == "aliquot":
                     if factor_id in containers[c]['aliquots'][a]:
                         a_factors[factor_id] = get_factor_symbols(factor, "{}({}_{})".format(factor_id, a, c),
-                                                                  var=a, constraints=containers[c]['aliquots'])
+                                                                  var=a, constraints=containers[c]['aliquots'],
+                                                                  map=aliquot_factor_map)
                     else:
                         a_factors[factor_id] = get_factor_symbols(factor, "{}({}_{})".format(factor_id, a, c))
             c_factors[a] = a_factors
@@ -192,11 +200,11 @@ def generate_variables1(inputs):
     container_assignment = inputs['container_assignment']
     l.debug("container_assignment: %s", container_assignment)
 
-    container_assignment_dict = container_assignment.groupby(["container"]).apply(lambda x : {k: set(v.values()) for k, v in json.loads(x.to_json()).items()}).to_json()
+    container_assignment_dict = json.loads(container_assignment.groupby(["container"]).apply(lambda x : {k: set(v.values()) for k, v in json.loads(x.to_json()).items()}).to_json())
     variables['batch_factor'] = \
       {
           container : {
-              factor_id : get_factor_symbols(factor, "{}({})".format(factor_id, container), container, container_assignment_dict)
+              factor_id : get_factor_symbols(factor, "{}({})".format(factor_id, container), container, container_assignment_dict[container])
               #factor_id : get_factor_symbols(factor, "{}({})".format(factor_id, container))
               for factor_id, factor in factors.items() if factor['ftype'] == "batch"
               }
@@ -601,7 +609,7 @@ def get_aliquot_properties_constraint(containers, batch_containers, factors, bat
 
 def container_consistent_with_batch(container_id, container_assignment, batch):
     if container_assignment is not None:
-        query = "&".join([f"{var}=={val}" for var, val in batch.items()]) + f" & container == \'{container_id}\'"
+        query = "&".join([f"{var}=='{val}'" for var, val in batch.items()]) + f" & container == \'{container_id}\'"
         result = container_assignment.query(query)
         return len(result) > 8
     return True
