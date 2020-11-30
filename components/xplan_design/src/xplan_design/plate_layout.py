@@ -166,14 +166,14 @@ def generate_variables1(inputs):
                             variables['reverse_index'][var] = {}
                         column = [col for col, aliquots in containers[container]['columns'].items() if aliquot in aliquots][0]
                         row = [row for row, aliquots in containers[container]['rows'].items() if aliquot in aliquots][0]
-                        variables['reverse_index'][var].update({"type" : "aliquot", "aliquot" : aliquot, "container" : container, factor_id : level, "column" : get_column_name(column, container), "column_id" : get_column_id(column), "row" : get_row_name(row, container)})
+                        variables['reverse_index'][var].update({"type" : "aliquot", "aliquot" : aliquot, "container" : container, factor_id : level, "column" : get_column_name(column, container),  "row" : get_row_name(row, container)})
                 else:
                     var = str(variables['aliquot_factors'][container][aliquot][factor_id])
                     if var not in variables['reverse_index']:                
                         variables['reverse_index'][var] = {}
                     column = [col for col, aliquots in containers[container]['columns'].items() if aliquot in aliquots][0]
                     row = [row for row, aliquots in containers[container]['rows'].items() if aliquot in aliquots][0]
-                    variables['reverse_index'][var].update({"type" : "aliquot", "aliquot" : aliquot, "container" : container, factor_id : level, "column" : get_column_name(column, container), "column_id" : get_column_id(column), "row" : get_row_name(row, container)})
+                    variables['reverse_index'][var].update({"type" : "aliquot", "aliquot" : aliquot, "container" : container, factor_id : level, "column" : get_column_name(column, container),  "row" : get_row_name(row, container)})
 
         
     values = {}
@@ -1015,7 +1015,7 @@ def get_container_assignment(input, sample_types, strain_counts):
         ## Get the container used in each run, rather than assign arbitrarily
         lab_id_factor = batch_factors['lab_id']
         lab_id_df = lab_id_factor.to_DataFrame()
-        container_assignment = batch_types.reset_index(drop=True).merge(lab_id_df, on="lab_id").reset_index().set_index('container').to_dict('index')
+        container_assignment = batch_types.reset_index(drop=True).merge(lab_id_df, on="lab_id").reset_index(drop=True)
     elif protocol == "cell_free_riboswitches":
         # Container assigment is not a partition like other protocols.
         # Map each container that has a DNA that is in the batch to the batch
@@ -1597,13 +1597,23 @@ def preprocess_containers(input, sample_types, strain_counts, sample_factors, co
                                                       {"factor" : "replicate", "values" : [x for x in range(1,num_media_control+1)]}] +
                                                       [{"factor" : factor, "values" : [value]} for factor, value in batch.items()]
                                           }
-            input['requirements'].append(media_control_requirement)
+            #input['requirements'].append(media_control_requirement)
             df_data = { "strain" : ["MediaControl" for x in range(num_media_control)],
                         "replicate" : [x for x in range(1,num_media_control+1)]}
             for factor, value in batch.items():
                 df_data.update({factor : [value for x in range(1,num_media_control+1)]})
             media_control_df = pd.DataFrame(data=df_data)
-            sample_types = sample_types.append(media_control_df, ignore_index=True)
+            #sample_types = sample_types.append(media_control_df, ignore_index=True)
+            ## Remove MediaControl from containers if not required
+            for container_id, container in containers.items():
+                aliquots_to_remove = []
+                for aliquot in container['aliquots']:
+                    if container['aliquots'][aliquot]['strain'] == "MediaControl":
+                        if num_media_wells_needed < 0:
+                            num_media_wells_needed += 1
+                            aliquots_to_remove.append(aliquot)
+                for aliquot in aliquots_to_remove:
+                    del container['aliquots'][aliquot]
     elif num_media_wells_needed > 0:
         ## Have more media wells required than allocated
         ## Need to map media controls to empty wells
@@ -1805,7 +1815,10 @@ def get_model_pd(model, variables, factors, float_map):
         if len(na_column_df) > 0:
             ## Override values chosen for columns by NA if needed
             column_df = na_column_df.set_index("column").combine_first(column_df.set_index("column")).reset_index()
-        df = df.merge(column_df.drop(columns=['type']), on=["container", "column"])
+        merge_cols = ["container", "column"]
+        if 'column_id' in df.columns:
+            merge_cols.append('column_id')
+        df = df.merge(column_df.drop(columns=['type']), on=merge_cols)
     if len(row_df) > 0:
         df = df.merge(row_df.drop(columns=['type']), on=["container", "row"])
 

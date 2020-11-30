@@ -638,7 +638,7 @@ def get_rxn_info_list(batch_samples):
         inducer_container = inducers_defs[inducer_name]["containerId"]
         inducer_well = inducers_defs[inducer_name]["wellIndex"]
         inducer_units = inducers_defs[inducer_name]["units"]
-        rxn_inducer_groups = inducer_group.groupby(['container', 'aliquot', 'rxn_conc', 'neg_control', 'rnase_inh'])
+        rxn_inducer_groups = inducer_group.groupby(['container', 'aliquot', 'rxn_conc', 'neg_control', 'rnase_inh', 'Use MgGlu2'])
         for g, grp in rxn_inducer_groups:
             rxn_conc = next(iter(grp.rxn_conc.unique()))
             container_id = next(iter(grp.container.unique()))
@@ -647,6 +647,7 @@ def get_rxn_info_list(batch_samples):
             replicates = max(iter(grp.replicate.unique()))
             neg_control = next(iter(grp.neg_control.unique()))
             rnase_inh = eval(next(iter(grp.rnase_inh.unique()))) # convert "True" to True
+            mglu2 = eval(next(iter(grp['Use MgGlu2'].unique()))) # convert "True" to True
             rxn_group = {
                 "rxn_group": {
                     "sample_info": {
@@ -669,7 +670,8 @@ def get_rxn_info_list(batch_samples):
                     "rxn_info": {
                         "n_replicates": replicates,
                         "neg_control": neg_control,
-                        "rnase_inh": rnase_inh
+                        "rnase_inh": rnase_inh,
+                        "mg_glu2" : mglu2
                     }
                 }
             }

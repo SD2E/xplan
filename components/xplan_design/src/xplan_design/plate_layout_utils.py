@@ -119,9 +119,8 @@ def get_factor_from_condition_set(factor_id, condition_set):
     #raise Exception("Could not find factor %s in condition_set %s", factor_id, condition_set)
 
 def condition_set_is_singletons(factors, condition_set):
-    for factor_id in factors:
-        factor = get_factor_from_condition_set(factor_id, condition_set)
-        if factor is not None and  len(factor['values']) != 1:
+    for constraint in condition_set['factors']:
+        if len(constraint['values']) > 1:
             return False
     return True
 
