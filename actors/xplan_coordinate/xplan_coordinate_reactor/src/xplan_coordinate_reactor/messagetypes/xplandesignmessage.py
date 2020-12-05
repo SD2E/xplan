@@ -25,7 +25,7 @@ class XPlanDesignMessage(AbacoMessage):
         "app_id": "jladwig_xplan2_design-0.0.1",
         "base_name": "xplan_design_job-",
         "batchQueue": "all",
-        "max_run_time": "01:00:00",
+        "max_run_time": "04:00:00",
         "memoryPerNode": "1GB",
         "nodeCount": 1,
         "processorsPerNode": 1,

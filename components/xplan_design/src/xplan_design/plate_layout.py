@@ -8,7 +8,7 @@ from functools import reduce
 
 from xplan_design.plate_layout_utils import get_samples_from_condition_set, get_column_name, get_column_factors, \
     get_column_id, get_row_name, get_row_factors, get_row_id, get_aliquot_row, get_aliquot_col, resolve_sbh_uri, \
-    containers_have_known_contents
+    containers_have_known_contents, container_dict_to_df
 
 from xplan_utils.container_data_conversion import get_strain_count
 
@@ -913,6 +913,8 @@ def req_batch_factors(r, r_batch_factors, containers, sample_types, sample_facto
     )
     return clause
 
+def requirement_to_frame(requirement):
+    return pd.DataFrame({factor_levels['factor'] : factor_levels['values'] for factor_levels in requirement})
 
 def aliquot_can_satisfy_requirement(aliquot, container_id, container, requirement, aliquot_symmetry_samples, aliquot_factor_map):
     """
@@ -928,14 +930,14 @@ def aliquot_can_satisfy_requirement(aliquot, container_id, container, requiremen
     # l.debug("Can sat? %s %s %s", container_id, aliquot, requirement)
     aliquot_properties = container['aliquots'][aliquot]
 
-    if aliquot_symmetry_samples is not None and False:
+    if aliquot_symmetry_samples is not None:
         aliquot_samples = aliquot_symmetry_samples.loc[(aliquot_symmetry_samples.aliquot == aliquot) &
                                                        (aliquot_symmetry_samples.container == container_id)]
         aliquot_factors = aliquot_samples[requirement_factors].drop_duplicates()
-        for factor in requirement_factors:
-            aliquot_factors = aliquot_factors.loc[aliquot_factors[factor].isin(requirement_levels[factor])]
-            if len(aliquot_factors) == 0:
-                return False
+        requirement_frame = requirement_to_frame(requirement).astype(object)
+        merged = requirement_frame.merge(aliquot_factors.astype(object))
+        if len(merged) == 0:
+            return False
 
 
     req_cols = [l  for f in requirement for l in f['values'] if f['factor'] == 'column_id']
@@ -994,7 +996,13 @@ def get_sample_types(sample_factors, requirements):
     return experiment_design.drop_duplicates()
 
 
-def get_container_assignment(input, sample_types, strain_counts):
+def container_can_service_batch(container, batch_samples, aliquot_factor_map):
+    container_df = container_dict_to_df(container, aliquot_factor_map)
+    intersection = container_df.merge(batch_samples)
+    return len(intersection) > 0
+
+
+def get_container_assignment(input, sample_types, strain_counts, aliquot_factor_map):
     """
     Pick a container for each combination of batch factors to avoid search
     """
@@ -1002,7 +1010,7 @@ def get_container_assignment(input, sample_types, strain_counts):
     batch_factors = { x : y for x, y in input['factors'].items() if y['ftype'] == 'batch' }
     ## Hack to dropna, really need to determine which groups are consistent and use that as a lower bound on
     ## the container set.  Using dropna assumes that rows with nan will subsume another row.
-    batch_types = get_sample_types(batch_factors, input['requirements']).drop_duplicates().dropna() 
+    batch_types = sample_types[list(batch_factors.keys())].drop_duplicates().dropna() #get_sample_types(batch_factors, input['requirements']).drop_duplicates().dropna()
     l.debug("batch_types: %s", batch_types)
 
     assert(len(batch_types) <= len(containers))
@@ -1032,11 +1040,13 @@ def get_container_assignment(input, sample_types, strain_counts):
     else:
         ## Set keys to str
         aliquot_factors = { x : y for x, y in input['factors'].items() if  y['ftype'] != 'sample'}
-        batch_aliquots = get_sample_types(aliquot_factors, input['requirements'])
+        batch_aliquots = sample_types[list(aliquot_factors.keys())].drop_duplicates().dropna() #get_sample_types(aliquot_factors, input['requirements'])
         batch_size = batch_aliquots.groupby(list(batch_factors.keys())).size().to_frame().reset_index()
         container_assignment = {}
         for batch_type_id, batch_type in batch_types.iterrows():
-            this_batch_size = batch_type.to_frame().transpose().merge(batch_size).loc[0,0]
+            batch_frame = batch_type.to_frame().transpose()
+            this_batch_size = batch_frame.merge(batch_size).loc[0,0]
+            batch_samples = batch_aliquots.merge(batch_frame)
             if this_batch_size <= 0:
                 continue
             ## Assign containers to this batch until covered
@@ -1044,10 +1054,11 @@ def get_container_assignment(input, sample_types, strain_counts):
                 if container_id in container_assignment:
                     continue
                 container_size = len(container['aliquots'])
-                container_assignment[container_id] = json.loads(batch_type.to_json())
-                this_batch_size -= container_size
-                if this_batch_size <= 0:
-                    break
+                if container_can_service_batch(container, batch_samples, aliquot_factor_map):
+                    container_assignment[container_id] = json.loads(batch_type.to_json())
+                    this_batch_size -= container_size
+                    if this_batch_size <= 0:
+                        break
 
         ## Add remaining containers to first batch
         ## FIXME ensure that each container is compatible with batch
@@ -1061,6 +1072,9 @@ def get_container_assignment(input, sample_types, strain_counts):
 
     l.debug("container_assignment: %s", container_assignment)
     return container_assignment, batch_types
+
+
+
 
 def fill_empty_aliquots(factors, requirements, batch_aliquots):
     none_aliquots = batch_aliquots.loc[batch_aliquots.strain == "None"]
@@ -1174,17 +1188,18 @@ def _is_compatible(replicate_group, aliquot_and_container_properties):
     
     
 
-def _get_compatible_replicate_groups(aliquot, samples, non_replicate_factors, container_assignment_df):
+def _get_compatible_replicate_groups(aliquot, samples, non_replicate_factors, container_assignment_df, aliquot_factor_map):
     """
     Return a groupby object with only groups of replicates that are compatible with the aliquot.
     """
 
-    aliquot_property_cols = [x for x in aliquot.columns if x not in ['container', 'aliquot']]
+    aliquot_property_cols = [x for x in aliquot.columns if x not in ['container', 'aliquot', 'column']]
     assigned_container_properties = container_assignment_df.loc[container_assignment_df.container == aliquot.iloc[0].container]
     if len(aliquot_property_cols) == 0:
         aliquot_and_container_properties = assigned_container_properties
     else:
         aliquot_and_container_properties = pd.concat([assigned_container_properties.reset_index(drop=True), aliquot[aliquot_property_cols].reset_index(drop=True)], axis=1)
+
 
 
     ## Get rid of non-properties
@@ -1193,7 +1208,7 @@ def _get_compatible_replicate_groups(aliquot, samples, non_replicate_factors, co
             aliquot_and_container_properties = aliquot_and_container_properties.drop(columns=[x])
 
     aliquot_samples = samples.merge(aliquot_and_container_properties)
-    compatible_replicate_groups = aliquot_samples.astype(str).groupby(non_replicate_factors)
+    compatible_replicate_groups = aliquot_samples.groupby(non_replicate_factors)
 
 
     ## Need to find groups that are consistent
@@ -1202,7 +1217,7 @@ def _get_compatible_replicate_groups(aliquot, samples, non_replicate_factors, co
 #    compatible_replicate_groups = compatible_replicate_groups.loc[compatible_replicate_groups[0] == True].drop(columns=[0])
     return compatible_replicate_groups
 
-def get_aliquot_symmetry(samples, factors, containers, container_assignment):
+def get_aliquot_symmetry(samples, factors, containers, container_assignment, aliquot_factor_map):
     """
     For each aliquot, pick the possible replicates of each strain that can be placed in that aliquot.
     """
@@ -1217,7 +1232,10 @@ def get_aliquot_symmetry(samples, factors, containers, container_assignment):
         container_df = container_df.rename(columns={"index" : "aliquot"})       
         container_df['column'] = container_df.apply(lambda x: get_aliquot_col(x['aliquot'], containers[x['container']]), axis=1)
         container_aliquots = container_aliquots.append(container_df, ignore_index=True)
-    
+
+    for factor in factors:
+        if factor in container_aliquots.columns:
+            container_aliquots[factor] = container_aliquots[factor].apply(lambda x: aliquot_factor_map[factor][x])
 
     non_replicate_factors = [x for x in samples.columns if x != "replicate" ]
     column_factors = [x for x, y in factors.items() if y['ftype'] == "column" ]
@@ -1225,10 +1243,7 @@ def get_aliquot_symmetry(samples, factors, containers, container_assignment):
 
     
 
-    ## convert container_assignment to dataframe
-    ca_df = pd.read_json(json.dumps(container_assignment), orient='index').reset_index().rename(columns={"index" : "container"})
-    ca_df["container"] = ca_df["container"].astype(str)
-    
+
 
     #replicate_groups = samples.drop_duplicates().groupby(non_replicate_factors)
     #replicate_groups_dict = dict(list(replicate_groups))
@@ -1238,13 +1253,13 @@ def get_aliquot_symmetry(samples, factors, containers, container_assignment):
     ## For each aliquot, pick a member of each compatible replicate group.  Need to make sure that
     ## all replicates are represented, so we also need to keep an index into each group to pick the next
     ## replicate deterministically.
-    replicate_group_index = samples.astype(str).groupby(non_replicate_factors).apply(lambda x: 0)
+    replicate_group_index = samples.groupby(non_replicate_factors).apply(lambda x: 0)
     na_replicate_group_index = 0
 
     symmetry_break = pd.DataFrame()
     for _, aliquot in container_aliquots.iterrows():
 #        try:
-        compatible_replicate_groups = _get_compatible_replicate_groups(aliquot.to_frame().transpose(), samples, non_replicate_factors, ca_df)
+        compatible_replicate_groups = _get_compatible_replicate_groups(aliquot.to_frame().transpose(), samples, non_replicate_factors, container_assignment, aliquot_factor_map)
 #        except Exception as e:
 #            import pdb, traceback, sys
 #            extype, value, tb = sys.exc_info()
@@ -1257,7 +1272,7 @@ def get_aliquot_symmetry(samples, factors, containers, container_assignment):
             #group_key = tuple(compatible_group.to_list())
             #replicate_group = replicate_groups_dict[group_key]
             replicate_idx = replicate_group_index[group_key]
-            replicate = replicate_group.iloc[replicate_idx].to_frame().transpose().infer_objects()
+            replicate = replicate_group.iloc[replicate_idx].to_frame().transpose() #.infer_objects()
 
             ## update replicate index
             if replicate_group_index[group_key] + 1 == len(replicate_group):
@@ -1340,14 +1355,14 @@ def require_na_samples(requirements, sample_types, common_samples):
 
     return requirements
     
-def get_symmetry(samples, factors, containers, container_assignment):
+def get_symmetry(samples, factors, containers, container_assignment, aliquot_factor_map):
     """
     For each aliquot, pick representative from each symmetry group to use.
     """
     #l.debug("Getting Symmetry Groups from: %s", samples)
 
     #import pdb; pdb.set_trace()
-    aliquot_symmetry = get_aliquot_symmetry(samples, factors, containers, container_assignment)
+    aliquot_symmetry = get_aliquot_symmetry(samples, factors, containers, container_assignment, aliquot_factor_map)
     #column_symmetry = get_column_symmetry(samples, factors, containers, container_assignment, aliquot_symmetry)
     na_aliquot_symmetry = aliquot_symmetry[aliquot_symmetry.isnull().any(axis=1)]
     #symmetry = aliquot_symmetry.merge(column_symmetry)
@@ -1431,8 +1446,9 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     l.debug("container_strains %s", container_strains)
 
 
+    input["aliquot_factor_map"] = get_aliquot_factor_map(containers, input['factors'])
 
-    input['container_assignment'], batch_types = get_container_assignment(input, sample_types, strain_counts)
+    input['container_assignment'], batch_types = get_container_assignment(input, sample_types, strain_counts, input["aliquot_factor_map"])
     assigned_containers = input['container_assignment'].container.unique()
     unused_containers = [container_id for container_id in input['containers'] if container_id not in assigned_containers]
     for container_id in unused_containers:
@@ -1474,16 +1490,15 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     input['sample_types'] = { i : x for i, x in enumerate(common_samples.to_dict('records'))}
     l.debug("sample_types: %s", input['sample_types'])
 
-    #non_samples = sample_types[list(non_sample_factors.keys())]
-    #non_samples = non_samples.drop_duplicates().reset_index(drop=True)
-    input['aliquot_symmetry_samples'] = None #get_symmetry(non_samples, non_sample_factors, containers, input['container_assignment'])
+    non_samples = sample_types[list(non_sample_factors.keys())]
+    non_samples = non_samples.drop_duplicates().reset_index(drop=True)
 
     input['requirements'] = require_na_samples(input['requirements'], sample_types, common_samples)
 
     input['float_map'] = map_floats(input)
 
 
-    input["aliquot_factor_map"] = get_aliquot_factor_map(containers, input['factors'])
+    input['aliquot_symmetry_samples'] = get_symmetry(non_samples, non_sample_factors, containers, input['container_assignment'], input["aliquot_factor_map"])
 
 
     l.info("Generating Constraints ...")
@@ -1719,6 +1734,15 @@ def get_model_pd(model, variables, factors, float_map):
     sample_df = pd.DataFrame()
     na_sample_df = pd.DataFrame()
 
+    experiment_dict = {}
+    batch_dict = {}
+    column_dict = {}
+    na_column_dict = {}
+    row_dict = {}
+    aliquot_dict = {}
+    sample_dict = {}
+    na_sample_dict = {}
+
     def info_to_df(info, value):
         def sub_factor_value(x, value):
             for col in x.index:
@@ -1731,12 +1755,37 @@ def get_model_pd(model, variables, factors, float_map):
                         x[col] = float(value.constant_value())
             return x
 
-        
+
         info_df = pd.DataFrame()
         df = info_df.append(info, ignore_index=True)
         if value.is_int_constant() or value.is_real_constant():
             df = df.apply(lambda x: sub_factor_value(x, value), axis=1)            
         return df
+
+    def merge_into_dict(d, info, value, on):
+
+        def sub_factor_value(x, value):
+            for col in x:
+                if col in factors:
+                    #if col == "temperature":
+                    #l.debug("Set %s = %s", col, value)
+                    if value.is_int_constant():
+                        x[col] = int(value.constant_value())
+                    elif value.is_real_constant():
+                        x[col] = float(value.constant_value())
+            return x
+
+        key = tuple([v for k, v in value if k in on])
+
+
+        if key in d:
+            d[key].update(value)
+        else:
+            d[key] = info
+        if value.is_int_constant() or value.is_real_constant():
+            d[key] = sub_factor_value(d[key], value)
+
+        return d
 
     def merge_info_df(df, info, value, on):
         if len(df) > 0:
@@ -1773,27 +1822,40 @@ def get_model_pd(model, variables, factors, float_map):
                 
                # l.debug("info = %s", info)
                 if info['type'] == 'aliquot':
-                    aliquot_df = merge_info_df(aliquot_df, info, value, ["aliquot", "container"])
+                    #aliquot_df = merge_info_df(aliquot_df, info, value, ["aliquot", "container"])
+                    aliquot_dict = merge_into_dict(aliquot_dict, info, value, ["container", "aliquot"])
                 elif info['type'] == 'sample':
-                    sample_df = merge_info_df(sample_df, info, value, "sample")
+                    #sample_df = merge_info_df(sample_df, info, value, "sample")
+                    sample_dict = merge_into_dict(sample_dict, info, value, "sample")
                 elif info['type'] == 'batch':
-                    batch_df = merge_info_df(batch_df, info, value, "container")
-                    #print(var, value, value.is_int_constant())
-                    #print(batch_df)
+                    #batch_df = merge_info_df(batch_df, info, value, "container")
+                    batch_dict = merge_into_dict(batch_dict, info, value, "container")
                 elif info['type'] == 'column':
-                    column_df = merge_info_df(column_df, info, value, "column")
+                    #column_df = merge_info_df(column_df, info, value, "column")
+                    column_dict = merge_into_dict(column_dict, info, value, "column")
                 elif info['type'] == 'na_sample_factor':
-                    na_sample_df = merge_info_df(na_sample_df, info, value, "sample")
+                    #na_sample_df = merge_info_df(na_sample_df, info, value, "sample")
+                    na_sample_dict = merge_into_dict(na_sample_dict, info, value, "sample")
                 elif info['type'] == 'na_column':
-                    na_column_df = merge_info_df(na_column_df, info, value, "column")
-
+                    #na_column_df = merge_info_df(na_column_df, info, value, "column")
+                    na_column_dict = merge_into_dict(na_column_dict, info, value, "column")
                 elif info['type'] == 'row':
-                    row_df = merge_info_df(row_df, info, value, "row")
-
+                    #row_df = merge_info_df(row_df, info, value, "row")
+                    row_dict = merge_info_dict(row_dict, info, value, "row")
                 elif info['type'] == 'experiment':
                     l.debug("info: %s", info)
-                    experiment_df = experiment_df(experiment_df, info, value, None)
-            
+                    #experiment_df = experiment_df(experiment_df, info, value, None)
+                    experiment_dict = experiment_df(experiment_dict, info, value, None)
+
+    experiment_df = pd.DataFrame.from_records(experiment_dict)
+    batch_df = pd.DataFrame.from_records(batch_dict)
+    column_df = pd.DataFrame.from_records(column_dict)
+    na_column_df = pd.DataFrame.from_records(na_column_dict)
+    row_df = pd.DataFrame.from_records(row_dict)
+    aliquot_df = pd.DataFrame.from_records(aliquot_dict)
+    sample_df = pd.DataFrame.from_records(sample_dict)
+    na_sample_df = pd.DataFrame.from_records(na_sample_dict)
+
     l.debug("aliquot_df %s", aliquot_df)
     l.debug("sample_df %s", sample_df)
     l.debug("na_sample_df %s", na_sample_df)

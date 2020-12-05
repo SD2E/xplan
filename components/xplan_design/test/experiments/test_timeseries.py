@@ -41,6 +41,10 @@ def test_generate_timeseries_nissle_design():
     experiment_id = "experiment.transcriptic.2020-08-12-Plan-Requirements-UCSB-E-coli-nissle-antibiotic-TimeSeriesTitration-Strateos"
     gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
 
+def test_generate_timeseries_endogenous_promoter_design():
+    experiment_id = "experiment.transcriptic.2020-11-30-NovelChassis-Endogenous-Promoter"
+    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
+
 
 def test_generate_timeseries_nissle_rerun_design():
     experiment_id = "experiment.transcriptic.2020-10-22-Plan-Requirements-UCSB-E-coli-nissle-antibiotic-rerun-TimeSeriesTitration-Strateos"

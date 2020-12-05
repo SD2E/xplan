@@ -20,10 +20,10 @@ def override_run(cls):
     def new_run(self):
         orig_run(self)
         #pip_install('git+https://gitlab.sd2e.org/dbryce/xplan_models')
-        pip_install("git+https://github.com/SD2E/synbiohub_adapter.git@v1.3")
+        pip_install("git+https://github.com/SD2E/synbiohub_adapter.git")
         pip_install("pysbol")
         pip_install("fsspec")
-        pip_install("pandas==0.25.3")
+        pip_install("pandas")
         ## Setup solvers in pysmt
         pip_install("pysmt")
         print("Installing z3...")
@@ -56,10 +56,9 @@ setup(name='xplan_design',
       packages=find_packages('src'),
       package_dir={'':'src'},
       install_requires=["fsspec",
-                        "pandas==0.25.3",
+                        "pandas",
                         "pysbol",
-                        "pysmt",
-                        "synbiohub_adapter @ git+https://github.com/SD2E/synbiohub_adapter.git@v1.3"
+                        "pysmt"
                         ],
       tests_require=["pytest"],
       zip_safe=False,

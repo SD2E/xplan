@@ -28,32 +28,159 @@
             "strain": {
                 "name": "strain",
                 "domain": [
-                    "UWBF_6390",
-                    "UWBF_AND_00",
-                    "UWBF_AND_01",
-                    "UWBF_AND_10",
-                    "UWBF_AND_11",
-                    "UWBF_NAND_00",
-                    "UWBF_NAND_01",
-                    "UWBF_NAND_10",
-                    "UWBF_NAND_11",
-                    "UWBF_NOR_01",
-                    "UWBF_NOR_10",
-                    "UWBF_NOR_11",
-                    "UWBF_OR_00",
-                    "UWBF_OR_01",
-                    "UWBF_OR_10",
-                    "UWBF_OR_11",
-                    "UWBF_XNOR_00",
-                    "UWBF_XNOR_01",
-                    "UWBF_XNOR_10",
-                    "UWBF_XNOR_11",
-                    "UWBF_XOR_00",
-                    "UWBF_XOR_01",
-                    "UWBF_XOR_10",
-                    "UWBF_XOR_11",
-                    "W303"
+                                        "https://hub.sd2e.org/user/sd2e/design/UWBF_16967/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_16968/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_16969/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_16970/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_5783/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_5992/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_5993/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_6388/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_6389/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_6390/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_6391/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7299/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7300/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7373/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7374/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7375/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7376/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7377/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8225/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8231/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8542/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8543/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8544/1",
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8545/1",
+                    "https://hub.sd2e.org/user/sd2e/design/W303/1"
                 ],
+              "attributes": {
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_6390/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_6390/1",
+                        "label": "UWBF_6390",
+                        "lab_id": "name.transcriptic.UWBF_6390"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/W303/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/W303/1",
+                        "label": "W303",
+                        "lab_id": "name.transcriptic.W303"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_6389/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_6389/1",
+                        "label": "UWBF_NOR_01",
+                        "lab_id": "name.transcriptic.UWBF_6389"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7375/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_7375/1",
+                        "label": "UWBF_AND_01",
+                        "lab_id": "name.transcriptic.UWBF_7375"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8225/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_8225/1",
+                        "label": "UWBF_OR_00",
+                        "lab_id": "name.transcriptic.UWBF_8225"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_5783/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_5783/1",
+                        "label": "UWBF_OR_01",
+                        "lab_id": "name.transcriptic.UWBF_5783"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8545/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_8545/1",
+                        "label": "UWBF_NAND_01",
+                        "lab_id": "name.transcriptic.UWBF_8545"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_16970/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_16970/1",
+                        "label": "UWBF_XOR_00",
+                        "lab_id": "name.transcriptic.UWBF_16970"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_16968/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_16968/1",
+                        "label": "UWBF_XOR_10",
+                        "lab_id": "name.transcriptic.UWBF_16968"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8231/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_8231/1",
+                        "label": "UWBF_XNOR_01",
+                        "lab_id": "name.transcriptic.UWBF_8231"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_6391/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_6391/1",
+                        "label": "UWBF_NOR_11",
+                        "lab_id": "name.transcriptic.UWBF_6391"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_5992/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_5992/1",
+                        "label": "UWBF_OR_11",
+                        "lab_id": "name.transcriptic.UWBF_5992"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_16967/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_16967/1",
+                        "label": "UWBF_XOR_11",
+                        "lab_id": "name.transcriptic.UWBF_16967"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7373/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_7373/1",
+                        "label": "UWBF_AND_10",
+                        "lab_id": "name.transcriptic.UWBF_7373"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8543/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_8543/1",
+                        "label": "UWBF_NAND_10",
+                        "lab_id": "name.transcriptic.UWBF_8543"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7377/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_7377/1",
+                        "label": "UWBF_XNOR_10",
+                        "lab_id": "name.transcriptic.UWBF_7377"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_6388/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_6388/1",
+                        "label": "UWBF_NOR_10",
+                        "lab_id": "name.transcriptic.UWBF_6388"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_5993/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_5993/1",
+                        "label": "UWBF_OR_10",
+                        "lab_id": "name.transcriptic.UWBF_5993"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_16969/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_16969/1",
+                        "label": "UWBF_XOR_01",
+                        "lab_id": "name.transcriptic.UWBF_16969"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7376/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_7376/1",
+                        "label": "UWBF_AND_00",
+                        "lab_id": "name.transcriptic.UWBF_7376"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8544/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_8544/1",
+                        "label": "UWBF_NAND_00",
+                        "lab_id": "name.transcriptic.UWBF_8544"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7300/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_7300/1",
+                        "label": "UWBF_XNOR_00",
+                        "lab_id": "name.transcriptic.UWBF_7300"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7374/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_7374/1",
+                        "label": "UWBF_AND_11",
+                        "lab_id": "name.transcriptic.UWBF_7374"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_8542/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_8542/1",
+                        "label": "UWBF_NAND_11",
+                        "lab_id": "name.transcriptic.UWBF_8542"
+                    },
+                    "https://hub.sd2e.org/user/sd2e/design/UWBF_7299/1": {
+                        "sbh_uri": "https://hub.sd2e.org/user/sd2e/design/UWBF_7299/1",
+                        "label": "UWBF_XNOR_11",
+                        "lab_id": "name.transcriptic.UWBF_7299"
+                    }
+                },
                 "dtype": "str",
                 "otype": "DesignElement",
                 "ftype": "sample"

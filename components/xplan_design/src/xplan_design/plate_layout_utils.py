@@ -179,3 +179,11 @@ def resolve_sbh_uri(sbh_uri, user, password):
     lab_ids = sbh_query.query_lab_ids_by_designs(SD2Constants.TRANSCRIPTIC, value_to_query, verbose=True)
     # [{'id': 'B_subtilis_LG227_Colony_1', 'name': 'B_subtilis_LG227'}, {'id': 'B_subtilis_LG227_Colony_2', 'name': 'B_subtilis_LG227'}, {'id': 'B_subtilis_LG227_Colony_3', 'name': 'B_subtilis_LG227'}]
     return lab_ids[sbh_uri]
+
+def container_dict_to_df(container_dict, aliquot_factor_map):
+    df = pd.DataFrame.from_dict(container_dict['aliquots'], orient='index').reset_index()
+    df = df.rename(columns={"index" : "aliquot"})
+    for factor in aliquot_factor_map:
+        if factor in df.columns:
+            df[factor] = df[factor].apply(lambda x: aliquot_factor_map[factor][x])
+    return df
