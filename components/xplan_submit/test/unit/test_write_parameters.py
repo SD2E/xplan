@@ -40,3 +40,8 @@ def test_write_cell_free_riboswitches_1_32_params():
     experiment_id = "experiment.transcriptic.2020-10-16-Cell-Free-Transcriptional-Riboswitch-Characterization-Sequences-1-32"
     challenge_problem = "CELL_FREE_RIBOSWITCHES"
     write_params(experiment_id, challenge_problem=challenge_problem)
+
+def test_write_NC_endogenous_promoter_params():
+    experiment_id = "experiment.transcriptic.2020-12-04-NovelChassis-Endogenous-Promoter-Yellow-41-48"
+    challenge_problem = "NOVEL_CHASSIS"
+    write_params(experiment_id, challenge_problem=challenge_problem)

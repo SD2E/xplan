@@ -46,10 +46,10 @@ def get_experiment_design(experiment_id, out_dir):
     l.info("Getting Experiment Design ... " + experiment_id)
     state = persist.get_state(out_dir)
 
-    if 'experiment_requests' not in state:
-        raise Exception("Cannot retreive experiment design: " + str(experiment_id))
-    if experiment_id not in state['experiment_requests']:
-        raise Exception("Cannot retreive experiment design: " + str(experiment_id))
+    #if 'experiment_requests' not in state:
+    #    raise Exception("Cannot retreive experiment design: " + str(experiment_id))
+    #if experiment_id not in state['experiment_requests']:
+    #    raise Exception("Cannot retreive experiment design: " + str(experiment_id))
 
     design_file_name = get_design_file_name(experiment_id)
     experiment_dir = ensure_experiment_dir(experiment_id, out_dir)

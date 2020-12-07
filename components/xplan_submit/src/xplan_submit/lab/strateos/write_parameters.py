@@ -583,7 +583,8 @@ def get_time_series_invocation_parameters(batch_samples,
         invocation_params = add_reagent_concentrations(invocation_params, batch_samples, reagents, exp_params)
         make_entry(invocation_params, 'exp_info.src_samples', samples)
 
-        timepoint_str = extract_timepoints(batch_samples)
+
+        timepoint_str = extract_timepoints(batch_samples, invocation_params)
         make_entry(invocation_params, 'induction_info.induction_time.sample_points', timepoint_str)
 
 
@@ -679,8 +680,23 @@ def get_rxn_info_list(batch_samples):
 
     return rxn_info
 
-def extract_timepoints(batch_samples):
+def extract_timepoints(batch_samples, invocation_params):
     timepoints = list(batch_samples.timepoint.unique())
+
+    # Remove recovery loop times and subtract total recovery time from remaining times
+    if 'recovery_info' in invocation_params:
+        time = 0
+        for recovery in invocation_params['recovery_info']:
+            l.debug(f"recovery_info: {recovery}" )
+            if 'inc_time_2' in recovery:
+                recovery_time = int(recovery['inc_time_2'].split(":")[0])
+            else:
+                raise Exception(f"Duration of recovery loop missing: {recovery}")
+            time += recovery_time
+            timepoints.remove(time)
+        timepoints = [t - time for t in timepoints]
+
+
     if 0.0 in timepoints:
         timepoints.remove(0.0)  ## Timepoint 0 will be read automatically, do not need to specify
     if len(timepoints)  == 1:
