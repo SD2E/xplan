@@ -200,31 +200,45 @@ def generate_variables1(inputs):
     container_assignment = inputs['container_assignment']
     l.debug("container_assignment: %s", container_assignment)
 
-    container_assignment_dict = json.loads(container_assignment.groupby(["container"]).apply(lambda x : {k: set(v.values()) for k, v in json.loads(x.to_json()).items()}).to_json())
+    container_assignment_dict = json.loads(container_assignment.groupby(["batch"]).apply(lambda x : {k: set(v.values()) for k, v in json.loads(x.to_json()).items()}).to_json())
+
     variables['batch_factor'] = \
       {
-          container : {
-              factor_id : get_factor_symbols(factor, "{}({})".format(factor_id, container), container, container_assignment_dict[container])
+          batch : {
+              factor_id : get_factor_symbols(factor, "{}(batch_{})".format(factor_id, batch), batch, container_assignment_dict[batch])
               #factor_id : get_factor_symbols(factor, "{}({})".format(factor_id, container))
-              for factor_id, factor in factors.items() if factor['ftype'] == "batch"
+              for factor_id, factor in factors.items() if factor['ftype'] == "batch" and factor_id != "batch"
               }
-              for container in containers                          
+              for batch in container_assignment_dict
       }
+    variables['batch_containers'] = {
+        batch : {
+            container : Symbol(f"assign({container}, batch_{str(batch)})")
+            for container in batch_levels['container']
+        }
+        for batch, batch_levels in container_assignment_dict.items()
+    }
     l.debug("batch_factors %s", variables['batch_factor'])
       
-    for container  in variables['batch_factor']:
-        for batch_factor  in variables['batch_factor'][container]:
+    for batch in variables['batch_containers']:
+        for container  in variables['batch_containers'][batch]:
+            var = str(variables['batch_containers'][batch][container])
+            if var not in variables['reverse_index']:
+                variables['reverse_index'][var] = {}
+            variables['reverse_index'][var].update({"type" : "batch", "container" : container, "batch" : batch})
+
+        for batch_factor  in variables['batch_factor'][batch]:
             if factors[batch_factor]['dtype'] == "str":
-                for level in variables['batch_factor'][container][batch_factor]:
-                    var = str(variables['batch_factor'][container][batch_factor][level])
+                for level in variables['batch_factor'][batch][batch_factor]:
+                    var = str(variables['batch_factor'][batch][batch_factor][level])
                     if var not in variables['reverse_index']:
                         variables['reverse_index'][var] = {}
-                    variables['reverse_index'][var].update({"type" : "batch", "container" : container, batch_factor : level})
+                    variables['reverse_index'][var].update({"type" : "batch", "batch" : batch, batch_factor : level})
             else:
-                var = str(variables['batch_factor'][container][batch_factor])
+                var = str(variables['batch_factor'][batch][batch_factor])
                 if var not in variables['reverse_index']:
                     variables['reverse_index'][var] = {}
-                variables['reverse_index'][var].update({"type" : "batch", "container" : container, batch_factor : None})
+                variables['reverse_index'][var].update({"type" : "batch",  "batch" : batch, batch_factor : None})
 
     ## Variables used when choose to ignore the column factor
     variables['na_column_factors'] = \
@@ -430,17 +444,15 @@ def generate_constraints1(inputs, batch):
 
     
     def cs_batch_factors(batch_factors, containers, batch):
-        def get_batch_factors(batch_factors, container):
-            return batch_factors[container]
-            #return { factor_id : { level : containers[container] for level, containers in levels.items() } for factor_id, levels in batch_factors.items() }
-        
-        return And([And(#cs_factors_level(get_batch_factors(batch_factors, container_id), container_id, container_assignment),
-                        cs_factors_level(get_batch_factors(batch_factors, container_id)),
+
+        return And(cs_factors_level(batch_factors[str(batch['batch'])]),
+                   And([
+                    And(#cs_factors_level(get_batch_factors(batch_factors, container_id), container_id, container_assignment),
                         cs_column_factors(column_factor, container_id, container),
                         cs_row_factors(row_factor, container_id, container),
                         cs_aliquot_factors(aliquot_factors, container_id, container, container['aliquots'])
                         )
-                    for container_id, container in containers.items() if container_id in batch_containers])
+                    for container_id, container in containers.items() if container_id in batch_containers]))
           
 
     
@@ -715,7 +727,7 @@ def req_experiment_factors(r_exp_factors, factors):
                 for factor in r_exp_factors])
 
 
-def sample_consistent_with_case(sample, case, sample_types):
+def sample_consistent_with_case(sample, case, sample_types, container):
     # l.debug("sample: %s case: %s sample_types %s", sample, case, inputs['sample_types'])
     if sample in sample_types and sample_types[sample]:
         for factor_id, level in case.items():
@@ -738,7 +750,7 @@ def req_sample_factors(r, r_sample_factors, samples, aliquot, container, sample_
                 And([  ## Every factor-level in case is co-satisfied
                     na_sample_factors[container][aliquot][sample][factor_id]
                     for factor_id, level in case.items()])
-                for sample in samples if sample_consistent_with_case(sample, case, sample_types)])
+                for sample in samples if sample_consistent_with_case(sample, case, sample_types, container)])
             for case in cases])
 
     else:
@@ -749,7 +761,7 @@ def req_sample_factors(r, r_sample_factors, samples, aliquot, container, sample_
                     And(get_req_const(sample_factors[container][aliquot][sample], factor_id, level, factors),
                         Not(na_sample_factors[container][aliquot][sample][factor_id]))
                     for factor_id, level in case.items()])
-                for sample in samples if sample_consistent_with_case(sample, case, sample_types)])
+                for sample in samples if sample_consistent_with_case(sample, case, sample_types, container)])
             for case in cases])
     #        if not get_model(clause):
     #            import pdb; pdb.set_trace()
@@ -794,6 +806,7 @@ def req_aliquot_factors(r, r_aliquot_factors, containers, sample_types, sample_f
             if container_id in batch_containers:
                 aliquot_clauses = []
                 for aliquot in container['aliquots']:
+                    case_sample = expand_requirement(r_sample_factors(r, factors))[0]
                     if aliquot_can_satisfy_requirement(aliquot, container_id, container,
                                                        [{"factor" : factor, "values" : [level]} for factor, level in case.items()],
                                                        aliquot_symmetry_samples,
@@ -804,8 +817,8 @@ def req_aliquot_factors(r, r_aliquot_factors, containers, sample_types, sample_f
                                           And([get_req_const(aliquot_factors[container_id][aliquot], factor_id, level, factors)
                                                    for factor_id, level in case.items() if factor_id in r_aliquot_factors_ids]),
                                           ## Batch factors for container of aliquot
-                                          And([get_req_const(batch_factor[container_id], factor_id, level, factors)
-                                                   for factor_id, level in case.items() if factor_id in r_batch_factor_ids]),
+                                          And([get_req_const(batch_factor[str(batch['batch'])], factor_id, level, factors)
+                                                   for factor_id, level in case.items() if factor_id in r_batch_factor_ids and factor_id != "batch"]),
                                           ## Column factors for column of aliquot
                                           req_column_factors(r, r_column_factors(r, factors), [case], container_id, [get_aliquot_col(aliquot, container)], column_factor, factors, na_column_factors),
                                           ## Row factors for row of aliquot
@@ -988,10 +1001,13 @@ def get_sample_types(sample_factors, requirements):
     """
     experiment_design = pd.DataFrame()
 
+    rows = []
     for condition_set in requirements:       
         samples = get_samples_from_condition_set(sample_factors, condition_set)
         #l.info("Condition set resulted in %s samples", len(samples))
-        experiment_design = experiment_design.append(samples, ignore_index=True)
+        rows.append(samples)
+    #experiment_design = experiment_design.append(samples, ignore_index=True)
+    experiment_design = pd.concat(rows)
 
     return experiment_design.drop_duplicates()
 
@@ -1019,12 +1035,7 @@ def get_container_assignment(input, sample_types, strain_counts, aliquot_factor_
 
     #container_assignment = batch_types.reset_index(drop=True).to_dict('index')
 
-    if 'lab_id' in batch_factors:
-        ## Get the container used in each run, rather than assign arbitrarily
-        lab_id_factor = batch_factors['lab_id']
-        lab_id_df = lab_id_factor.to_DataFrame()
-        container_assignment = batch_types.reset_index(drop=True).merge(lab_id_df, on="lab_id").reset_index(drop=True)
-    elif protocol == "cell_free_riboswitches":
+    if protocol == "cell_free_riboswitches":
         # Container assigment is not a partition like other protocols.
         # Map each container that has a DNA that is in the batch to the batch
 
@@ -1498,7 +1509,7 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     input['float_map'] = map_floats(input)
 
 
-    input['aliquot_symmetry_samples'] = get_symmetry(non_samples, non_sample_factors, containers, input['container_assignment'], input["aliquot_factor_map"])
+    input['aliquot_symmetry_samples'] = None #get_symmetry(non_samples, non_sample_factors, containers, input['container_assignment'], input["aliquot_factor_map"])
 
 
     l.info("Generating Constraints ...")
@@ -1766,7 +1777,7 @@ def get_model_pd(model, variables, factors, float_map):
 
         def sub_factor_value(x, value):
             for col in x:
-                if col in factors:
+                if col in factors and col != "batch":
                     #if col == "temperature":
                     #l.debug("Set %s = %s", col, value)
                     if value.is_int_constant():
@@ -1775,15 +1786,15 @@ def get_model_pd(model, variables, factors, float_map):
                         x[col] = float(value.constant_value())
             return x
 
-        key = tuple([v for k, v in value if k in on])
+        key = tuple([v for k, v in info.items() if k in on])
 
+        if value.is_int_constant() or value.is_real_constant():
+            info = sub_factor_value(info, value)
 
         if key in d:
-            d[key].update(value)
+            d[key].update(info)
         else:
-            d[key] = info
-        if value.is_int_constant() or value.is_real_constant():
-            d[key] = sub_factor_value(d[key], value)
+            d[key] = info.copy()
 
         return d
 
@@ -1829,7 +1840,7 @@ def get_model_pd(model, variables, factors, float_map):
                     sample_dict = merge_into_dict(sample_dict, info, value, "sample")
                 elif info['type'] == 'batch':
                     #batch_df = merge_info_df(batch_df, info, value, "container")
-                    batch_dict = merge_into_dict(batch_dict, info, value, "container")
+                    batch_dict = merge_into_dict(batch_dict, info, value, "batch")
                 elif info['type'] == 'column':
                     #column_df = merge_info_df(column_df, info, value, "column")
                     column_dict = merge_into_dict(column_dict, info, value, "column")
@@ -1841,20 +1852,20 @@ def get_model_pd(model, variables, factors, float_map):
                     na_column_dict = merge_into_dict(na_column_dict, info, value, "column")
                 elif info['type'] == 'row':
                     #row_df = merge_info_df(row_df, info, value, "row")
-                    row_dict = merge_info_dict(row_dict, info, value, "row")
+                    row_dict = merge_into_dict(row_dict, info, value, "row")
                 elif info['type'] == 'experiment':
                     l.debug("info: %s", info)
                     #experiment_df = experiment_df(experiment_df, info, value, None)
                     experiment_dict = experiment_df(experiment_dict, info, value, None)
 
-    experiment_df = pd.DataFrame.from_records(experiment_dict)
-    batch_df = pd.DataFrame.from_records(batch_dict)
-    column_df = pd.DataFrame.from_records(column_dict)
-    na_column_df = pd.DataFrame.from_records(na_column_dict)
-    row_df = pd.DataFrame.from_records(row_dict)
-    aliquot_df = pd.DataFrame.from_records(aliquot_dict)
-    sample_df = pd.DataFrame.from_records(sample_dict)
-    na_sample_df = pd.DataFrame.from_records(na_sample_dict)
+    experiment_df = pd.DataFrame.from_records(experiment_dict).T.reset_index(drop=True)
+    batch_df = pd.DataFrame.from_records(batch_dict).T.reset_index(drop=True)
+    column_df = pd.DataFrame.from_records(column_dict).T.reset_index(drop=True)
+    na_column_df = pd.DataFrame.from_records(na_column_dict).T.reset_index(drop=True)
+    row_df = pd.DataFrame.from_records(row_dict).T.reset_index(drop=True)
+    aliquot_df = pd.DataFrame.from_records(aliquot_dict).T.reset_index(drop=True)
+    sample_df = pd.DataFrame.from_records(sample_dict).T.reset_index(drop=True)
+    na_sample_df = pd.DataFrame.from_records(na_sample_dict).T.reset_index(drop=True)
 
     l.debug("aliquot_df %s", aliquot_df)
     l.debug("sample_df %s", sample_df)
@@ -1884,7 +1895,12 @@ def get_model_pd(model, variables, factors, float_map):
     if len(row_df) > 0:
         df = df.merge(row_df.drop(columns=['type']), on=["container", "row"])
 
-    df = df.merge(batch_df.drop(columns=['type']), on=["container"])
+    if len(batch_df) > 0:
+        df['key'] = 0
+        batch_df['key'] = 0
+        df = df.merge(batch_df.drop(columns=['type']), on=['key']).drop(columns=['key'])
+
+
     if len(experiment_df) > 0:
         df['key'] = 0
         experiment_df['key'] = 0

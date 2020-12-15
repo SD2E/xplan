@@ -90,21 +90,6 @@ def create_job_definition(r: Reactor, msg, job_spec):
         log_info(r, "User email for job notifications: {}".format(user_email))
         job_def["notifications"] = [
             {
-                "event": "PENDING",
-                "persistent": True,
-                "url": user_email
-            },
-            {
-                "event": "SUBMITTING",
-                "persistent": True,
-                "url": user_email
-            },
-            {
-                "event": "QUEUED",
-                "persistent": True,
-                "url": user_email
-            },
-            {
                 "event": "RUNNING",
                 "persistent": True,
                 "url": user_email

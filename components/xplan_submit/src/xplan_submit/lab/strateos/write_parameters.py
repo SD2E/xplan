@@ -574,7 +574,7 @@ def get_time_series_invocation_parameters(batch_samples,
                                                                 num_blank_wells=num_blank_wells)
 
     if protocol == 'growth_curve':
-        timepoint_str = extract_timepoints(batch_samples)
+        timepoint_str = extract_timepoints(batch_samples, invocation_params)
         make_entry(invocation_params, 'read_info.growth_time.sample_points', timepoint_str)
         make_entry(invocation_params, 'src_info.src_samples', samples)
     elif protocol == 'timeseries':
@@ -684,7 +684,7 @@ def extract_timepoints(batch_samples, invocation_params):
     timepoints = list(batch_samples.timepoint.unique())
 
     # Remove recovery loop times and subtract total recovery time from remaining times
-    if 'recovery_info' in invocation_params:
+    if 'recovery_info' in invocation_params and type(invocation_params['recovery_info']) == list:
         time = 0
         for recovery in invocation_params['recovery_info']:
             l.debug(f"recovery_info: {recovery}" )
@@ -718,10 +718,12 @@ def factor_to_param(factor_name, factor, batch_samples, protocol, logger=l):
     mapped_values = {
         "M9 Glucose CAA (a.k.a. M9 Glucose Stock)": "M9 Minimal Media",
         "Modified M9 Media": "modified_m9_media",
-        "Modified M9 Media + Kan 5_ug_per_ml": "modified_m9_media_with_kan_5ug_per_ml"
+        "Modified M9 Media + Kan 5_ug_per_ml": "modified_m9_media_with_kan_5ug_per_ml",
+        "modified_m9_media_with_50mg_per_l_trp" : "M9 Minimal Media w 50mg per L TRP"
     }
     time_series_mapped_values = {
-        "M9 Glucose CAA (a.k.a. M9 Glucose Stock)": "M9 Minimal Media"
+        "M9 Glucose CAA (a.k.a. M9 Glucose Stock)": "M9 Minimal Media",
+        "modified_m9_media_with_50mg_per_l_trp" : "M9 Minimal Media w 50mg per L TRP"
     }
     if value in mapped_values and protocol != "timeseries":
         value = mapped_values[value]
