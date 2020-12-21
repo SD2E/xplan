@@ -639,7 +639,11 @@ def get_rxn_info_list(batch_samples):
         inducer_container = inducers_defs[inducer_name]["containerId"]
         inducer_well = inducers_defs[inducer_name]["wellIndex"]
         inducer_units = inducers_defs[inducer_name]["units"]
-        rxn_inducer_groups = inducer_group.groupby(['container', 'aliquot', 'rxn_conc', 'neg_control', 'rnase_inh', 'Use MgGlu2'])
+        inducer_groupby_group = []
+        for elt in ['container', 'aliquot', 'rxn_conc', 'neg_control', 'rnase_inh', 'Use MgGlu2']:
+            if elt in inducer_group.columns:
+                inducer_groupby_group.append(elt)
+        rxn_inducer_groups = inducer_group.groupby(inducer_groupby_group)
         for g, grp in rxn_inducer_groups:
             rxn_conc = next(iter(grp.rxn_conc.unique()))
             container_id = next(iter(grp.container.unique()))

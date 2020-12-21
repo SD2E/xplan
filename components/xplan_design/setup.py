@@ -58,7 +58,8 @@ setup(name='xplan_design',
       install_requires=["fsspec",
                         "pandas",
                         "pysbol",
-                        "pysmt"
+                        "pysmt",
+                        "transcriptic==8.1.2"
                         ],
       tests_require=["pytest"],
       zip_safe=False,

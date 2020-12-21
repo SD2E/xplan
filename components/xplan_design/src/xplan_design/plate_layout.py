@@ -211,6 +211,7 @@ def generate_variables1(inputs):
               }
               for batch in container_assignment_dict
       }
+    """
     variables['batch_containers'] = {
         batch : {
             container : Symbol(f"assign({container}, batch_{str(batch)})")
@@ -219,14 +220,15 @@ def generate_variables1(inputs):
         for batch, batch_levels in container_assignment_dict.items()
     }
     l.debug("batch_factors %s", variables['batch_factor'])
-      
-    for batch in variables['batch_containers']:
+    """
+    for batch in variables['batch_factor']:
+        """
         for container  in variables['batch_containers'][batch]:
             var = str(variables['batch_containers'][batch][container])
             if var not in variables['reverse_index']:
                 variables['reverse_index'][var] = {}
             variables['reverse_index'][var].update({"type" : "batch", "container" : container, "batch" : batch})
-
+        """
         for batch_factor  in variables['batch_factor'][batch]:
             if factors[batch_factor]['dtype'] == "str":
                 for level in variables['batch_factor'][batch][batch_factor]:
@@ -280,14 +282,14 @@ def generate_variables1(inputs):
                         variables['reverse_index'][var] = {}
                     #container = [ c for c in containers if column in containers[c]['columns']][0]
                     container = [ c for c in containers if c in column][0] ## assumes container_id is in column name
-                    variables['reverse_index'][var].update({"type" : "column", "column" : column, "container" : container, column_factor : level})
+                    variables['reverse_index'][var].update({"type" : "column", "column" : column, "column_id" : get_column_id(column.split("_")[0]), "container" : container, column_factor : level})
             else:
                 var = str(variables['column_factor'][column][column_factor])
                 if var not in variables['reverse_index']:
                     variables['reverse_index'][var] = {}
                 #container = [ c for c in containers if column in containers[c]['columns']][0]
                 container = [ c for c in containers if c in column][0] ## assumes container_id is in column name
-                variables['reverse_index'][var].update({"type" : "column", "column" : column, "container" : container, column_factor : None})
+                variables['reverse_index'][var].update({"type" : "column", "column" : column, "column_id" : get_column_id(column.split("_")[0]), "container" : container, column_factor : None})
                 #l.debug("Reverse %s %s", var, variables['reverse_index'][var])
 
     variables['row_factor'] = \
@@ -806,7 +808,7 @@ def req_aliquot_factors(r, r_aliquot_factors, containers, sample_types, sample_f
             if container_id in batch_containers:
                 aliquot_clauses = []
                 for aliquot in container['aliquots']:
-                    case_sample = expand_requirement(r_sample_factors(r, factors))[0]
+                    #case_sample = expand_requirement(r_sample_factors(r, factors))[0]
                     if aliquot_can_satisfy_requirement(aliquot, container_id, container,
                                                        [{"factor" : factor, "values" : [level]} for factor, level in case.items()],
                                                        aliquot_symmetry_samples,
@@ -1026,7 +1028,11 @@ def get_container_assignment(input, sample_types, strain_counts, aliquot_factor_
     batch_factors = { x : y for x, y in input['factors'].items() if y['ftype'] == 'batch' }
     ## Hack to dropna, really need to determine which groups are consistent and use that as a lower bound on
     ## the container set.  Using dropna assumes that rows with nan will subsume another row.
-    batch_types = sample_types[list(batch_factors.keys())].drop_duplicates().dropna() #get_sample_types(batch_factors, input['requirements']).drop_duplicates().dropna()
+    if 'batch' in batch_factors:
+        batch_types = sample_types[list(batch_factors.keys())].drop_duplicates().dropna()
+    else:
+        batch_types = sample_types[list(batch_factors.keys())].drop_duplicates().dropna().reset_index(drop=True)
+        batch_types['batch'] = batch_types.index
     l.debug("batch_types: %s", batch_types)
 
     assert(len(batch_types) <= len(containers))
@@ -1067,6 +1073,8 @@ def get_container_assignment(input, sample_types, strain_counts, aliquot_factor_
                 container_size = len(container['aliquots'])
                 if container_can_service_batch(container, batch_samples, aliquot_factor_map):
                     container_assignment[container_id] = json.loads(batch_type.to_json())
+                    if 'batch' not in container_assignment[container_id]:
+                        container_assignment[container_id]['batch'] = batch_type_id
                     this_batch_size -= container_size
                     if this_batch_size <= 0:
                         break
@@ -1573,6 +1581,9 @@ def get_aliquot_factor_map(c2ds, factors):
                              for level in factors[factor]['domain']
                              if level not in factors[factor]['attributes']}
             factor_map.update(factor_unmap)
+            ## for container levels not found in factor, add them as a self map
+            unmapped_levels = { level : level for level in container_levels if level not in factor_map}
+            factor_map.update(unmapped_levels)
             aliquot_factor_map[factor] = factor_map
 
 

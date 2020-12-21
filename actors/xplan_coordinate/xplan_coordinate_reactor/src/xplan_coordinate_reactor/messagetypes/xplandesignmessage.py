@@ -175,13 +175,13 @@ class XPlanDesignMessage(AbacoMessage):
             archive_out_dir = os.path.join(archive_path, out_basename)
             upload_out_dir = os.path.join(out_path)
 
-            archive_uri = make_agave_uri(archive_system, archive_out_dir)
+            archive_uri = make_agave_uri(archive_system, archive_path)
             log_info(r, "archive_uri = {}".format(archive_uri))
 
             upload_uri = make_agave_uri(upload_system, upload_out_dir)
             log_info(r, "upload_uri = {}".format(upload_uri))
 
-            local_out = os.path.abspath(out_basename)
+            local_out = os.path.abspath(os.path.join(out_basename, challenge_problem))
 
             # Download the archived challenge directory
             log_info(r, "Download:\n  to: {}\n  from: {}".format(local_out, archive_uri))
