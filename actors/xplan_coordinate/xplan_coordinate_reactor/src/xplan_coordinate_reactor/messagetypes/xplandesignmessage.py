@@ -175,13 +175,14 @@ class XPlanDesignMessage(AbacoMessage):
             archive_out_dir = os.path.join(archive_path, out_basename)
             upload_out_dir = os.path.join(out_path)
 
-            archive_uri = make_agave_uri(archive_system, archive_path)
+            archive_uri = make_agave_uri(archive_system, archive_out_dir)
             log_info(r, "archive_uri = {}".format(archive_uri))
 
             upload_uri = make_agave_uri(upload_system, upload_out_dir)
             log_info(r, "upload_uri = {}".format(upload_uri))
 
-            local_out = os.path.abspath(os.path.join(out_basename, challenge_problem))
+            local_out = os.path.abspath(out_basename)
+            local_out_challenge = os.path.join(local_out, challenge_problem, 'experiments')
 
             # Download the archived challenge directory
             log_info(r, "Download:\n  to: {}\n  from: {}".format(local_out, archive_uri))
@@ -200,12 +201,17 @@ class XPlanDesignMessage(AbacoMessage):
                 log_info(r, "No state diff found. Continuing as though job made no state changes...")
 
             lab_secrets = self.lab_config_from_base64(msg.get('lab_configuration'))
-            # Do final processing
-            self.handle_design_output(r,
-                                    experiment_id,
-                                    challenge_problem,
-                                    lab_secrets,
-                                    local_out)
+
+            try:
+                # Do final processing
+                self.handle_design_output(r,
+                                        experiment_id,
+                                        challenge_problem,
+                                        lab_secrets,
+                                        local_out)
+            except Exception as e:
+                log_info(r, f"Caught Exception from handling design output: {e}")
+                raise e
 
             # Upload the finished experiment files
             log_info(r, "Upload:\n  from: {}\n  to: {}".format(local_out, upload_uri))
@@ -293,7 +299,7 @@ class XPlanDesignMessage(AbacoMessage):
         return cfg_resp.json()
 
     def handle_design_output(self, r: Reactor, experiment_id, challenge_problem, lab_cfg, out_dir: str):
-
+        log_info(r, f"handle_design_output(): out_dir = {out_dir}")
         params = design_to_parameters(experiment_id,
                              challenge_problem,
                              lab_cfg,

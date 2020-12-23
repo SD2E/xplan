@@ -43,7 +43,11 @@ def  submit_experiment(experiment_id, challenge_problem,
     design_df = pd.read_json(experiment_design['design'])
 
     if "batch" in design_df.columns:
-        planned_batches = design_df.batch.unique()
+        if "lab_id" in design_df.columns:
+            ## only submit batches w/o a lab_id
+            planned_batches = design_df.loc[design_df.lab_id.isna()].batch.unique()
+        else:
+            planned_batches = design_df.batch.unique()
     else:
         planned_batches = [b['id'] for b in batches]
 
