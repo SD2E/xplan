@@ -10,40 +10,15 @@ import os
 def pip_install(url):
     subprocess.check_output([sys.executable, '-m', 'pip', 'install', url])
 
-def override_run(cls):
-    """
-    Decorator to override the run method for a setup command to use the custom python
-    linux version if the platform is linux
-    """
-    orig_run = cls.run
-
-    def new_run(self):
-        orig_run(self)
-        #pip_install('git+https://gitlab.sd2e.org/dbryce/xplan_models')
-        pip_install("git+https://github.com/SD2E/synbiohub_adapter.git")
-        pip_install("pysbol")
-        pip_install("fsspec")
-        pip_install("pandas")
-        ## Setup solvers in pysmt
-        pip_install("pysmt")
-        print("Installing z3...")
-        os.system("pysmt-install --z3 --confirm-agreement")
-        os.system("export PYSMT_CYTHON=0")
-        #PYSMT_CYTHON = 0
-
-    cls.run = new_run
-    return cls
-
-@override_run
-class CustomInstallCommand(install):
-    pass
-
-@override_run
-class CustomDevelopCommand(develop):
-    pass
-
-cmdclass = {'develop': CustomDevelopCommand,
-            'install': CustomInstallCommand}
+def _post_install():
+    #pip_install('git+https://gitlab.sd2e.org/dbryce/xplan_models')
+    pip_install("git+https://github.com/SD2E/synbiohub_adapter.git")
+    ## Setup solvers in pysmt
+    pip_install("pysmt")
+    print("Installing z3...")
+    os.system("pysmt-install --z3 --confirm-agreement")
+    os.system("export PYSMT_CYTHON=0")
+    #PYSMT_CYTHON = 0
 
 
 setup(name='xplan_design',
@@ -59,10 +34,10 @@ setup(name='xplan_design',
                         "pandas",
                         "pysbol",
                         "pysmt",
-                        "transcriptic==8.1.2"
+                        "transcriptic"
                         ],
       tests_require=["pytest"],
-      zip_safe=False,
-      cmdclass=cmdclass
+      zip_safe=False
       )
 
+_post_install()

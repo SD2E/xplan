@@ -10,15 +10,14 @@ import numpy as np
 
 import logging
 
-from transcriptic.jupyter import objects
-from xplan_design.experiment_design import ExperimentDesign
+from transcriptic.jupyter.container import Container
 from xplan_models.condition import ConditionSpace
 from xplan_utils.helpers import NpEncoder, put_tx_parameters, do_convert_ftypes, get_experiment_design, \
     get_experiment_request
 from xplan_utils.lab.strateos.utils import get_tx_containers, get_transcriptic_api, TranscripticApiError, get_container_id
 
 l = logging.getLogger(__file__)
-l.setLevel(logging.INFO)
+l.setLevel(logging.DEBUG)
 
 def design_to_parameters(experiment_id,
                          challenge_problem,
@@ -165,7 +164,7 @@ def get_matching_aliquots(strains, container_id, merge_key="Name", blank_wells=[
     have blanks, then let them be either blanks or media controls.
     """
 
-    c = objects.Container(container_id)
+    c = Container(container_id)
 
     aliquots = c.aliquots
 
@@ -263,8 +262,7 @@ def add_reagent_concentrations(invocation_params, batch_samples, reagents, param
         for reagent in reagents:
             col_conc_df = batch_samples[[reagent, 'column_id']].drop_duplicates().rename(
                 columns={"column_id": "col_num", reagent: "conc"}).dropna().replace("NA", 0.0)
-
-            values = col_conc_df.conc.astype(float).unique()
+            values = list(set(col_conc_df['conc'].astype(float)))
             if len(values) == 1 and 0.0 in values:
                 continue ## Ignore zero inducers
 
@@ -579,7 +577,7 @@ def get_time_series_invocation_parameters(batch_samples,
         make_entry(invocation_params, 'src_info.src_samples', samples)
     elif protocol == 'timeseries':
         ## Add reagent column concentrations
-        reagents = [factor_id for factor_id, factor in condition_space.factors.items() if factor['ftype'] == 'column']
+        reagents = [factor_id for factor_id, factor in condition_space.factors.items() if factor['ftype'] == 'column' and factor['name'] != "column_id"]
         invocation_params = add_reagent_concentrations(invocation_params, batch_samples, reagents, exp_params)
         make_entry(invocation_params, 'exp_info.src_samples', samples)
 
@@ -778,7 +776,7 @@ def get_harmonized_invocation_parameters(batch_samples, batch, parameters, condi
 
     source_container = random.choice(containers)
     exp_params['source_plate'] = source_container['id']
-    container = objects.Container(source_container['id'])
+    container = Container(source_container['id'])
     aliquots = container.aliquots
     dest_wells = [x + str(y) for x in ["A", "B", "C", "D", "E", "F", "G", "H"] for y in range(1, 12)]
 

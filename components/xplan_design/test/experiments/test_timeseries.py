@@ -1,5 +1,4 @@
 import json
-from xplan_utils.helpers import get_experiment_request
 from xplan_design.design import generate_design
 import os
 
@@ -99,4 +98,8 @@ def test_dual_crisper_ts():
 
 def test_blue_43_48():
     experiment_id = "experiment.transcriptic.2020-12-07-NovelChassis-Endogenous-Promoter-Blue-43-48"
+    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
+
+def test_yellow_1_10():
+    experiment_id = "experiment.transcriptic.2020-12-07-NovelChassis-Endogenous-Promoter-Yellow-1-10"
     gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")

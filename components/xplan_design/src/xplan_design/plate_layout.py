@@ -362,7 +362,13 @@ def generate_constraints1(inputs, batch):
     aliquot_factor_map = inputs["aliquot_factor_map"]
 
     container_assignment = inputs['container_assignment']
-    batch_containers = list(container_assignment.query("&".join([f"{var}=='{val}'" for var, val in batch.items()])).container.unique())
+    query = "&".join([f"{var}=='{val}'" for var, val in batch.items() if type(val) == str]) + "&" + "&".join([f"{var}=={val}" for var, val in batch.items() if type(val) != str])
+    batch_containers = list(container_assignment.query(query).container.unique())
+
+#    l.debug(f"container_assignment: {container_assignment}")
+#    l.debug(f"batch: {batch}")
+#    l.debug(f"query: {query}")
+#    l.debug(f"batch_containers: {batch_containers}")
 
     def cs_factor_level(levels):
           return  ExactlyOne(levels)
@@ -831,10 +837,14 @@ def req_aliquot_factors(r, r_aliquot_factors, containers, sample_types, sample_f
                         aliquot_clauses.append(aliquot_clause)
                 if len(aliquot_clauses) > 0:
                     container_clauses.append(ExactlyOne(aliquot_clauses))
+            else:
+                l.debug(f"Container id: {container_id} is not in batch_containers: {batch_containers}")
         if len(container_clauses) == 0:
+            #pass
             l.warning("Requirement cannot be satisfied with containers in batch: %s %s", case, batch)
             #case_clauses.append(Or())
         else:
+            #l.debug(f"Satisfying Requirement: {case}")
             case_clauses.append(ExactlyOne(container_clauses))
 
         #assert(len(possible_aliquots) > 0)
@@ -942,7 +952,7 @@ def aliquot_can_satisfy_requirement(aliquot, container_id, container, requiremen
     requirement_factors = [f['factor'] for f in requirement]
     requirement_levels = {f['factor']: [ str(x) for x in f['values']] for f in requirement}
 
-    # l.debug("Can sat? %s %s %s", container_id, aliquot, requirement)
+    #l.debug("Can sat? %s %s %s", container_id, aliquot, requirement)
     aliquot_properties = container['aliquots'][aliquot]
 
     if aliquot_symmetry_samples is not None:
@@ -955,27 +965,28 @@ def aliquot_can_satisfy_requirement(aliquot, container_id, container, requiremen
             return False
 
 
-    req_cols = [l  for f in requirement for l in f['values'] if f['factor'] == 'column_id']
+    req_cols = [int(l)  for f in requirement for l in f['values'] if f['factor'] == 'column_id']
     if len(req_cols) > 0:
         aliquot_col_id = get_column_id(get_aliquot_col(aliquot, container))
         if aliquot_col_id not in req_cols:
             return False
-    req_rows = [l  for f in requirement for l in f['values'] if f['factor'] == 'row_id']
+        #l.debug("Column_id matches")
+    req_rows = [int(l)  for f in requirement for l in f['values'] if f['factor'] == 'row_id']
     if len(req_rows) > 0:
         aliquot_row_id = get_row_id(get_aliquot_row(aliquot, container))
         if aliquot_row_id not in req_rows:
             return False
 
     for factor, level in aliquot_properties.items():
-        # l.debug("checking: %s %s", factor, level)
+        #l.debug("checking: %s %s", factor, level)
         if factor in requirement_factors:
-            # l.debug("Is %s in %s", level, requirement_levels[factor])
+            #l.debug("Is %s in %s", level, requirement_levels[factor])
 
             if aliquot_factor_map[factor][level] not in requirement_levels[factor]:
-                # l.debug("no")
+                #l.debug("no")
                 return False
 
-    # l.debug("yes")
+    #l.debug("yes")
     return True
     # l.debug("no")
     # return False ## Couldn't find a container with the aliquot satisfying requirement
@@ -1350,11 +1361,16 @@ def require_na_samples(requirements, sample_types, common_samples):
     desc['key'] = 0
     na_samples = na_samples.merge(desc, on='key').drop(columns=['key'])
 
+    #import pdb;
+    #pdb.set_trace()
+
     sample_types = sample_types.set_index(non_na_cols).combine_first(
         na_samples.set_index(non_na_cols)).reset_index().replace('dummy', np.nan)
 
     na_sample_types = sample_types.loc[sample_types['is_NA'] == True]
     na_records = json.loads(na_sample_types.to_json(orient='records'))
+
+    #l.debug(f"na_samples: {na_sample_types}")
 
     def record_to_requirement(record):
         factors = []
@@ -1368,7 +1384,7 @@ def require_na_samples(requirements, sample_types, common_samples):
         return requirement
 
     na_requirements = [record_to_requirement(x) for x in na_records]
-    # import pdb; pdb.set_trace()
+
     # import pdb; pdb.set_trace()
     requirements += na_requirements
 
@@ -1458,7 +1474,7 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     sample_types = get_sample_types(input['factors'], input['requirements'])
     l.debug("sample_types: %s", sample_types)
     containers = input['containers']
-    # l.debug(containers)
+    l.debug(containers)
     strain_counts = { k : get_strain_count(v) for k, v in containers.items()}
     l.debug("container strain count: %s", strain_counts)
     container_strains = set([x for _, s in strain_counts.items() for x in s])
@@ -1586,7 +1602,7 @@ def get_aliquot_factor_map(c2ds, factors):
             factor_map.update(unmapped_levels)
             aliquot_factor_map[factor] = factor_map
 
-
+    #l.debug(f"aliquot_factor_map: {aliquot_factor_map}")
     return aliquot_factor_map
 
 def preprocess_containers(input, sample_types, strain_counts, sample_factors, container_assignment):
@@ -1609,6 +1625,7 @@ def preprocess_containers(input, sample_types, strain_counts, sample_factors, co
     num_media_wells_allocated = sum([c["MediaControl"] for c_id, c in strain_counts.items() if "MediaControl" in c])
     if num_media_wells_allocated > 0 and "MediaControl" not in input['factors']['strain']['domain']:
         input['factors']['strain']['domain'].append("MediaControl")
+    input['factors']['strain']['domain'].append("None")
 
     num_media_wells_needed = num_media_control_required - num_media_wells_allocated
 

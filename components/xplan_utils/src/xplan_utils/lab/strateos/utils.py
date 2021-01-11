@@ -2,7 +2,8 @@ import json
 
 import requests
 import transcriptic
-from transcriptic.jupyter import objects
+
+from transcriptic.jupyter.container import Container
 
 import logging
 
@@ -40,7 +41,7 @@ def get_tx_containers(transcriptic_api, container_search_strings):
         ## Check if search strings are actually container ids
         for s in container_search_strings:
             try:
-                result.append(objects.Container(s))
+                result.append(Container(s))
             except Exception as e:
                 l.exception("Could not instantiate container: %s", s)
 
