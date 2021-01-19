@@ -289,7 +289,10 @@ def generate_variables1(inputs):
                     variables['reverse_index'][var] = {}
                 #container = [ c for c in containers if column in containers[c]['columns']][0]
                 container = [ c for c in containers if c in column][0] ## assumes container_id is in column name
-                variables['reverse_index'][var].update({"type" : "column", "column" : column, "column_id" : get_column_id(column.split("_")[0]), "container" : container, column_factor : None})
+                if column_factor == "column_id":
+                    variables['reverse_index'][var].update({"type": "column", "column": column, "column_id": get_column_id(column.split("_")[0]), "container": container})
+                else:
+                    variables['reverse_index'][var].update({"type" : "column", "column" : column, "column_id" : get_column_id(column.split("_")[0]), "container" : container, column_factor : None})
                 #l.debug("Reverse %s %s", var, variables['reverse_index'][var])
 
     variables['row_factor'] = \
@@ -530,7 +533,6 @@ def generate_constraints1(inputs, batch):
             row = get_aliquot_row(aliquot, containers[container_id])
             return row_factor[get_row_name(row, container_id)]
 
-    #import pdb; pdb.set_trace()          
     ## Replicate symmetry
     if aliquot_symmetry_samples is not None and False:
         replicate_symmetry_constraint = \
@@ -752,7 +754,6 @@ def req_sample_factors(r, r_sample_factors, samples, aliquot, container, sample_
     assert (len(cases) <= len(samples))
 
     if 'is_NA' in r and r['is_NA']:
-        # import pdb; pdb.set_trace()
         clause = And([
             And([  ## Exactly one sample satisfies the case
                 And([  ## Every factor-level in case is co-satisfied
@@ -772,7 +773,6 @@ def req_sample_factors(r, r_sample_factors, samples, aliquot, container, sample_
                 for sample in samples if sample_consistent_with_case(sample, case, sample_types, container)])
             for case in cases])
     #        if not get_model(clause):
-    #            import pdb; pdb.set_trace()
     return clause
 
 
@@ -836,6 +836,7 @@ def req_aliquot_factors(r, r_aliquot_factors, containers, sample_types, sample_f
                                          )
                         aliquot_clauses.append(aliquot_clause)
                 if len(aliquot_clauses) > 0:
+                    #req_measurment = next(iter([next(iter(f['values']))  for f in r['factors']  if f['factor'] == "measurement_type"]))
                     container_clauses.append(ExactlyOne(aliquot_clauses))
             else:
                 l.debug(f"Container id: {container_id} is not in batch_containers: {batch_containers}")
@@ -878,8 +879,6 @@ def req_aliquot_factors(r, r_aliquot_factors, containers, sample_types, sample_f
                     for container_id, container in containers.items() if case_consistent_with_container(case, container_id, container_assignment)])
             for case in cases])
     """
-#        if not get_model(clause):
-#            import pdb; pdb.set_trace()
     return clause
 
 
@@ -1291,11 +1290,7 @@ def get_aliquot_symmetry(samples, factors, containers, container_assignment, ali
 #        try:
         compatible_replicate_groups = _get_compatible_replicate_groups(aliquot.to_frame().transpose(), samples, non_replicate_factors, container_assignment, aliquot_factor_map)
 #        except Exception as e:
-#            import pdb, traceback, sys
-#            extype, value, tb = sys.exc_info()
-#            traceback.print_exc()
-#            pdb.post_mortem(tb)
-            
+
         aliquot_symmetry_break = pd.DataFrame()
         for group_key, replicate_group in compatible_replicate_groups:
             ## Get replicate from group
@@ -1349,6 +1344,9 @@ def require_na_samples(requirements, sample_types, common_samples):
 
     sample_types = sample_types.fillna("dummy")
 
+    # Get the cases where no measurements were specified and add NA to them
+    dummy_samples = sample_types.query(" and ".join([f"{col} == 'dummy'" for col in common_samples.columns])).drop(columns=common_samples.columns)
+
     # Existing samples are not NA
     sample_types['is_NA'] = False
 
@@ -1357,14 +1355,31 @@ def require_na_samples(requirements, sample_types, common_samples):
     na_samples['is_NA'] = True
     na_samples['key'] = 0
 
-    desc = sample_types[non_sample_cols].drop_duplicates()
+
+
+    desc = dummy_samples
     desc['key'] = 0
     na_samples = na_samples.merge(desc, on='key').drop(columns=['key'])
 
-    #import pdb;
-    #pdb.set_trace()
+    def subsumes(y, x):
+        #Do y subsume x?  Is y more general than x? is y subseteq x
+        for col in y.keys():
+            if y[col] != "dummy" and y[col] != x[col]:
+                return False
+        return True
 
-    sample_types = sample_types.set_index(non_na_cols).combine_first(
+    def subsumed(x, df):
+        # A row is subsumed if there is another row that is less specific that covers it
+
+        # get all rows that subsume this row
+        subsumes_df = df.apply(lambda y: subsumes(y, x), axis=1)
+        return subsumes_df.sum() > 1
+
+    #na_samples['subsumed'] = na_samples.apply(lambda x: subsumed(x, na_samples), axis=1)
+    #na_samples = na_samples[na_samples.subsumed].drop(columns=['subsumed'])
+
+    # Assumes all None strain are NA
+    sample_types = sample_types.loc[sample_types.strain != "None"].set_index(non_na_cols).combine_first(
         na_samples.set_index(non_na_cols)).reset_index().replace('dummy', np.nan)
 
     na_sample_types = sample_types.loc[sample_types['is_NA'] == True]
@@ -1385,7 +1400,6 @@ def require_na_samples(requirements, sample_types, common_samples):
 
     na_requirements = [record_to_requirement(x) for x in na_records]
 
-    # import pdb; pdb.set_trace()
     requirements += na_requirements
 
     return requirements
@@ -1396,7 +1410,6 @@ def get_symmetry(samples, factors, containers, container_assignment, aliquot_fac
     """
     #l.debug("Getting Symmetry Groups from: %s", samples)
 
-    #import pdb; pdb.set_trace()
     aliquot_symmetry = get_aliquot_symmetry(samples, factors, containers, container_assignment, aliquot_factor_map)
     #column_symmetry = get_column_symmetry(samples, factors, containers, container_assignment, aliquot_symmetry)
     na_aliquot_symmetry = aliquot_symmetry[aliquot_symmetry.isnull().any(axis=1)]
@@ -1404,7 +1417,6 @@ def get_symmetry(samples, factors, containers, container_assignment, aliquot_fac
     symmetry = aliquot_symmetry
     symmetry = symmetry.append(na_aliquot_symmetry, ignore_index=True)
 
-    #import pdb; pdb.set_trace()
     return symmetry
 
 
@@ -1480,7 +1492,6 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     container_strains = set([x for _, s in strain_counts.items() for x in s])
     l.debug("container_strains %s", container_strains)
 
-
     input["aliquot_factor_map"] = get_aliquot_factor_map(containers, input['factors'])
 
     input['container_assignment'], batch_types = get_container_assignment(input, sample_types, strain_counts, input["aliquot_factor_map"])
@@ -1510,8 +1521,8 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
                         input['factors']['strain']['domain'].append(level)
 
 
-    input = preprocess_containers(input, sample_types, strain_counts, sample_factors, input['container_assignment'])
-    common_samples = sample_types[list(sample_factors.keys())].drop_duplicates()  # .reset_index()
+    input, sample_types = preprocess_containers(input, sample_types, strain_counts, sample_factors, input['container_assignment'])
+    common_samples = sample_types[list(sample_factors.keys())].drop_duplicates().replace("None", np.nan).dropna()  # .reset_index()
     num_samples = len(common_samples)
     l.info("num_samples: %s", num_samples)
 
@@ -1749,14 +1760,18 @@ def preprocess_containers(input, sample_types, strain_counts, sample_factors, co
     ## Fill requirements with empty samples to place in unused aliquots
     #num_empty_for_none = num_empty_wells - num_media_control_required - num_strain_unallocated
     #num_blank_required = len(sample_types.loc[sample_types.strain==""].drop(columns=list(sample_factors.keys())).drop_duplicates().dropna())
+    old_num_requirements = len(input['requirements'])
     input['factors'], input['requirements'] = fill_empty_aliquots(input['factors'],
                                                                   input['requirements'],
                                                                   batch_aliquots
                                                                   #num_empty_for_none,
                                                                   #num_blank_required
                                                                       )
+    new_requiements = input['requirements'][old_num_requirements:]
+    new_sample_types = get_sample_types(input['factors'], new_requiements)
+    sample_types = sample_types.append(new_sample_types, ignore_index=True)
 
-    return input
+    return input, sample_types
 
 def get_model_pd(model, variables, factors, float_map):
 
@@ -1805,7 +1820,7 @@ def get_model_pd(model, variables, factors, float_map):
 
         def sub_factor_value(x, value):
             for col in x:
-                if col in factors and col != "batch":
+                if col in factors and col != "batch" and col != "column_id" and col != "row_id":
                     #if col == "temperature":
                     #l.debug("Set %s = %s", col, value)
                     if value.is_int_constant():
@@ -1903,6 +1918,7 @@ def get_model_pd(model, variables, factors, float_map):
     l.debug("row_df %s", row_df)
     l.debug("batch_df %s", batch_df)
     l.debug("experiment_df %s", experiment_df)
+
 
     if len(na_sample_df) > 0:
         ## Override values chosen for samples by NA if needed
