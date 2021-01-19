@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+numpy = "*"
+pytest = "*"
+xplan-models = {path = "./xplan-dev-env/xplan_models"}
+xplan-utils = {editable = true, path = "./components/xplan_utils"}
+xplan-design = {editable = true, path = "./components/xplan_design"}
+tapis-cli = {path = "./tapis-cli"}
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
