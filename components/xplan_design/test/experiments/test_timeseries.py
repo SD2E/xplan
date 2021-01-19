@@ -103,3 +103,7 @@ def test_blue_43_48():
 def test_yellow_1_10():
     experiment_id = "experiment.transcriptic.2020-12-07-NovelChassis-Endogenous-Promoter-Yellow-1-10"
     gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
+
+def test_blue_1_21():
+    experiment_id = "experiment.transcriptic.2020-12-04-NovelChassis-Endogenous-Promoter-Blue-1-21"
+    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")

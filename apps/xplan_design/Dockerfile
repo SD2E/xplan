@@ -1,9 +1,9 @@
 FROM sd2e/python3:latest
 
-RUN pip3 install --upgrade pip
-RUN pip3 install jsonpatch==1.26
-RUN pip3 install pandas>=0.22
+#RUN pip3 install --upgrade pip
+RUN pip3 install pandas
 RUN pip install transcriptic --upgrade
+RUN pip3 install jsonpatch
 
 # RUN pip3 install --upgrade setuptools
 RUN pip3 install git+https://github.com/SD2E/synbiohub_adapter.git@v1.3
@@ -14,6 +14,8 @@ RUN pysmt-install --z3 --confirm-agreement
 ENV PYSMT_CYTHON=0
 # RUN cd /xplan_design && python3 setup.py install && cd /
 RUN rm -rf /xplan_design
+
+RUN pip3 install cython
 
 ADD ./xplan_models /xplan_models
 RUN pip3 install /xplan_models

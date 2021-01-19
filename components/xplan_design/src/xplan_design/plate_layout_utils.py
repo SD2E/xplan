@@ -1,9 +1,10 @@
 import pandas as pd
 import logging
+import numpy as np
 
-from synbiohub_adapter.query_synbiohub import *
-from synbiohub_adapter.SynBioHubUtil import *
-from sbol import *
+#from synbiohub_adapter.query_synbiohub import *
+#from synbiohub_adapter.SynBioHubUtil import *
+#from sbol import *
 
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
@@ -107,7 +108,7 @@ def get_samples_from_condition_set(factors, condition_set, parameters = None, us
             if factor not in samples.columns:
                 l.debug("adding %s", factor)
                 if len(samples) > 0:
-                    samples.loc[:, factor] = None      
+                    samples.loc[:, factor] = np.nan
     
     return samples
 

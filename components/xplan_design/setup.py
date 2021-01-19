@@ -2,8 +2,6 @@ import subprocess
 
 from setuptools import setup, find_packages
 import sys
-from setuptools.command.install import install
-from setuptools.command.develop import develop
 import os
 
 
@@ -12,9 +10,9 @@ def pip_install(url):
 
 def _post_install():
     #pip_install('git+https://gitlab.sd2e.org/dbryce/xplan_models')
-    pip_install("git+https://github.com/SD2E/synbiohub_adapter.git")
+    #pip_install("git+https://github.com/SD2E/synbiohub_adapter.git")
     ## Setup solvers in pysmt
-    pip_install("pysmt")
+    #pip_install("pysmt")
     print("Installing z3...")
     os.system("pysmt-install --z3 --confirm-agreement")
     os.system("export PYSMT_CYTHON=0")
@@ -30,9 +28,7 @@ setup(name='xplan_design',
       license='MIT',
       packages=find_packages('src'),
       package_dir={'':'src'},
-      install_requires=["fsspec",
-                        "pandas",
-                        "pysbol",
+      install_requires=["pandas",
                         "pysmt",
                         "transcriptic"
                         ],
