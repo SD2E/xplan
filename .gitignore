@@ -77,3 +77,6 @@ xplan-dev-env
 /sd2e-cloud-cli/etc/tenants.d/sgci/.gitkeep
 /sd2e-cloud-cli/etc/tenants.d/tacc.prod/.gitkeep
 /sd2e-cloud-cli/etc/tenants.d/vdjserver.org/.gitkeep
+/components/xplan_design/pyproject.toml
+/secrets/tacc_tx_secrets.json
+/components/xplan_utils/pyproject.toml
