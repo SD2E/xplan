@@ -264,11 +264,11 @@ def generate_container(num_aliquots, batch_id, strain_name="Name", dimensions=(8
         "rows" : row_dict(col_count, well_map.keys())
         }
 
-def get_strain_count(container):
+def get_strain_count(container, strain_map):
     strain_counts = { None : 0 }
     for aliquot, properties in container['aliquots'].items():
         if 'strain' in properties:
-            strain = properties['strain']
+            strain = strain_map[properties['strain']]
             if strain in strain_counts:
                 strain_counts[strain] += 1
             else:

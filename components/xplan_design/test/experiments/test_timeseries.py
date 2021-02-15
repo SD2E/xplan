@@ -107,3 +107,15 @@ def test_yellow_1_10():
 def test_blue_1_21():
     experiment_id = "experiment.transcriptic.2020-12-04-NovelChassis-Endogenous-Promoter-Blue-1-21"
     gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
+
+def test_be_activator():
+    experiment_id = "experiment.transcriptic.2021-01-23-YeastSTATES-Activator-Circuit-BE-Short-Duration-Time-Series-30C"
+    gen_design(experiment_id)
+
+def test_arl_promoter():
+    experiment_id = "experiment.transcriptic.2021-02-08-ARL-P-putida-Growth-Curves-30C"
+    gen_design(experiment_id, challenge_problem="ARL_PROMOTER_TEST")
+
+def test_nc_yellow_2():
+    experiment_id = "experiment.transcriptic.2021-02-12-NovelChassis-Endogenous-Promoter-Yellow-1-10-Run-02"
+    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")

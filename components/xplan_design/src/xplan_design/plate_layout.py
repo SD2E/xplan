@@ -339,7 +339,7 @@ def generate_constraints1(inputs, batch):
     """
     variables, values = generate_variables1(inputs)
 
-    constraints = []
+    constraints = {}
 
     #bounds = generate_bounds(inputs, variables, values)
     #constraints.append(bounds)
@@ -473,7 +473,7 @@ def generate_constraints1(inputs, batch):
           cs_batch_factors(batch_factor, containers, batch)
          )
     #l.debug("CS: %s", condition_space_constraint)
-    constraints.append(condition_space_constraint)
+    constraints["condition_space_constraint"] = condition_space_constraint
 
     
     
@@ -491,7 +491,7 @@ def generate_constraints1(inputs, batch):
 
     aliquot_properties_constraint = get_aliquot_properties_constraint(containers, batch_containers, factors, batch, column_factor, row_factor, aliquot_factors, aliquot_factor_map)
     #l.debug("aliquot_properties_constraint: %s", aliquot_properties_constraint)
-    constraints.append(aliquot_properties_constraint)
+    constraints["aliquot_properties_constraint"] = aliquot_properties_constraint
 
 
     l.info("Encoding %s requirements", len(requirements))
@@ -503,7 +503,7 @@ def generate_constraints1(inputs, batch):
                                                                      aliquot_factor_map)
 
     #l.debug("satisfy_every_requirement: %s", satisfy_every_requirement)
-    constraints.append(satisfy_every_requirement)
+    constraints["satisfy_every_requirement_constraint"] = satisfy_every_requirement
 
 
 
@@ -557,7 +557,7 @@ def generate_constraints1(inputs, batch):
                                for col_factor_id, col_factor_var in column_factor[get_column_name(column_id, container_id)].items()]))
                for column_id, column_aliquots in container['columns'].items()])
               for container_id, container in containers.items() if container_consistent_with_batch(container_id, container_assignment, batch)])
-        constraints.append(no_reagents_for_empty_columns)
+        constraints['no_reagents_for_empty_columns_constraint'] = no_reagents_for_empty_columns
 
         ## Row reagents are set to zero if every aliquot in the row is empty
         no_reagents_for_empty_rows = \
@@ -567,14 +567,14 @@ def generate_constraints1(inputs, batch):
                                for row_factor_id, row_factor_var in row_factor[get_row_name(row_id, container_id)].items()]))
                for row_id, row_aliquots in container['rows'].items()])
               for container_id, container in containers.items() if container_consistent_with_batch(container_id, container_assignment, batch)])
-        constraints.append(no_reagents_for_empty_rows)
+        constraints['no_reagents_for_empty_rows_constraint'] = no_reagents_for_empty_rows
       
 
 
-    f = And(constraints)
+    #f = And(constraints)
     #l.debug("Constraints: %s", f)
 
-    return variables, f
+    return variables, constraints
 
 def get_aliquot_properties_constraint(containers, batch_containers, factors, batch, column_factor, row_factor, aliquot_factors, aliquot_factor_map):
     aliquot_properties_constraints = []
@@ -1067,7 +1067,7 @@ def get_container_assignment(input, sample_types, strain_counts, aliquot_factor_
     else:
         ## Set keys to str
         aliquot_factors = { x : y for x, y in input['factors'].items() if  y['ftype'] != 'sample'}
-        batch_aliquots = sample_types[list(aliquot_factors.keys())].drop_duplicates().dropna() #get_sample_types(aliquot_factors, input['requirements'])
+        batch_aliquots = sample_types[list(aliquot_factors.keys())].drop_duplicates() #get_sample_types(aliquot_factors, input['requirements'])
         batch_size = batch_aliquots.groupby(list(batch_factors.keys())).size().to_frame().reset_index()
         container_assignment = {}
         for batch_type_id, batch_type in batch_types.iterrows():
@@ -1487,12 +1487,14 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     l.debug("sample_types: %s", sample_types)
     containers = input['containers']
     l.debug(containers)
-    strain_counts = { k : get_strain_count(v) for k, v in containers.items()}
+
+    input["aliquot_factor_map"] = get_aliquot_factor_map(containers, input['factors'])
+
+    strain_counts = { k : get_strain_count(v, input['aliquot_factor_map']['strain']) for k, v in containers.items()}
     l.debug("container strain count: %s", strain_counts)
     container_strains = set([x for _, s in strain_counts.items() for x in s])
     l.debug("container_strains %s", container_strains)
 
-    input["aliquot_factor_map"] = get_aliquot_factor_map(containers, input['factors'])
 
     input['container_assignment'], batch_types = get_container_assignment(input, sample_types, strain_counts, input["aliquot_factor_map"])
     assigned_containers = input['container_assignment'].container.unique()
@@ -1507,10 +1509,14 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
 
     ## Get the requirements for each sample in the experiment
     requirement_strains = set(list(sample_types.strain.unique()))
-    l.debug("requirement strains: %s", sample_types.strain.unique())
+    l.debug("requirement strains: %s", requirement_strains)
     l.debug("strains unique to containers: %s", container_strains.difference(requirement_strains))
-    l.debug("strains unique to requirements: %s", requirement_strains.difference(container_strains))
+    requested_but_unsupplied_strains = requirement_strains.difference(container_strains)
+    l.debug("strains unique to requirements: %s", requested_but_unsupplied_strains)
 
+    ## Check whether containers have all the strains listed in the request
+    if len(requested_but_unsupplied_strains) > 0:
+        l.exception(f"Requested strains that are not present in containers: {requested_but_unsupplied_strains}")
 
     ## Strains in requirements need to be in the condition space
     for requirement in input['requirements']:
@@ -1556,18 +1562,32 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
         if hand_coded_constraints:
             for hc_c in hand_coded_constraints:
                 l.info("hand coded constraint: %s", hc_c)
-                constraints = And(eval(hc_c), constraints)
+                constraints[hc_c] = eval(hc_c)
 
         l.info("Solving ...")
-        model = get_model(constraints)
+        model = get_model(And([v for k, v in constraints.items()]))
 
         if model is None:
 
-            conj = conjunctive_partition(constraints)
+            conj = conjunctive_partition(And(constraints.values()))
             ucore = get_unsat_core(conj)
             l.info("UNSAT-Core size '%d'" % len(ucore))
             for f in ucore:
                 l.debug(f.serialize())
+
+            for n1, c1 in constraints.items():
+                for n2, c2 in constraints.items():
+                    if n1 != n2:
+                        m = get_model(And(c1, c2))
+                        if m is None:
+                            l.exception(f"Inconsistent Pair of constraints: {n1} {n2}")
+                            conj = conjunctive_partition(And(c1, c2))
+                            ucore = get_unsat_core(conj)
+                            l.exception("UNSAT-Core size '%d'" % len(ucore))
+                            for f in ucore:
+                                l.exception(f.serialize())
+
+
         else:
             solutions.append((model, variables))
     
@@ -1922,7 +1942,7 @@ def get_model_pd(model, variables, factors, float_map):
 
     if len(na_sample_df) > 0:
         ## Override values chosen for samples by NA if needed
-        sample_df = na_sample_df.set_index("sample").combine_first(sample_df.set_index("sample")).reset_index()
+        sample_df = na_sample_df.replace(np.nan, "NA").set_index("sample").combine_first(sample_df.set_index("sample")).reset_index()
         ## drop samples that are NA
         sample_df = sample_df.replace("NA", np.nan).dropna().reset_index()
         l.debug("sample_df after dropping NA: %s", sample_df)
