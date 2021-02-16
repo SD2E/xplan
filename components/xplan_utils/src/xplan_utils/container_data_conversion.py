@@ -268,7 +268,10 @@ def get_strain_count(container, strain_map):
     strain_counts = { None : 0 }
     for aliquot, properties in container['aliquots'].items():
         if 'strain' in properties:
-            strain = strain_map[properties['strain']]
+            if properties['strain'] in strain_map:
+                strain = strain_map[properties['strain']]
+            else:
+                strain = properties['strain']
             if strain in strain_counts:
                 strain_counts[strain] += 1
             else:

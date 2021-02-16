@@ -685,6 +685,7 @@ def get_rxn_info_list(batch_samples):
 def extract_timepoints(batch_samples, invocation_params):
     timepoints = list(batch_samples.timepoint.unique())
 
+    ''''''
     # Remove recovery loop times and subtract total recovery time from remaining times
     if 'recovery_info' in invocation_params and type(invocation_params['recovery_info']) == list:
         time = 0
@@ -696,7 +697,7 @@ def extract_timepoints(batch_samples, invocation_params):
                 raise Exception(f"Duration of recovery loop missing: {recovery}")
             time += recovery_time
             timepoints.remove(time)
-        timepoints = [t - time for t in timepoints]
+        timepoints = [t - time for t in timepoints if t-time > 0]
 
 
     if 0.0 in timepoints:

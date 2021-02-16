@@ -365,7 +365,7 @@ def generate_constraints1(inputs, batch):
     aliquot_factor_map = inputs["aliquot_factor_map"]
 
     container_assignment = inputs['container_assignment']
-    query = "&".join([f"{var}=='{val}'" for var, val in batch.items() if type(val) == str]) + "&" + "&".join([f"{var}=={val}" for var, val in batch.items() if type(val) != str])
+    query = " & ".join([f"`{var}`== '{val}'" for var, val in batch.items() if type(val) == str] + [f"`{var}`=={val}" for var, val in batch.items() if type(val) != str])
     batch_containers = list(container_assignment.query(query).container.unique())
 
 #    l.debug(f"container_assignment: {container_assignment}")
@@ -1019,7 +1019,8 @@ def get_sample_types(sample_factors, requirements):
         #l.info("Condition set resulted in %s samples", len(samples))
         rows.append(samples)
     #experiment_design = experiment_design.append(samples, ignore_index=True)
-    experiment_design = pd.concat(rows)
+    if len(rows) > 0:
+        experiment_design = pd.concat(rows)
 
     return experiment_design.drop_duplicates()
 
@@ -1058,7 +1059,10 @@ def get_container_assignment(input, sample_types, strain_counts, aliquot_factor_
         batch_strains = sample_types[["strain", "batch"]].drop_duplicates()
 
         def get_strain_container(x):
-            container = next(iter([ c for c in strain_counts if x['strain'] in strain_counts[c] and strain_counts[c][x['strain']] > 0]))
+            strain_containers = [ c for c in strain_counts if x['strain'] in strain_counts[c] and strain_counts[c][x['strain']] > 0]
+            if len(strain_containers) == 0:
+                l.exception(f"No container in {strain_counts} with {x['strain']}")
+            container = next(iter(strain_containers))
             return container
 
         batch_strains['container'] = batch_strains.apply(get_strain_container, axis=1)
@@ -1345,7 +1349,7 @@ def require_na_samples(requirements, sample_types, common_samples):
     sample_types = sample_types.fillna("dummy")
 
     # Get the cases where no measurements were specified and add NA to them
-    dummy_samples = sample_types.query(" and ".join([f"{col} == 'dummy'" for col in common_samples.columns])).drop(columns=common_samples.columns)
+    dummy_samples = sample_types.query(" and ".join([f"`{col}` == \'dummy\'" for col in common_samples.columns])).drop(columns=common_samples.columns)
 
     # Existing samples are not NA
     sample_types['is_NA'] = False

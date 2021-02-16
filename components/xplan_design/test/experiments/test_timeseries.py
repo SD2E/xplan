@@ -119,3 +119,7 @@ def test_arl_promoter():
 def test_nc_yellow_2():
     experiment_id = "experiment.transcriptic.2021-02-12-NovelChassis-Endogenous-Promoter-Yellow-1-10-Run-02"
     gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
+
+def test_rs_feb():
+    experiment_id = "experiment.transcriptic.2021-02-11-Cell-Free-Transcriptional-Riboswitch-Characterization-Sequences-1-32-C-03-Feb-2021"
+    gen_design(experiment_id, challenge_problem="RIBOSWITCHES")
