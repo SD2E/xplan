@@ -25,7 +25,7 @@ echo "================================================"
 set -x # activate debugging 
 
 cp -r $DIR/../components/xplan_design ${DESIGN_DIR}
-cp -r $DIR/../xplan-dev-env/xplan_models ${DESIGN_DIR}
+cp -r $DIR/../components/xplan_models ${DESIGN_DIR}
 cp -r $DIR/../components/xplan_utils ${DESIGN_DIR}
 docker build -f ${DESIGN_DIR}/Dockerfile -t ${APP_CONTAINER_FULL_NAME} ${DESIGN_DIR}
 rm -rf ${DESIGN_DIR}/xplan_design

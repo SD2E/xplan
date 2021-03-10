@@ -123,3 +123,7 @@ def test_nc_yellow_2():
 def test_rs_feb():
     experiment_id = "experiment.transcriptic.2021-02-11-Cell-Free-Transcriptional-Riboswitch-Characterization-Sequences-1-32-C-03-Feb-2021"
     gen_design(experiment_id, challenge_problem="RIBOSWITCHES")
+
+def test_nc_eslami_3():
+    experiment_id = "experiment.transcriptic.2021-03-03-NovelChassis-Endogenous-Promoter-Blue-22-42-Run-03"
+    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")

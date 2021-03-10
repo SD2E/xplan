@@ -11,6 +11,8 @@ setup(name='xplan_submit',
       package_dir={'':'src'},
       install_requires=["arrow",
                         "attrdict",
-                        "tenacity"],
+                        "tenacity",
+                        "autoprotocol"
+                        ],
       tests_require=["pytest"],
       zip_safe=False)

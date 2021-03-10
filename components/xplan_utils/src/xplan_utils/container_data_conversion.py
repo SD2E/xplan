@@ -181,7 +181,16 @@ def container_to_dict(container, strain_name="Name", drop_nan_strain=True, conve
     """
     col_count = container.attributes['container_type']['col_count']
     well_map = container.well_map
-    well_count = container.container_type.well_count
+    if container.container_type != None:
+        well_count = container.container_type.well_count
+    elif "container_type_id" in container.attributes:
+        id = container.attributes["container_type_id"]
+        if id == "96-pcr":
+            well_count = 96
+        else:
+            raise Exception(f"Cannot determine number of aliquots in container {container}")
+    else:
+        raise Exception(f"Cannot determine number of aliquots in container {container}")
 
     for i in range(0, well_count):
         if i not in well_map:

@@ -59,7 +59,7 @@ echo "=========== end config.yml =========="
 echo "====================================="
 set -x # activate debugging 
 
-cp -r $DIR/../xplan-dev-env/xplan_models ./xplan_models
+cp -r $DIR/../components/xplan_models ./xplan_models
 cp -r $DIR/../components/xplan_utils ./xplan_utils
 cp -r $DIR/../components/xplan_design ./xplan_design
 cp -r $DIR/../components/xplan_submit ./xplan_submit
