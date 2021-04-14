@@ -347,7 +347,9 @@ def generate_constraints1(inputs, batch):
     samples = inputs['samples']
     factors = inputs['factors']
     containers = inputs['containers']
+    containers_df = inputs['containers_df']
     requirements = inputs['requirements']
+    requirments_df = inputs["requirements_df"]
     sample_types = inputs['sample_types']
     aliquot_symmetry_samples = inputs['aliquot_symmetry_samples']
     aliquots = [a for c in containers for a in containers[c]['aliquots']]
@@ -365,8 +367,10 @@ def generate_constraints1(inputs, batch):
     aliquot_factor_map = inputs["aliquot_factor_map"]
 
     container_assignment = inputs['container_assignment']
-    query = " & ".join([f"`{var}`== '{val}'" for var, val in batch.items() if type(val) == str] + [f"`{var}`=={val}" for var, val in batch.items() if type(val) != str])
-    batch_containers = list(container_assignment.query(query).container.unique())
+    #query = " & ".join([f"`{var}`== '{val}'" for var, val in batch.items() if type(val) == str] + [f"`{var}`=={val}" for var, val in batch.items() if type(val) != str])
+    #batch_containers = list(container_assignment.query(query).container.unique())
+    batch_containers = container_assignment.merge(batch.to_frame().transpose(), on=['batch'] + [factor_id for factor_id, factor in factors.items() if factor['ftype'] == "batch"])
+    batch_containers_df = containers_df.merge(batch_containers)
 
 #    l.debug(f"container_assignment: {container_assignment}")
 #    l.debug(f"batch: {batch}")
@@ -495,12 +499,20 @@ def generate_constraints1(inputs, batch):
 
 
     l.info("Encoding %s requirements", len(requirements))
-    satisfy_every_requirement = satisfy_every_requirement_constraint(requirements, containers, factors, sample_types,
+    satisfy_every_requirement = satisfy_every_requirement_constraint_df(requirements, batch_containers_df, factors, variables, inputs,
+                                                                        sample_types,
                                                                      sample_factors, na_sample_factors,
-                                                                     batch_containers, aliquot_factors,
-                                                                     column_factor, row_factor, samples, batch_factor,
+                                                                     batch_containers, aliquot_factors, column_factor,
+                                                                     row_factor, samples, batch_factor,
                                                                      na_column_factors, aliquot_symmetry_samples, batch,
-                                                                     aliquot_factor_map)
+                                                                     aliquot_factor_map, requirments_df)
+#    satisfy_every_requirement = satisfy_every_requirement_constraint_df(requirements, containers, factors, sample_types,
+#                                                                     sample_factors, na_sample_factors,
+#                                                                     batch_containers, aliquot_factors, column_factor,
+#                                                                     row_factor, samples, batch_factor,
+#                                                                     na_column_factors, aliquot_symmetry_samples, batch,
+#                                                                     aliquot_factor_map, requirments_df)
+
 
     #l.debug("satisfy_every_requirement: %s", satisfy_every_requirement)
     constraints["satisfy_every_requirement_constraint"] = satisfy_every_requirement
@@ -656,11 +668,97 @@ def batch_can_satisfy_requirement(r, batch, factors):
             pass
     return True
 
+def get_req_constraint(requirement,
+                       factors,
+                       batch_containers_df,
+                       aliquot_symmetry_samples,
+                       variables,
+                       inputs):
+
+
+    r_aliquot_factors_ids = r_factors_of_type(requirement, factors, "aliquot")
+    r_batch_factor_ids = r_factors_of_type(requirement, factors, "batch")
+    r_column_factor_ids = r_factors_of_type(requirement, factors, "column")
+    r_row_factor_ids = r_factors_of_type(requirement, factors, "column")
+    r_sample_factor_ids = r_factors_of_type(requirement, factors, "sample")
+
+    column_factors = [f for name, f in factors.items() if name in r_column_factor_ids]
+    row_factors = [f for name, f in factors.items() if name in r_row_factor_ids]
+    sample_factors = [f for name, f in factors.items() if name in r_sample_factor_ids]
+
+    cases = requirement.to_frame().transpose().merge(batch_containers_df)
+    if aliquot_symmetry_samples is not None:
+        cases = cases.merge(aliquot_symmetry_samples)
+
+    ## Is it an unsatisfiable requirement?
+    case_clauses = []
+    for _, case in cases.iterrows():
+        # possible_aliquots = []
+        container_id = case['container']
+        aliquot = case['aliquot']
+        batch = case['batch']
+        column = case['column']
+        row = case['row']
+        # possible_aliquots.append(aliquot)
+        aliquot_clause = And(
+            ## Satisfy aliquot factors
+            And([get_req_const(variables['aliquot_factors'][container_id][aliquot],
+                               factor_id, level, factors)
+                 for factor_id, level in case.items() if factor_id in r_aliquot_factors_ids]),
+            ## Batch factors for container of aliquot
+            And([get_req_const(variables['batch_factor'][str(batch)], factor_id, level, factors)
+                 for factor_id, level in case.items() if
+                 factor_id in r_batch_factor_ids and factor_id != "batch"]),
+            ## Column factors for column of aliquot
+            req_column_factors_df(case, column_factors, container_id,
+                               [column], variables, factors),
+            ## Row factors for row of aliquot
+            req_row_factors_df(case, row_factors, container_id,
+                            [row], variables, factors),
+            ## Sample factors for aliquot
+            req_sample_factors_df(case, sample_factors, inputs, variables, aliquot,
+                               container_id, factors)
+        )
+        case_clauses.append(aliquot_clause)
+
+    if len(case_clauses) == 0:
+        clause = None
+    else:
+        clause = Or(case_clauses)
+
+
+    return clause
+
+
+def satisfy_every_requirement_constraint_df(requirements, batch_containers_df, factors, variables, inputs,
+                                            sample_types, sample_factors,
+                                            na_sample_factors, batch_containers, aliquot_factors, column_factor,
+                                            row_factor, samples, batch_factor, na_column_factors,
+                                            aliquot_symmetry_samples,
+                                            batch, aliquot_factor_map, requirements_df):
+    batch_requirements = requirements_df.merge(batch.to_frame().transpose(),
+                                               on=[factor_id for factor_id, factor in factors.items() if
+                                                   factor['ftype'] == "batch"])
+    req_constraints = batch_requirements.apply(lambda x: get_req_constraint(x,
+                                                                            factors,
+                                                                            batch_containers_df,
+                                                                            aliquot_symmetry_samples,
+                                                                            variables,
+                                                                            inputs), axis=1)
+    req_constraints = list(req_constraints.values)
+
+    exp_factors = [fname for fname, f in factors.items() if f['ftype'] == "experiment"]
+    if len(exp_factors) > 0:
+        exp_requirements = batch_requirements[exp_factors].drop_duplicates()
+        req_exp = req_experiment_factors_df(exp_requirements)
+        req_constraints.append(req_exp)
+
+    return And(req_constraints)
 
 def satisfy_every_requirement_constraint(requirements, containers, factors, sample_types, sample_factors,
                                          na_sample_factors, batch_containers, aliquot_factors, column_factor,
-                                         row_factor, samples, batch_factor, na_column_factors, aliquot_symmetry_samples, batch,
-                                        aliquot_factor_map):
+                                         row_factor, samples, batch_factor, na_column_factors, aliquot_symmetry_samples,
+                                         batch, aliquot_factor_map, requirements_df):
     req_constraints = []
     for r in requirements:
         if batch_can_satisfy_requirement(r, batch, factors):
@@ -677,9 +775,18 @@ def satisfy_every_requirement_constraint(requirements, containers, factors, samp
 def r_exp_factors(r, factors):
     return [f for f in r['factors'] if factors[f['factor']]['ftype'] == "experiment"]
 
+def r_factors_of_type(r, factors, ftype):
+    if type(r) == pd.Series:
+        return [f for f, _ in r.items() if f in factors and factors[f]['ftype'] == ftype]
+    else:
+        return [f for f in r['factors'] if factors[f['factor']]['ftype'] == ftype]
+
 
 def r_batch_factors(r, factors):
-    return [f for f in r['factors'] if factors[f['factor']]['ftype'] == "batch"]
+    if type(r) == Series:
+        return [f for f in r if factors[f['factor']]['ftype'] == "batch"]
+    else:
+        return [f for f in r['factors'] if factors[f['factor']]['ftype'] == "batch"]
 
 
 def r_column_factors(r, factors):
@@ -691,7 +798,10 @@ def r_row_factors(r, factors):
 
 
 def r_aliquot_factors(r, factors):
-    return [f for f in r['factors'] if factors[f['factor']]['ftype'] == "aliquot"]
+    if type(r) == Series:
+        return [f for f in r if factors[f['factor']]['ftype'] == "aliquot"]
+    else:
+        return [f for f in r['factors'] if factors[f['factor']]['ftype'] == "aliquot"]
 
 
 def r_sample_factors(r, factors):
@@ -730,6 +840,10 @@ def get_req_const(factors_of_type, factor_id, level, factors):
         pred = Equals(factors_of_type[factor_id], Real(float(level)))
     return pred
 
+def req_experiment_factors_df(requirements):
+    return And([And([get_req_const(exp_factor, factor['factor'], level, factors)
+                     for level in factor['values']])
+                for factor in r_exp_factors])
 
 def req_experiment_factors(r_exp_factors, factors):
     return And([And([get_req_const(exp_factor, factor['factor'], level, factors)
@@ -745,6 +859,40 @@ def sample_consistent_with_case(sample, case, sample_types, container):
                 return False
     return True
 
+def req_sample_factors_df(case, r_sample_factors, inputs, variables, aliquot, container,
+                        factors):
+    #cases = expand_requirement(r_sample_factors)
+    # l.debug("factors: %s, aliquots: %s", r_sample_factors, samples)
+    # l.debug("|cases| = %s, |samples| = %s", len(cases), len(samples))
+    #assert (len(cases) <= len(samples))
+    samples = inputs['samples'][container][aliquot]
+    sample_factors = variables['sample_factors']
+    na_sample_factors = variables['na_sample_factors']
+    sample_types = inputs['sample_types']
+    case_samples = case.to_frame().transpose().merge(inputs['sample_types_df'])
+    samples = case_samples['sample']
+    sample_factor_ids = r_factors_of_type(case, factors, "sample")
+    if 'is_NA' in case and case['is_NA']:
+        clause = \
+            And([  ## Exactly one sample satisfies the case
+                And([  ## Every factor-level in case is co-satisfied
+                    na_sample_factors[container][aliquot][sample][factor_id]
+                    for factor_id, level in case.items() if factor_id in sample_factor_ids])
+                for sample in samples])
+
+
+    else:
+
+        clause = \
+            ExactlyOne([  ## Exactly one sample satisfies the case
+                And([  ## Every factor-level in case is co-satisfied
+                    And(get_req_const(sample_factors[container][aliquot][sample], factor_id, level, factors),
+                        Not(na_sample_factors[container][aliquot][sample][factor_id]))
+                    for factor_id, level in case.items() if factor_id in sample_factor_ids])
+                for sample in samples])
+
+    #        if not get_model(clause):
+    return clause
 
 def req_sample_factors(r, r_sample_factors, samples, aliquot, container, sample_types, sample_factors,
                        na_sample_factors, factors):
@@ -881,7 +1029,42 @@ def req_aliquot_factors(r, r_aliquot_factors, containers, sample_types, sample_f
     """
     return clause
 
+def req_column_factors_df(case, r_column_factors, container_id, columns, variables, factors):
+    """
+    At least one of the columns must satisfy the factors in each case.
+    """
+    if len(r_column_factors) > 0:
+        #cases = expand_requirement(r_column_factors)
+        #assert(len(cases) <= len(columns))
+        r_column_factors_ids = [x['factor'] for x in r_column_factors]
+        clause = Or([
+                          And([And(get_req_const(variables['column_factor'][get_column_name(column, container_id)], factor_id, level, factors),
+                                   Not(na_column_factors[get_column_name(column, container_id)][factor_id]))
+                               for factor_id, level in case.items() if factor_id in r_column_factors_ids and level != "NA" ]
+                               +
+                               [variables['na_column_factors'][get_column_name(column, container_id)][factor_id]
+                                for factor_id, level in case.items() if factor_id in r_column_factors_ids and level == "NA"]
+                                  )
+                    for column in columns])
 
+        return clause
+    else:
+        return And()
+
+def req_row_factors_df(case, r_row_factors, container_id, columns, variables, factors):
+    if len(r_row_factors) > 0:
+        # cases = expand_requirement(r_row_factors)
+        # assert(len(cases) <= len(rows))
+        r_row_factors_ids = [x['factor'] for x in r_row_factors]
+        clause = Or([And(And([get_req_const(variables['row_factor'][get_row_name(row, container_id)], factor_id, level, factors)
+                                   for factor_id, level in case.items() if factor_id in r_row_factors_ids])
+
+                              )
+                          for row in rows])
+
+        return clause
+    else:
+        return And()
 
 def req_column_factors(r, r_column_factors, cases, container_id, columns, column_factor, factors, na_column_factors):
     """
@@ -1245,11 +1428,7 @@ def _get_compatible_replicate_groups(aliquot, samples, non_replicate_factors, co
 #    compatible_replicate_groups = compatible_replicate_groups.loc[compatible_replicate_groups[0] == True].drop(columns=[0])
     return compatible_replicate_groups
 
-def get_aliquot_symmetry(samples, factors, containers, container_assignment, aliquot_factor_map):
-    """
-    For each aliquot, pick the possible replicates of each strain that can be placed in that aliquot.
-    """
-
+def get_containers_df(containers, factors, aliquot_factor_map):
     container_aliquots = pd.DataFrame()
     for container_id, container in containers.items():
         container_df = pd.read_json(json.dumps(container['aliquots']), orient='index')
@@ -1257,13 +1436,23 @@ def get_aliquot_symmetry(samples, factors, containers, container_assignment, ali
             container_df = pd.DataFrame(index=container['aliquots'])
         container_df.loc[:,'container'] = container_id
         container_df = container_df.reset_index()
-        container_df = container_df.rename(columns={"index" : "aliquot"})       
+        container_df = container_df.rename(columns={"index" : "aliquot"})
         container_df['column'] = container_df.apply(lambda x: get_aliquot_col(x['aliquot'], containers[x['container']]), axis=1)
+        container_df['row'] = container_df.apply(lambda x: get_aliquot_row(x['aliquot'], containers[x['container']]), axis=1)
         container_aliquots = container_aliquots.append(container_df, ignore_index=True)
 
     for factor in factors:
         if factor in container_aliquots.columns:
             container_aliquots[factor] = container_aliquots[factor].apply(lambda x: aliquot_factor_map[factor][x])
+
+    return container_aliquots
+
+def get_aliquot_symmetry(samples, factors, container_aliquots, container_assignment, aliquot_factor_map):
+    """
+    For each aliquot, pick the possible replicates of each strain that can be placed in that aliquot.
+    """
+
+
 
     non_replicate_factors = [x for x in samples.columns if x != "replicate" ]
     column_factors = [x for x, y in factors.items() if y['ftype'] == "column" ]
@@ -1496,6 +1685,7 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     l.debug(containers)
 
     input["aliquot_factor_map"] = get_aliquot_factor_map(containers, input['factors'])
+    input['containers_df'] = get_containers_df(input['containers'], input['factors'], input['aliquot_factor_map'])
 
     strain_counts = { k : get_strain_count(v, input['aliquot_factor_map']['strain']) for k, v in containers.items()}
     l.debug("container strain count: %s", strain_counts)
@@ -1547,6 +1737,7 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
         for c in containers }
 
     input['sample_types'] = { i : x for i, x in enumerate(common_samples.to_dict('records'))}
+    input['sample_types_df'] = pd.DataFrame.from_dict(input['sample_types'], orient='index').reset_index().rename(columns={"index":"sample"})
     l.debug("sample_types: %s", input['sample_types'])
 
     non_samples = sample_types[list(non_sample_factors.keys())]
@@ -1557,13 +1748,14 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     input['float_map'] = map_floats(input)
 
 
-    input['aliquot_symmetry_samples'] = get_symmupetry(non_samples, non_sample_factors, containers, input['container_assignment'], input["aliquot_factor_map"])
-
+    input['aliquot_symmetry_samples'] = get_symmetry(non_samples, non_sample_factors, input['containers_df'], input['container_assignment'], input["aliquot_factor_map"])
+    input['requirements_df'] = sample_types
 
     l.info("Generating Constraints ...")
 
     solutions = []
-    for batch in json.loads(batch_types.to_json(orient="records")):
+    #for batch in json.loads(batch_types.to_json(orient="records")):
+    for _, batch in batch_types.iterrows():
         variables, constraints = generate_constraints1(input, batch)
 
         if hand_coded_constraints:
