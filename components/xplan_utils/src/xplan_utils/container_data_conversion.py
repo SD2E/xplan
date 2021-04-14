@@ -78,7 +78,7 @@ def aliquot_dict(well_map, aliquots_df, well_idx, strain_name="Name"):
     # aliquot_info = aliquots_df.loc[well_idx]
 
     if not well_idx in aliquots_df.index:
-        return {}
+        return { "strain" : "None"}
     
     ## Handle case where other factors are embedded in the strain_name
     if ":" in strain_name and ";" in strain_name:

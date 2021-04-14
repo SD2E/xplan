@@ -1109,24 +1109,19 @@ def get_container_assignment(input, sample_types, strain_counts, aliquot_factor_
 
 
 
-def fill_empty_aliquots(factors, requirements, batch_aliquots):
-    none_aliquots = batch_aliquots.loc[batch_aliquots.strain == "None"]
+def fill_empty_aliquots(factors, requirements, sample_types):
+    none_samples = sample_types.loc[sample_types.strain == "None"]
+    none_replicates = none_samples.replicate.max()
     batch_factors = [ x for x, y in factors.items() if y['ftype'] == 'batch' ]
     new_requirements = requirements
-    if len(none_aliquots) > 0:
-        batch_nones = none_aliquots.groupby(batch_factors)
-        max_none = 0
-        for b, batch_none in batch_nones:
-            l.debug("Getting constraint for: %s", batch_none)
-            for i, row in batch_none.iterrows():
-                constraint = { "factors" : [ {"factor" : x, "values" : [y] } for x, y in row.items() if type(y) != float or not np.isnan(y) ]}
-                new_requirements += [constraint]
-                l.debug("new_requirement: %s", constraint)
-            max_none = max(max_none, len(batch_none))
-    #else:
-    #    new_requirements = requirements
-        
-    if len(none_aliquots) > 0:
+    if len(none_samples) > 0:
+        for i, row in none_samples.iterrows():
+            constraint = { "factors" : [ {"factor" : x, "values" : [y] }
+                                         for x, y in row.items()
+                                         if x != "is_NA" ], "is_NA": row['is_NA']}
+            new_requirements += [constraint]
+            l.debug("new_requirement: %s", constraint)
+
         new_factors = factors.copy()
         if "None" not in new_factors['strain']['domain']:
             new_factors['strain']['domain'].append("None")
@@ -1134,7 +1129,7 @@ def fill_empty_aliquots(factors, requirements, batch_aliquots):
             factor_attributes = list(set([key for _, v in factors['strain']['attributes'].items()
                                           for key in v.keys()]))
             new_factors['strain']['attributes']["None"] = { k : "None"  for k in factor_attributes}
-        new_factors['replicate']['domain'] = [1, max(factors['replicate']['domain'][1], max_none)]
+        new_factors['replicate']['domain'] = [1.0, max(factors['replicate']['domain'][1], float(none_replicates))]
 
         l.debug("new_factors: %s", new_factors['strain']['domain'])
         l.debug("replicate_domain: %s", new_factors['replicate']['domain'])
@@ -1351,8 +1346,9 @@ def require_na_samples(requirements, sample_types, common_samples):
     # Get the cases where no measurements were specified and add NA to them
     dummy_samples = sample_types.query(" and ".join([f"`{col}` == \'dummy\'" for col in common_samples.columns])).drop(columns=common_samples.columns)
 
-    # Existing samples are not NA
-    sample_types['is_NA'] = False
+
+
+    desc = sample_types.drop(columns=common_samples.columns).drop_duplicates()
 
     # Addtional samples are NA
     na_samples = common_samples
@@ -1361,7 +1357,7 @@ def require_na_samples(requirements, sample_types, common_samples):
 
 
 
-    desc = dummy_samples
+    ## desc = dummy_samples
     desc['key'] = 0
     na_samples = na_samples.merge(desc, on='key').drop(columns=['key'])
 
@@ -1381,6 +1377,9 @@ def require_na_samples(requirements, sample_types, common_samples):
 
     #na_samples['subsumed'] = na_samples.apply(lambda x: subsumed(x, na_samples), axis=1)
     #na_samples = na_samples[na_samples.subsumed].drop(columns=['subsumed'])
+
+    # Existing samples are not NA
+    sample_types['is_NA'] = False
 
     # Assumes all None strain are NA
     sample_types = sample_types.loc[sample_types.strain != "None"].set_index(non_na_cols).combine_first(
@@ -1488,6 +1487,10 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     pd.set_option("display.max_rows", 200)
 
     sample_types = get_sample_types(input['factors'], input['requirements'])
+
+    ## By default, every requirement specifies a sample that must be satisfied
+    sample_types['is_NA'] = False
+
     l.debug("sample_types: %s", sample_types)
     containers = input['containers']
     l.debug(containers)
@@ -1549,12 +1552,12 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     non_samples = sample_types[list(non_sample_factors.keys())]
     non_samples = non_samples.drop_duplicates().reset_index(drop=True)
 
-    input['requirements'] = require_na_samples(input['requirements'], sample_types, common_samples)
+    #input['requirements'] = require_na_samples(input['requirements'], sample_types, common_samples)
 
     input['float_map'] = map_floats(input)
 
 
-    input['aliquot_symmetry_samples'] = None #get_symmetry(non_samples, non_sample_factors, containers, input['container_assignment'], input["aliquot_factor_map"])
+    input['aliquot_symmetry_samples'] = get_symmupetry(non_samples, non_sample_factors, containers, input['container_assignment'], input["aliquot_factor_map"])
 
 
     l.info("Generating Constraints ...")
@@ -1734,7 +1737,7 @@ def preprocess_containers(input, sample_types, strain_counts, sample_factors, co
 #    l.info("# container aliquots = %s, num_aliquots needed = %s, empty = %s", num_container_aliquots, len(aliquot_samples), num_empty_for_none)
 #    assert(num_container_aliquots >= len(aliquot_samples))
 
-    def compute_num_empty_per_batch(batch, batch_containers):
+    def compute_num_empty_per_batch(batch, batch_containers, sample_factors, batch_factors):
         """
         Num empty per batch is:
         (#aliquots in containers for batch) -  (num_required non empty)
@@ -1744,39 +1747,49 @@ def preprocess_containers(input, sample_types, strain_counts, sample_factors, co
         container_indices = batch_containers.merge(batch, how='inner').container.astype(str).unique()
         num_aliquots_for_batch = sum([ len(containers[c]['aliquots']) for c in container_indices])
 
+        batch_measurements = batch[sample_factors].drop_duplicates()
+        batch_aliquots = batch.drop(columns=sample_factors).drop_duplicates()
+        batch_desc = batch[batch_factors].drop_duplicates()
+
         ## Get num non empty required
-        num_non_empty = len(batch)
+        num_non_empty = len(batch_aliquots)
         num_empty = num_aliquots_for_batch - num_non_empty
 
         if num_empty > 0:
             empties = pd.DataFrame({"replicate": [x + 1 for x in range(0, num_empty)]})
             empties.loc[:, "strain"] = "None"
-            for factor in batch_factors:
-                empties.loc[:, factor] = batch[factor].unique()[0]
-            batch = batch.append(empties, ignore_index=True)
+            empties["is_NA"] = True
+            empties['key'] = 1
+            batch_measurements['key'] = 1
+            batch_desc['key'] = 1
+            batch_measurements = batch_measurements.merge(batch_desc, on='key')
+            na_samples = empties.merge(batch_measurements, on='key').drop(columns=['key'])
+            #for factor in batch_factors:
+            #    empties.loc[:, factor] = batch[factor].unique()[0]
+            batch = batch.append(na_samples, ignore_index=True)
 
         l.debug("Done Computing empties for batch: %s", batch)
         return batch
 
 
-    batch_aliquots = sample_types.drop(columns=sample_factors).drop_duplicates().reset_index()
-    batch_containers = container_assignment
+    #batch_aliquots = sample_types.drop(columns=sample_factors).drop_duplicates().reset_index()
+    #batch_containers = container_assignment
     #batch_containers['container'] = batch_containers.index
     #l.debug("batch_containers: %s", batch_containers)
     ## If there are multiple containers per batch, then need to
     #batch_aliquots = batch_aliquots.merge(batch_containers, on=batch_factors, how='inner')
     #l.debug("batch_aliquots: %s", batch_aliquots)
-    batch_aliquots = batch_aliquots.groupby(batch_factors)
+    #batch_aliquots = batch_aliquots.groupby(batch_factors)
     #l.debug("Batch aliquots:")
     #for g, ba in batch_aliquots:
     #   l.debug(g)
     #   l.debug(ba)
     
     
-    batch_aliquots = batch_aliquots.apply(lambda x : compute_num_empty_per_batch(x, batch_containers))
-    batch_aliquots = batch_aliquots.reset_index(drop=True)
+    sample_types = sample_types.groupby(batch_factors).apply(lambda x : compute_num_empty_per_batch(x, container_assignment, sample_factors, batch_factors))
+    sample_types = sample_types.reset_index(drop=True)
     
-    l.debug("Batch aliquots: %s", batch_aliquots)
+    #l.debug("Batch aliquots: %s", batch_aliquots)
 #    for g, ba in batch_aliquots:
 #       l.debug(g)
 #       l.debug(ba)
@@ -1784,16 +1797,16 @@ def preprocess_containers(input, sample_types, strain_counts, sample_factors, co
     ## Fill requirements with empty samples to place in unused aliquots
     #num_empty_for_none = num_empty_wells - num_media_control_required - num_strain_unallocated
     #num_blank_required = len(sample_types.loc[sample_types.strain==""].drop(columns=list(sample_factors.keys())).drop_duplicates().dropna())
-    old_num_requirements = len(input['requirements'])
+    #old_num_requirements = len(input['requirements'])
     input['factors'], input['requirements'] = fill_empty_aliquots(input['factors'],
                                                                   input['requirements'],
-                                                                  batch_aliquots
+                                                                  sample_types
                                                                   #num_empty_for_none,
                                                                   #num_blank_required
                                                                       )
-    new_requiements = input['requirements'][old_num_requirements:]
-    new_sample_types = get_sample_types(input['factors'], new_requiements)
-    sample_types = sample_types.append(new_sample_types, ignore_index=True)
+    #new_requiements = input['requirements'][old_num_requirements:]
+    #new_sample_types = get_sample_types(input['factors'], new_requiements)
+    #sample_types = sample_types.append(new_sample_types, ignore_index=True)
 
     return input, sample_types
 

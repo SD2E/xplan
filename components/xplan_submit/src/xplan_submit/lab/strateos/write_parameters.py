@@ -634,19 +634,62 @@ def get_rxn_info_list(batch_samples):
         else:
             inducer_group = batch_samples
         inducer_name = inducer.split("_concentration")[0]
-        inducer_container = inducers_defs[inducer_name]["containerId"]
-        inducer_well = inducers_defs[inducer_name]["wellIndex"]
-        inducer_units = inducers_defs[inducer_name]["units"]
+
         inducer_groupby_group = []
         for elt in ['container', 'aliquot', 'rxn_conc', 'neg_control', 'rnase_inh', 'Use MgGlu2']:
             if elt in inducer_group.columns:
                 inducer_groupby_group.append(elt)
         rxn_inducer_groups = inducer_group.groupby(inducer_groupby_group)
         for g, grp in rxn_inducer_groups:
+            concentrations = list(grp[inducer].unique())
+
+
+            # Determine format for inducers, either one for all concentrations, or per concentration containers
+            inducer_def_for_name = inducers_defs[inducer_name]
+            if type(inducer_def_for_name) == dict and "units" in inducers_defs[inducer_name]:
+                ## This is one container for all inducer levels
+                inducer_container = inducer_def_for_name["containerId"]
+                inducer_well = inducer_def_for_name["wellIndex"]
+                inducer_units = inducer_def_for_name["units"]
+                inducer_info = {
+                    "inducer": {
+                        "containerId": inducer_container,
+                        "wellIndex": inducer_well
+                    },
+                    "inducer_concentrations": [
+                        {
+                            "value": conc,
+                            "units": inducer_units
+                        }
+                        for conc in concentrations
+                    ]
+                }
+            else: ## This is a per inducer level container mapping (all concentrations here need to have same container)
+                inducer_containers = list(set([x["containerId"] for k, x in inducer_def_for_name.items() if int(k) in concentrations]))
+                if len(inducer_containers) != 1:
+                    raise Exception(f"Cannot assign other than exactly one inducer container to this batch, got: {inducer_containers}")
+                inducer_container_def = next(iter([x for k, x in inducer_def_for_name.items() if x['containerId'] == next(iter(inducer_containers))]))
+                inducer_container = inducer_container_def["containerId"]
+                inducer_well = inducer_container_def["wellIndex"]
+                inducer_units = inducer_container_def["units"]
+                inducer_info = {
+                    "inducer": {
+                        "containerId": inducer_container,
+                        "wellIndex": inducer_well
+                    },
+                    "inducer_concentrations": [
+                        {
+                            "value": conc,
+                            "units": inducer_units
+                        }
+                        for conc in concentrations
+                    ]
+                }
+
+
             rxn_conc = next(iter(grp.rxn_conc.unique()))
             container_id = next(iter(grp.container.unique()))
             aliquot = next(iter(grp.aliquot.unique()))
-            concentrations = list(grp[inducer].unique())
             replicates = max(iter(grp.replicate.unique()))
             neg_control = next(iter(grp.neg_control.unique()))
             rnase_inh = eval(next(iter(grp.rnase_inh.unique()))) # convert "True" to True
@@ -657,19 +700,7 @@ def get_rxn_info_list(batch_samples):
                         "src": {"containerId": container_id, "wellIndex": aliquot},
                         "rxn_conc": rxn_conc
                     },
-                    "inducer_info": {
-                        "inducer": {
-                            "containerId" : inducer_container,
-                            "wellIndex" : inducer_well
-                        },
-                        "inducer_concentrations": [
-                            {
-                                "value": conc,
-                                "units": inducer_units
-                            }
-                            for conc in concentrations
-                        ]
-                    },
+                    "inducer_info": inducer_info,
                     "rxn_info": {
                         "n_replicates": replicates,
                         "neg_control": neg_control,

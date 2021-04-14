@@ -9,6 +9,7 @@ pytest = "*"
 xplan-utils = {editable = true, path = "./components/xplan_utils"}
 xplan-design = {editable = true, path = "./components/xplan_design"}
 xplan-models = {editable = true, path = "./components/xplan_models"}
+xplan-submit = {editable = true, path = "./components/xplan_submit"}
 
 [dev-packages]
 
