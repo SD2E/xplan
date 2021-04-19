@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-numpy = "*"
 pytest = "*"
 xplan-utils = {editable = true, path = "./components/xplan_utils"}
 xplan-design = {editable = true, path = "./components/xplan_design"}

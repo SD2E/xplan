@@ -30,7 +30,7 @@ setup(name='xplan_design',
       package_dir={'':'src'},
       install_requires=["pandas",
                         "pysmt",
-                        "transcriptic"
+                        "transcriptic>=9.1.0"
                         ],
       tests_require=["pytest"],
       zip_safe=False

@@ -81,3 +81,4 @@ xplan-dev-env
 /secrets/tacc_tx_secrets.json
 /components/xplan_utils/pyproject.toml
 /components/xplan_models/src/xplan_models.egg-info/dependency_links.txt
+/components/xplan_design/test/experiments/remote_experiments/

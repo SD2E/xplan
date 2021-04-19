@@ -733,10 +733,11 @@ def extract_timepoints(batch_samples, invocation_params):
 
     if 0.0 in timepoints:
         timepoints.remove(0.0)  ## Timepoint 0 will be read automatically, do not need to specify
-    if len(timepoints)  == 1:
-        timepoint_str = str([timepoints[0]])
-    else:
-        timepoint_str = ','.join(map(str, map(int, timepoints)))
+    #if len(timepoints)  == 1:
+    #    timepoint_str = str([timepoints[0]])
+    #else:
+        #timepoint_str = ','.join(map(str, map(int, timepoints)))
+    timepoint_str = ','.join(map(str, timepoints))
     return timepoint_str
 
 def factor_to_param(factor_name, factor, batch_samples, protocol, logger=l):
