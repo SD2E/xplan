@@ -6,9 +6,7 @@ from pysmt.typing import INT, REAL
 from pysmt.rewritings import conjunctive_partition
 from functools import reduce
 
-from xplan_design.plate_layout_utils import get_samples_from_condition_set, get_column_name, get_column_factors, \
-    get_column_id, get_row_name, get_row_factors, get_row_id, get_aliquot_row, get_aliquot_col, resolve_sbh_uri, \
-    containers_have_known_contents, container_dict_to_df
+import xplan_design.plate_layout_utils
 
 from xplan_utils.container_data_conversion import get_strain_count
 
@@ -34,22 +32,6 @@ def generate_variables1(inputs):
 
     variables = {}
     variables['reverse_index'] = {}
-
-    # print(samples)
-    #    variables['tau_symbols'] = \
-    #      {
-    #          a : {
-    #              x : Symbol("tau_{}".format(a[x]))
-    #              for x in samples[a]
-    #            }
-    #            for a in samples
-    #      }
-    #    for aliquot in variables['tau_symbols']:
-    #        for sample in variables['tau_symbols'][aliquot]:
-    #            var = variables['tau_symbols'][aliquot][sample]
-    #            if var not in variables['reverse_index']:
-    #                variables['reverse_index'][var] = {}
-    #            variables['reverse_index'][var].update({"sample": "x{}_{}".format(sample, aliquot), "aliquot" : aliquot})
 
     def get_factor_symbols(factor, prefix, var=None, constraints=None, map=None):
         if factor['dtype'] == "str":
@@ -172,7 +154,7 @@ def generate_variables1(inputs):
                         row = [row for row, aliquots in containers[container]['rows'].items() if aliquot in aliquots][0]
                         variables['reverse_index'][var].update(
                             {"type": "aliquot", "aliquot": aliquot, "container": container, factor_id: level,
-                             "column": get_column_name(column, container), "row": get_row_name(row, container)})
+                             "column": xplan_design.plate_layout_utils.get_column_name(column, container), "row": xplan_design.plate_layout_utils.get_row_name(row, container)})
                 else:
                     var = str(variables['aliquot_factors'][container][aliquot][factor_id])
                     if var not in variables['reverse_index']:
@@ -182,7 +164,7 @@ def generate_variables1(inputs):
                     row = [row for row, aliquots in containers[container]['rows'].items() if aliquot in aliquots][0]
                     variables['reverse_index'][var].update(
                         {"type": "aliquot", "aliquot": aliquot, "container": container, factor_id: level,
-                         "column": get_column_name(column, container), "row": get_row_name(row, container)})
+                         "column": xplan_design.plate_layout_utils.get_column_name(column, container), "row": xplan_design.plate_layout_utils.get_row_name(row, container)})
 
     values = {}
 
@@ -254,7 +236,7 @@ def generate_variables1(inputs):
     ## Variables used when choose to ignore the column factor
     variables['na_column_factors'] = \
         {
-            get_column_name(col, container_id): {
+            xplan_design.plate_layout_utils.get_column_name(col, container_id): {
                 factor_id: pysmt.shortcuts.Symbol("{}_is_na({}_{})".format(factor_id, col, container_id))
                 for factor_id, factor in factors.items() if factor['ftype'] == "column"
             }
@@ -273,7 +255,7 @@ def generate_variables1(inputs):
 
     variables['column_factor'] = \
         {
-            get_column_name(col, container_id): {
+            xplan_design.plate_layout_utils.get_column_name(col, container_id): {
                 factor_id: get_factor_symbols(factor, "{}({}_{})".format(factor_id, col, container_id))
                 for factor_id, factor in factors.items() if factor['ftype'] == "column"
             }
@@ -293,7 +275,7 @@ def generate_variables1(inputs):
                     # container = [ c for c in containers if column in containers[c]['columns']][0]
                     container = [c for c in containers if c in column][0]  ## assumes container_id is in column name
                     variables['reverse_index'][var].update(
-                        {"type": "column", "column": column, "column_id": get_column_id(column.split("_")[0]),
+                        {"type": "column", "column": column, "column_id": xplan_design.plate_layout_utils.get_column_id(column.split("_")[0]),
                          "container": container, column_factor: level})
             else:
                 var = str(variables['column_factor'][column][column_factor])
@@ -303,17 +285,17 @@ def generate_variables1(inputs):
                 container = [c for c in containers if c in column][0]  ## assumes container_id is in column name
                 if column_factor == "column_id":
                     variables['reverse_index'][var].update(
-                        {"type": "column", "column": column, "column_id": get_column_id(column.split("_")[0]),
+                        {"type": "column", "column": column, "column_id": xplan_design.plate_layout_utils.get_column_id(column.split("_")[0]),
                          "container": container})
                 else:
                     variables['reverse_index'][var].update(
-                        {"type": "column", "column": column, "column_id": get_column_id(column.split("_")[0]),
+                        {"type": "column", "column": column, "column_id": xplan_design.plate_layout_utils.get_column_id(column.split("_")[0]),
                          "container": container, column_factor: None})
                 # l.debug("Reverse %s %s", var, variables['reverse_index'][var])
 
     variables['row_factor'] = \
         {
-            get_row_name(row, container_id): {
+            xplan_design.plate_layout_utils.get_row_name(row, container_id): {
                 factor_id: get_factor_symbols(factor, "{}({}_{})".format(factor_id, row, container_id))
                 for factor_id, factor in factors.items() if factor['ftype'] == "row"
             }
@@ -452,18 +434,18 @@ def generate_constraints1(inputs, batch):
 
         clause = pysmt.shortcuts.And(
             ## Each Column has factors with values in their domain or are NA
-            pysmt.shortcuts.And([cs_factors_level(get_column_factors(column_factor, column, container_id)
+            pysmt.shortcuts.And([cs_factors_level(xplan_design.plate_layout_utils.get_column_factors(column_factor, column, container_id)
                                                   ,
-                                                  na_factors=na_column_factors[get_column_name(column, container_id)]
+                                                  na_factors=na_column_factors[xplan_design.plate_layout_utils.get_column_name(column, container_id)]
                                                   )
                                  for column in container['columns']])
             ,
             ## For each factor, either all columns in container are NA or not (e.g., cannot induce at different times)
             pysmt.shortcuts.And([pysmt.shortcuts.Or(
-                pysmt.shortcuts.And([na_column_factors[get_column_name(column, container_id)][factor_id]
+                pysmt.shortcuts.And([na_column_factors[xplan_design.plate_layout_utils.get_column_name(column, container_id)][factor_id]
                                      for column in container['columns']]),
                 pysmt.shortcuts.And(
-                    [pysmt.shortcuts.Not(na_column_factors[get_column_name(column, container_id)][factor_id])
+                    [pysmt.shortcuts.Not(na_column_factors[xplan_design.plate_layout_utils.get_column_name(column, container_id)][factor_id])
                      for column in container['columns']]))
                 for factor_id, factor in factors.items() if factor['ftype'] == "column"])
         )
@@ -472,7 +454,7 @@ def generate_constraints1(inputs, batch):
 
     def cs_row_factors(row_factor, container_id, container):
 
-        clause = pysmt.shortcuts.And([cs_factors_level(get_row_factors(row_factor, row, container_id))
+        clause = pysmt.shortcuts.And([cs_factors_level(xplan_design.plate_layout_utils.get_row_factors(row_factor, row, container_id))
                                       for row in container['rows']])
         # l.debug("column clause: %s", clause)
         return clause
@@ -504,11 +486,11 @@ def generate_constraints1(inputs, batch):
 
     def map_aliquot_property_level(level):
         if type(level) == str and "https://" in level:
-            resolve_sbh_uri(level, sbh_user, sbh_password)
+            xplan_design.plate_layout_utils.resolve_sbh_uri(level, sbh_user, sbh_password)
         else:
             return level
 
-    assert (containers_have_known_contents(containers, factors, aliquot_factor_map))
+    assert (xplan_design.plate_layout_utils.containers_have_known_contents(containers, factors, aliquot_factor_map))
 
     aliquot_properties_constraint = get_aliquot_properties_constraint(containers, batch_containers, factors, batch,
                                                                       column_factor, row_factor, aliquot_factors,
@@ -557,11 +539,11 @@ def generate_constraints1(inputs, batch):
         elif ftype == "aliquot":
             return aliquot_factors[container_id][aliquot]
         elif ftype == "column":
-            column = get_aliquot_col(aliquot, containers[container_id])
-            return column_factor[get_column_name(column, container_id)]
+            column = xplan_design.plate_layout_utils.get_aliquot_col(aliquot, containers[container_id])
+            return column_factor[xplan_design.plate_layout_utils.get_column_name(column, container_id)]
         elif ftype == "row":
-            row = get_aliquot_row(aliquot, containers[container_id])
-            return row_factor[get_row_name(row, container_id)]
+            row = xplan_design.plate_layout_utils.get_aliquot_row(aliquot, containers[container_id])
+            return row_factor[xplan_design.plate_layout_utils.get_row_name(row, container_id)]
 
     ## Replicate symmetry
     if aliquot_symmetry_samples is not None and False:
@@ -589,7 +571,7 @@ def generate_constraints1(inputs, batch):
                                          pysmt.shortcuts.And(
                                              [pysmt.shortcuts.Equals(col_factor_var, pysmt.shortcuts.Real(0.0))
                                               for col_factor_id, col_factor_var in
-                                              column_factor[get_column_name(column_id, container_id)].items()]))
+                                              column_factor[xplan_design.plate_layout_utils.get_column_name(column_id, container_id)].items()]))
                  for column_id, column_aliquots in container['columns'].items()])
                 for container_id, container in containers.items() if
                 container_consistent_with_batch(container_id, container_assignment, batch)])
@@ -603,7 +585,7 @@ def generate_constraints1(inputs, batch):
                                          pysmt.shortcuts.And(
                                              [pysmt.shortcuts.Equals(row_factor_var, pysmt.shortcuts.Real(0.0))
                                               for row_factor_id, row_factor_var in
-                                              row_factor[get_row_name(row_id, container_id)].items()]))
+                                              row_factor[xplan_design.plate_layout_utils.get_row_name(row_id, container_id)].items()]))
                  for row_id, row_aliquots in container['rows'].items()])
                 for container_id, container in containers.items() if
                 container_consistent_with_batch(container_id, container_assignment, batch)])
@@ -622,12 +604,12 @@ def get_aliquot_properties_constraint(containers, batch_containers, factors, bat
         if container_id in batch_containers:
             container_constraints = []
             for aliquot, aliquot_properties in c['aliquots'].items():
-                aliquot_col = get_aliquot_col(aliquot, c)
-                aliquot_col_name = get_column_name(aliquot_col, container_id)
-                aliquot_col_id = get_column_id(aliquot_col)
-                aliquot_row = get_aliquot_row(aliquot, c)
-                aliquot_row_name = get_row_name(aliquot_row, container_id)
-                aliquot_row_id = get_row_id(aliquot_row)
+                aliquot_col = xplan_design.plate_layout_utils.get_aliquot_col(aliquot, c)
+                aliquot_col_name = xplan_design.plate_layout_utils.get_column_name(aliquot_col, container_id)
+                aliquot_col_id = xplan_design.plate_layout_utils.get_column_id(aliquot_col)
+                aliquot_row = xplan_design.plate_layout_utils.get_aliquot_row(aliquot, c)
+                aliquot_row_name = xplan_design.plate_layout_utils.get_row_name(aliquot_row, container_id)
+                aliquot_row_id = xplan_design.plate_layout_utils.get_row_id(aliquot_row)
 
                 aliquot_factor_constraint = pysmt.shortcuts.And([
                     # get_req_const(aliquot_factors[container_id][aliquot], factor, map_aliquot_property_level(level), factors)
@@ -766,6 +748,29 @@ def satisfy_every_requirement_constraint_df(requirements, batch_containers_df, f
                                             row_factor, samples, batch_factor, na_column_factors,
                                             aliquot_symmetry_samples,
                                             batch, aliquot_factor_map, requirements_df):
+    """
+
+    :param requirements:
+    :param batch_containers_df:
+    :param factors:
+    :param variables:
+    :param inputs:
+    :param sample_types:
+    :param sample_factors:
+    :param na_sample_factors:
+    :param batch_containers:
+    :param aliquot_factors:
+    :param column_factor:
+    :param row_factor:
+    :param samples:
+    :param batch_factor:
+    :param na_column_factors:
+    :param aliquot_symmetry_samples:
+    :param batch:
+    :param aliquot_factor_map:
+    :param requirements_df:
+    :return:
+    """
     batch_requirements = requirements_df.merge(batch.to_frame().transpose(),
                                                on=[factor_id for factor_id, factor in factors.items() if
                                                    factor['ftype'] == "batch"])
@@ -1022,11 +1027,11 @@ def req_aliquot_factors(r, r_aliquot_factors, containers, sample_types, sample_f
                                  factor_id in r_batch_factor_ids and factor_id != "batch"]),
                             ## Column factors for column of aliquot
                             req_column_factors(r, r_column_factors(r, factors), [case], container_id,
-                                               [get_aliquot_col(aliquot, container)], column_factor, factors,
+                                               [xplan_design.plate_layout_utils.get_aliquot_col(aliquot, container)], column_factor, factors,
                                                na_column_factors),
                             ## Row factors for row of aliquot
                             req_row_factors(r, r_row_factors(r, factors), [case], container_id,
-                                            [get_aliquot_row(aliquot, container)], row_factor, factors),
+                                            [xplan_design.plate_layout_utils.get_aliquot_row(aliquot, container)], row_factor, factors),
                             ## Sample factors for aliquot
                             req_sample_factors(r, r_sample_factors(r, factors), samples[container_id][aliquot], aliquot,
                                                container_id, sample_types, sample_factors, na_sample_factors, factors)
@@ -1089,13 +1094,13 @@ def req_column_factors_df(case, r_column_factors, container_id, columns, variabl
         r_column_factors_ids = [x['name'] for x in r_column_factors]
         clause = pysmt.shortcuts.Or([
             pysmt.shortcuts.And([pysmt.shortcuts.And(
-                get_req_const(variables['column_factor'][get_column_name(column, container_id)], factor_id, level,
+                get_req_const(variables['column_factor'][xplan_design.plate_layout_utils.get_column_name(column, container_id)], factor_id, level,
                               factors),
-                pysmt.shortcuts.Not(variables['na_column_factors'][get_column_name(column, container_id)][factor_id]))
+                pysmt.shortcuts.Not(variables['na_column_factors'][xplan_design.plate_layout_utils.get_column_name(column, container_id)][factor_id]))
                                     for factor_id, level in case.items() if
                                     factor_id in r_column_factors_ids and level != "NA" and not math.isnan(level)]
                                 +
-                                [variables['na_column_factors'][get_column_name(column, container_id)][factor_id]
+                                [variables['na_column_factors'][xplan_design.plate_layout_utils.get_column_name(column, container_id)][factor_id]
                                  for factor_id, level in case.items() if
                                  factor_id in r_column_factors_ids and level == "NA"]
                                 )
@@ -1112,7 +1117,7 @@ def req_row_factors_df(case, r_row_factors, container_id, rows, variables, facto
         # assert(len(cases) <= len(rows))
         r_row_factors_ids = [x['name'] for x in r_row_factors]
         clause = pysmt.shortcuts.Or([pysmt.shortcuts.And(pysmt.shortcuts.And(
-            [get_req_const(variables['row_factor'][get_row_name(row, container_id)], factor_id, level, factors)
+            [get_req_const(variables['row_factor'][xplan_design.plate_layout_utils.get_row_name(row, container_id)], factor_id, level, factors)
              for factor_id, level in case.items() if factor_id in r_row_factors_ids])
 
         )
@@ -1133,12 +1138,12 @@ def req_column_factors(r, r_column_factors, cases, container_id, columns, column
         r_column_factors_ids = [x['factor'] for x in r_column_factors]
         clause = pysmt.shortcuts.And([pysmt.shortcuts.Or([
             pysmt.shortcuts.And([pysmt.shortcuts.And(
-                get_req_const(column_factor[get_column_name(column, container_id)], factor_id, level, factors),
-                pysmt.shortcuts.Not(na_column_factors[get_column_name(column, container_id)][factor_id]))
+                get_req_const(column_factor[xplan_design.plate_layout_utils.get_column_name(column, container_id)], factor_id, level, factors),
+                pysmt.shortcuts.Not(na_column_factors[xplan_design.plate_layout_utils.get_column_name(column, container_id)][factor_id]))
                                     for factor_id, level in case.items() if
                                     factor_id in r_column_factors_ids and level != "NA"]
                                 +
-                                [na_column_factors[get_column_name(column, container_id)][factor_id]
+                                [na_column_factors[xplan_design.plate_layout_utils.get_column_name(column, container_id)][factor_id]
                                  for factor_id, level in case.items() if
                                  factor_id in r_column_factors_ids and level == "NA"]
                                 )
@@ -1155,7 +1160,7 @@ def req_row_factors(r, r_row_factors, cases, container_id, rows, row_factor, fac
         # assert(len(cases) <= len(rows))
         r_row_factors_ids = [x['factor'] for x in r_row_factors]
         clause = pysmt.shortcuts.And([pysmt.shortcuts.Or([pysmt.shortcuts.And(
-            pysmt.shortcuts.And([get_req_const(row_factor[get_row_name(row, container_id)], factor_id, level, factors)
+            pysmt.shortcuts.And([get_req_const(row_factor[xplan_design.plate_layout_utils.get_row_name(row, container_id)], factor_id, level, factors)
                                  for factor_id, level in case.items() if factor_id in r_row_factors_ids])
 
         )
@@ -1212,13 +1217,13 @@ def aliquot_can_satisfy_requirement(aliquot, container_id, container, requiremen
 
     req_cols = [int(l) for f in requirement for l in f['values'] if f['factor'] == 'column_id']
     if len(req_cols) > 0:
-        aliquot_col_id = get_column_id(get_aliquot_col(aliquot, container))
+        aliquot_col_id = xplan_design.plate_layout_utils.get_column_id(xplan_design.plate_layout_utils.get_aliquot_col(aliquot, container))
         if aliquot_col_id not in req_cols:
             return False
         # l.debug("Column_id matches")
     req_rows = [int(l) for f in requirement for l in f['values'] if f['factor'] == 'row_id']
     if len(req_rows) > 0:
-        aliquot_row_id = get_row_id(get_aliquot_row(aliquot, container))
+        aliquot_row_id = xplan_design.plate_layout_utils.get_row_id(xplan_design.plate_layout_utils.get_aliquot_row(aliquot, container))
         if aliquot_row_id not in req_rows:
             return False
 
@@ -1262,7 +1267,7 @@ def get_sample_types(sample_factors, requirements):
 
     rows = []
     for condition_set in requirements:
-        samples = get_samples_from_condition_set(sample_factors, condition_set)
+        samples = xplan_design.plate_layout_utils.get_samples_from_condition_set(sample_factors, condition_set)
         # l.info("Condition set resulted in %s samples", len(samples))
         rows.append(samples)
     # experiment_design = experiment_design.append(samples, ignore_index=True)
@@ -1273,7 +1278,7 @@ def get_sample_types(sample_factors, requirements):
 
 
 def container_can_service_batch(container, batch_samples, aliquot_factor_map):
-    container_df = container_dict_to_df(container, aliquot_factor_map)
+    container_df = xplan_design.plate_layout_utils.container_dict_to_df(container, aliquot_factor_map)
     intersection = container_df.merge(batch_samples)
     return len(intersection) > 0
 
@@ -1499,9 +1504,9 @@ def get_containers_df(containers, factors, aliquot_factor_map):
         container_df.loc[:, 'container'] = container_id
         container_df = container_df.reset_index()
         container_df = container_df.rename(columns={"index": "aliquot"})
-        container_df['column'] = container_df.apply(lambda x: get_aliquot_col(x['aliquot'], containers[x['container']]),
+        container_df['column'] = container_df.apply(lambda x: xplan_design.plate_layout_utils.get_aliquot_col(x['aliquot'], containers[x['container']]),
                                                     axis=1)
-        container_df['row'] = container_df.apply(lambda x: get_aliquot_row(x['aliquot'], containers[x['container']]),
+        container_df['row'] = container_df.apply(lambda x: xplan_design.plate_layout_utils.get_aliquot_row(x['aliquot'], containers[x['container']]),
                                                  axis=1)
         container_aliquots = container_aliquots.append(container_df, ignore_index=True)
 
@@ -1724,6 +1729,10 @@ def map_floats(input, precision=7):
                                 new_value = value
                             new_values.append(new_value)
                         factor_values['values'] = new_values
+            input['requirements_df'][factor['name']] = input['requirements_df'][factor['name']].apply(lambda x: map['values'][round(x, precision)])
+            if factor['ftype'] == "sample":
+                input['sample_types_df'][factor['name']] = input['sample_types_df'][factor['name']].apply(
+                    lambda x: map['values'][round(x, precision)])
 
     # Map sample_types
     for i, sample_type in input['sample_types'].items():
@@ -1811,12 +1820,11 @@ def solve1(input, pick_container_assignment=True, hand_coded_constraints=None):
     non_samples = non_samples.drop_duplicates().reset_index(drop=True)
 
     # input['requirements'] = require_na_samples(input['requirements'], sample_types, common_samples)
-
+    input['requirements_df'] = sample_types
     input['float_map'] = map_floats(input)
 
     input['aliquot_symmetry_samples'] = None #get_symmetry(non_samples, non_sample_factors, input['containers_df'],
                                              #        input['container_assignment'], input["aliquot_factor_map"])
-    input['requirements_df'] = sample_types
 
     l.info("Generating Constraints ...")
 
