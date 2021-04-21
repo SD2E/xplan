@@ -484,11 +484,6 @@ def generate_constraints1(inputs, batch):
     # l.info(containers)
     # ALQ
 
-    def map_aliquot_property_level(level):
-        if type(level) == str and "https://" in level:
-            xplan_design.plate_layout_utils.resolve_sbh_uri(level, sbh_user, sbh_password)
-        else:
-            return level
 
     assert (xplan_design.plate_layout_utils.containers_have_known_contents(containers, factors, aliquot_factor_map))
 
@@ -601,7 +596,7 @@ def get_aliquot_properties_constraint(containers, batch_containers, factors, bat
                                       aliquot_factors, aliquot_factor_map):
     aliquot_properties_constraints = []
     for container_id, c in containers.items():
-        if container_id in batch_containers:
+        if container_id in batch_containers.container.values:
             container_constraints = []
             for aliquot, aliquot_properties in c['aliquots'].items():
                 aliquot_col = xplan_design.plate_layout_utils.get_aliquot_col(aliquot, c)
@@ -1729,10 +1724,10 @@ def map_floats(input, precision=7):
                                 new_value = value
                             new_values.append(new_value)
                         factor_values['values'] = new_values
-            input['requirements_df'][factor['name']] = input['requirements_df'][factor['name']].apply(lambda x: map['values'][round(x, precision)])
+            input['requirements_df'][factor['name']] = input['requirements_df'][factor['name']].apply(lambda x: map['values'][round(x, precision)] if not math.isnan(x) else x)
             if factor['ftype'] == "sample":
                 input['sample_types_df'][factor['name']] = input['sample_types_df'][factor['name']].apply(
-                    lambda x: map['values'][round(x, precision)])
+                    lambda x: map['values'][round(x, precision)]  if not math.isnan(x) else x)
 
     # Map sample_types
     for i, sample_type in input['sample_types'].items():
