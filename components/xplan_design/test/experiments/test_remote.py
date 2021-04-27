@@ -21,7 +21,7 @@ CASES = [
         "challenge_problem" : challenge_problems.RIBOSWITCHES
     },
     {
-        "experiment_id" : "experiment.transcriptic.2021-04-21-YeastSTATES-Dual-Response-CRISPR-Redesigns-Short-Duration-Time-Series-30C",
+        "experiment_id" : "experiment.transcriptic.2021-04-23-YeastSTATES-Dual-Response-CRISPR-Redesigns-Short-Duration-Time-Series-30C-Titration",
         "challenge_problem" : challenge_problems.YEAST_STATES
     }
 

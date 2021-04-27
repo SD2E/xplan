@@ -678,63 +678,48 @@ def batch_can_satisfy_requirement(r, batch, factors):
     return True
 
 
-def get_req_constraint(requirement,
-                       factors,
-                       batch_containers_df,
-                       aliquot_symmetry_samples,
-                       variables,
-                       inputs):
-    r_aliquot_factors_ids = r_factors_of_type(requirement, factors, "aliquot")
-    r_batch_factor_ids = r_factors_of_type(requirement, factors, "batch")
-    r_column_factor_ids = r_factors_of_type(requirement, factors, "column")
-    r_row_factor_ids = r_factors_of_type(requirement, factors, "row")
-    r_sample_factor_ids = r_factors_of_type(requirement, factors, "sample")
+def get_req_constraint(cases, factors, variables, inputs):
+    r_aliquot_factors_ids = [ x for x in cases.columns if x in factors and factors[x]['ftype'] == "aliquot"]
+    r_batch_factor_ids = [ x for x in cases.columns if x in factors and factors[x]['ftype'] == "batch"]
+    r_column_factor_ids =[ x for x in cases.columns if x in factors and factors[x]['ftype'] == "column"]
+    r_row_factor_ids = [ x for x in cases.columns if x in factors and factors[x]['ftype'] == "row"]
+    r_sample_factor_ids = [ x for x in cases.columns if x in factors and factors[x]['ftype'] == "sample"]
 
     column_factors = [f for name, f in factors.items() if name in r_column_factor_ids]
     row_factors = [f for name, f in factors.items() if name in r_row_factor_ids]
     sample_factors = [f for name, f in factors.items() if name in r_sample_factor_ids]
 
-    cases = requirement.to_frame().transpose().merge(batch_containers_df)
-    if aliquot_symmetry_samples is not None:
-        cases = cases.merge(aliquot_symmetry_samples)
 
-    ## Is it an unsatisfiable requirement?
-    case_clauses = []
-    for _, case in cases.iterrows():
-        # possible_aliquots = []
-        container_id = case['container']
-        aliquot = case['aliquot']
-        batch = case['batch']
-        column = case['column']
-        row = case['row']
+    def constraint_for_row(requirement):
+        container_id = requirement['container']
+        aliquot = requirement['aliquot']
+        batch = requirement['batch']
+        column = requirement['column']
+        row = requirement['row']
         # possible_aliquots.append(aliquot)
         aliquot_clause = pysmt.shortcuts.And(
             ## Satisfy aliquot factors
             pysmt.shortcuts.And([get_req_const(variables['aliquot_factors'][container_id][aliquot],
                                                factor_id, level, factors)
-                                 for factor_id, level in case.items() if factor_id in r_aliquot_factors_ids]),
+                                 for factor_id, level in requirement.items() if factor_id in r_aliquot_factors_ids]),
             ## Batch factors for container of aliquot
             pysmt.shortcuts.And([get_req_const(variables['batch_factor'][str(batch)], factor_id, level, factors)
-                                 for factor_id, level in case.items() if
+                                 for factor_id, level in requirement.items() if
                                  factor_id in r_batch_factor_ids and factor_id != "batch"]),
             ## Column factors for column of aliquot
-            req_column_factors_df(case, column_factors, container_id,
+            req_column_factors_df(requirement, column_factors, container_id,
                                   [column], variables, factors),
             ## Row factors for row of aliquot
-            req_row_factors_df(case, row_factors, container_id,
+            req_row_factors_df(requirement, row_factors, container_id,
                                [row], variables, factors),
             ## Sample factors for aliquot
-            req_sample_factors_df(case, sample_factors, inputs, variables, aliquot,
+            req_sample_factors_df(requirement, sample_factors, inputs, variables, aliquot,
                                   container_id, factors)
         )
-        case_clauses.append(aliquot_clause)
+        return aliquot_clause
+    clauses = cases.apply(lambda x: constraint_for_row(x), axis=1).values
 
-    if len(case_clauses) == 0:
-        clause = None
-    else:
-        clause = pysmt.shortcuts.Or(case_clauses)
-
-    return clause
+    return pysmt.shortcuts.Or(clauses)
 
 
 def satisfy_every_requirement_constraint_df(requirements, batch_containers_df, factors, variables, inputs,
@@ -769,13 +754,14 @@ def satisfy_every_requirement_constraint_df(requirements, batch_containers_df, f
     batch_requirements = requirements_df.merge(batch.to_frame().transpose(),
                                                on=[factor_id for factor_id, factor in factors.items() if
                                                    factor['ftype'] == "batch"])
-    req_constraints = batch_requirements.apply(lambda x: get_req_constraint(x,
-                                                                            factors,
-                                                                            batch_containers_df,
-                                                                            aliquot_symmetry_samples,
-                                                                            variables,
-                                                                            inputs), axis=1)
-    req_constraints = list(req_constraints.values)
+    cases = batch_requirements.merge(batch_containers_df)
+    cases = cases.merge(inputs['sample_types_df'])
+    if aliquot_symmetry_samples is not None:
+        cases = cases.merge(aliquot_symmetry_samples)
+
+    req_groups = cases.fillna("dummy").groupby(list(batch_requirements.columns))
+    req_constraints_df = req_groups.apply(lambda x: get_req_constraint(x, factors, variables, inputs))
+    req_constraints = list(req_constraints_df.values)
 
     exp_factors = [fname for fname, f in factors.items() if f['ftype'] == "experiment"]
     if len(exp_factors) > 0:
@@ -906,28 +892,26 @@ def req_sample_factors_df(case, r_sample_factors, inputs, variables, aliquot, co
     sample_factors = variables['sample_factors']
     na_sample_factors = variables['na_sample_factors']
     sample_types = inputs['sample_types']
-    case_samples = case.to_frame().transpose().merge(inputs['sample_types_df'])
-    samples = case_samples['sample']
+
+    sample = case['sample']
     sample_factor_ids = r_factors_of_type(case, factors, "sample")
     if 'is_NA' in case and case['is_NA']:
         clause = \
-            pysmt.shortcuts.And([  ## Exactly one sample satisfies the case
                 pysmt.shortcuts.And([  ## Every factor-level in case is co-satisfied
                     na_sample_factors[container][aliquot][sample][factor_id]
                     for factor_id, level in case.items() if factor_id in sample_factor_ids])
-                for sample in samples])
+
 
 
     else:
 
         clause = \
-            pysmt.shortcuts.ExactlyOne([  ## Exactly one sample satisfies the case
                 pysmt.shortcuts.And([  ## Every factor-level in case is co-satisfied
                     pysmt.shortcuts.And(
                         get_req_const(sample_factors[container][aliquot][sample], factor_id, level, factors),
                         pysmt.shortcuts.Not(na_sample_factors[container][aliquot][sample][factor_id]))
                     for factor_id, level in case.items() if factor_id in sample_factor_ids])
-                for sample in samples])
+
 
     #        if not get_model(clause):
     return clause
@@ -1093,11 +1077,11 @@ def req_column_factors_df(case, r_column_factors, container_id, columns, variabl
                               factors),
                 pysmt.shortcuts.Not(variables['na_column_factors'][xplan_design.plate_layout_utils.get_column_name(column, container_id)][factor_id]))
                                     for factor_id, level in case.items() if
-                                    factor_id in r_column_factors_ids and level != "NA" and not math.isnan(level)]
+                                    factor_id in r_column_factors_ids and level != "dummy" and level != "NA" and not math.isnan(level)]
                                 +
                                 [variables['na_column_factors'][xplan_design.plate_layout_utils.get_column_name(column, container_id)][factor_id]
                                  for factor_id, level in case.items() if
-                                 factor_id in r_column_factors_ids and level == "NA"]
+                                 factor_id in r_column_factors_ids and level != "dummy" and  level == "NA"]
                                 )
             for column in columns])
 
