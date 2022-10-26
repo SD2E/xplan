@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pytest = "*"
+xplan-utils = {editable = true, path = "./components/xplan_utils"}
+xplan-design = {editable = true, path = "./components/xplan_design"}
+xplan-models = {editable = true, path = "./components/xplan_models"}
+xplan-submit = {path = "./components/xplan_submit"}
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

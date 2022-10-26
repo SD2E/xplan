@@ -8,7 +8,7 @@ import requests
 from tenacity import retry, stop_after_delay, wait_exponential
 
 from xplan_utils.helpers import put_experiment_submission, put_experiment_design, get_params_file_name, \
-    get_params_file_path
+    get_params_file_path, get_experiment_request, get_experiment_design
 import logging
 
 from xplan_utils.lab.strateos.utils import TranscripticApiError, get_transcriptic_api, TranscripticRunStatus
@@ -16,67 +16,80 @@ from xplan_utils.lab.strateos.utils import TranscripticApiError, get_transcripti
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
-def  submit_experiment(request, design, xplan_config, tx_cfg, tx_params, out_dir=".", parameters=None, batches=None, mock=False):
-    experiment_id = request['experiment_id']
-    base_dir = request.get('base_dir', ".")
-    challenge_problem = request.get('challenge_problem')
-    if base_dir == ".":
-        challenge_out_dir = os.path.join(out_dir, challenge_problem)
+def  submit_experiment(experiment_id, challenge_problem,
+                       tx_cfg, tx_params,
+                       input_dir=".", out_dir=".", batches=None, mock=False, logger=l):
+    l = logger
+    challenge_in_dir = os.path.join(input_dir, challenge_problem)
+    challenge_out_dir = os.path.join(out_dir, challenge_problem)
+    experiment_out_dir = os.path.join(challenge_out_dir, 'experiments', experiment_id)
+    experiment_design = get_experiment_design(experiment_id, challenge_in_dir)
+    experiment_request = get_experiment_request(experiment_id, challenge_in_dir)
+
+    experiment_id = experiment_request['experiment_id']
+    base_dir = experiment_request.get('base_dir', ".")
+    protocol_id = experiment_request['defaults']['protocol_id']
+
+    if 'test_mode' in experiment_request['defaults']:
+        test_mode = experiment_request['defaults']['test_mode']
     else:
-        challenge_out_dir = os.path.join(out_dir, base_dir, challenge_problem)
-    protocol_id = request['defaults']['protocol_id']
-    test_mode = request['defaults']['test_mode']
+        test_mode = False
 
     tx_test_mode = test_mode
     tx_proj_key = tx_params.get('default')
     tx_proj = tx_params.get('projects').get(tx_proj_key)
     tx_proj_id = tx_proj.get('id')
-    tx_proj_nick = tx_proj.get('nick')
+
+    design_df = pd.read_json(experiment_design['design'])
+
+    if "batch" in design_df.columns:
+        if "lab_id" in design_df.columns:
+            ## only submit batches w/o a lab_id
+            planned_batches = design_df.loc[design_df.lab_id.isna()].batch.unique()
+        else:
+            planned_batches = design_df.batch.unique()
+    else:
+        planned_batches = [b['id'] for b in batches]
 
 
-    for batch in request['batches']:
+
+    for batch in planned_batches:
         if batches is not None:
-            if batch['id'] not in batches:
+            if str(batch) not in batches:
                 continue
-
+        declared_protocol_name = next(iter(design_df.loc[design_df.batch == batch]['protocol'].unique()))
         (submit_id, params_file_name) = submit_plate(experiment_id,
-                                                     batch['id'],
+                                                     str(batch),
                                                      challenge_problem,
-                                                     challenge_out_dir,
+                                                     challenge_in_dir,
+                                                     experiment_out_dir,
                                                      mock,
                                                      tx_proj_id,
                                                      protocol_id,
                                                      tx_test_mode,
                                                      tx_cfg,
-                                                     parameters=parameters)
+                                                     logger=l,
+                                                     declared_protocol_name=declared_protocol_name)
 
-        #slack_post('Submitted {} plan to Transcriptic'.format(
-        #    tx_proj_nick), robj.settings)
-
-        put_experiment_submission(experiment_id,
-                                  batch['id'],
-                                  submit_id,
-                                  params_file_name,
-                                  challenge_out_dir,
-                                  xplan_config)
+        put_experiment_submission(experiment_id, str(batch), submit_id, params_file_name, challenge_out_dir)
 
         def assign_run_id(x):
-            if str(x['batch']) == batch['id']:
+            if str(x['batch']) == str(batch):
                 return submit_id
             elif 'lab_id' in x:
                 return x['lab_id']
             else:
                 return None
 
-        design_df = pd.read_json(design['design'])
-        design_df['lab_id'] = design_df.apply(assign_run_id, axis=1)
 
-    design['design'] = design_df.to_json()
-    put_experiment_design(design, challenge_out_dir)
+        design_df['lab_id'] = design_df.apply(assign_run_id, axis=1)
+    design_df['protocol_id'] = protocol_id
+    experiment_design['design'] = design_df.to_json()
+    put_experiment_design(experiment_design, challenge_out_dir)
 
     if test_mode:
         ## complete the experiment
-        for batch in request['batches']:
+        for batch in experiment_request['batches']:
             if batches is not None:
                 if batch['id'] not in batches:
                     continue
@@ -87,16 +100,15 @@ def  submit_experiment(request, design, xplan_config, tx_cfg, tx_params, out_dir
             complete_tx_test_run(tx_proj_id, run_id, tx_cfg)
 
 
-def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
-                 tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg, parameters=None):
+def submit_plate(experiment_id, plate_id, challenge_problem, in_dir, out_dir,
+                 tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg, logger=l,
+                 declared_protocol_name=None):
+    l = logger
     l.info("Handling plate: " + plate_id)
 
-    if parameters is None:
-        params_file_name = get_params_file_path(experiment_id, plate_id, out_dir)
-        l.info("Submitting param file: " + params_file_name)
-        params = json.load(open(params_file_name, 'r'))
-    else:
-        params_for_plate = parameters[plate_id]
+    params_file_name = get_params_file_path(experiment_id, plate_id, in_dir)
+    l.info("Submitting param file: " + params_file_name)
+    params_for_plate = json.load(open(params_file_name, 'r'))
     submit_resp = None
     submit_id = None
 
@@ -108,7 +120,10 @@ def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
                                                  challenge_problem,
                                                  out_dir,
                                                  tx_cfg,
-                                                 test_mode=tx_test_mode)
+                                                 plate_id,
+                                                 test_mode=tx_test_mode,
+                                                 logger=l,
+                                                 declared_protocol_name=declared_protocol_name)
             submit_id = submit_resp['id']
         else:
             l.info("Submitting Mock TX Experiment")
@@ -120,10 +135,11 @@ def submit_plate(experiment_id, plate_id, challenge_problem, out_dir,
 
 
 def submit_to_transcriptic(project_id, protocol_id,
-                           params, challenge_problem, out_dir, tx_cfg, test_mode=True):
+                           params, challenge_problem, out_dir, tx_cfg, plate_id,
+                           test_mode=True, logger=l,
+                           declared_protocol_name=None):
     """Submit to transcriptic and record response"""
-    # TODO: Parameterize test_mode, protocol_id, project_id
-
+    l = logger
     launch_request_id = None
     launch_protocol = None
 
@@ -141,7 +157,7 @@ def submit_to_transcriptic(project_id, protocol_id,
         l.info("Transcriptic.launch_protocol")
 
         # print(params)
-        launch_request = _create_launch_request(params, test_mode=test_mode, out_dir=out_dir)
+        launch_request = _create_launch_request(params, plate_id, test_mode=test_mode, out_dir=out_dir)
         l.debug("get launch_protocol " + str(launch_request))
         try:
             launch_protocol = conn.launch_protocol(launch_request,
@@ -164,7 +180,12 @@ def submit_to_transcriptic(project_id, protocol_id,
     l.info("Transcriptic.submit_launch_request")
     request_response = {}
     try:
-        protocol_name = [x['name'] for x in conn.get_protocols() if x['id'] == protocol_id][0]
+        protocols = conn.get_protocols()
+        protocol_names = [x['name'] for x in protocols if x['id'] == protocol_id]
+        if len(protocol_names) > 0:
+            protocol_name = next(iter(protocol_names))
+        else:
+            protocol_name = declared_protocol_name
         req_title = "{}_{}_{}".format(
             arrow.utcnow().format('YYYY-MM-DDThh:mm:ssTZD'),
             challenge_problem,
@@ -182,7 +203,8 @@ def submit_to_transcriptic(project_id, protocol_id,
             protocol_id=protocol_id,
             project_id=project_id,
             title=req_title,
-            test_mode=test_mode)
+            test_mode=test_mode,
+            logger=l)
 
         l.info("submit_launch_request.response.id: {}".format(
             request_response['id']))
@@ -193,14 +215,14 @@ def submit_to_transcriptic(project_id, protocol_id,
         raise TranscripticApiError(exc)
 
 
-def _create_launch_request(params, bsl=1, test_mode=False, out_dir='.'):
+def _create_launch_request(params, plate_id, bsl=1, test_mode=False, out_dir='.'):
     """Creates launch_request from input params"""
     params_dict = dict()
     params_dict["launch_request"] = params
     params_dict["launch_request"]["bsl"] = bsl
     params_dict["launch_request"]["test_mode"] = test_mode
 
-    with open(os.path.join(out_dir, 'launch_request.json'), 'w') as lr:
+    with open(os.path.join(out_dir, 'launch_request_{}.json'.format(plate_id)), 'w') as lr:
         json.dump(params_dict, lr, sort_keys=True,
                   indent=2, separators=(',', ': '))
     return json.dumps(params_dict)
@@ -210,13 +232,15 @@ def _create_launch_request(params, bsl=1, test_mode=False, out_dir='.'):
 # the real protocol is available at Transcriptic
 @retry(stop=stop_after_delay(70), wait=wait_exponential(multiplier=1, max=16))
 def __submit_launch_request(conn, launch_request_id, protocol_id=None,
-                            project_id=None, title=None, test_mode=False):
+                            project_id=None, title=None, test_mode=False,
+                            logger=l):
+    l = logger
     try:
-        print("Launching: launch_request_id = " + launch_request_id)
-        print("Launching: protocol_id = " + protocol_id)
-        print("Launching: project_id = " + project_id)
-        print("Launching: title = " + title)
-        print("Launching: test_mode = " + str(test_mode))
+        l.info("Launching: launch_request_id = " + launch_request_id)
+        l.info("Launching: protocol_id = " + protocol_id)
+        l.info("Launching: project_id = " + project_id)
+        l.info("Launching: title = " + title)
+        l.info("Launching: test_mode = " + str(test_mode))
         lr = conn.submit_launch_request(launch_request_id,
                                         protocol_id=protocol_id,
                                         project_id=project_id,
@@ -224,7 +248,7 @@ def __submit_launch_request(conn, launch_request_id, protocol_id=None,
                                         test_mode=test_mode)
         return lr
     except Exception as exc:
-        print(exc.args)
+        l.exception(exc.args)
         raise Exception(exc)
 
 

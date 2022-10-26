@@ -1,0 +1,8 @@
+# Reactor mandatory settings
+REACTOR_NAME=xplan2-reactor
+REACTOR_ALIAS=xplan2
+
+# Docker settings
+DOCKER_HUB_ORG=jladwigsift
+DOCKER_IMAGE_TAG=xplan2
+DOCKER_IMAGE_VERSION=2.0

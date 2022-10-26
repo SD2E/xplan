@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-setup(name='xplan_submit',
+setup(name='xplan_coordinate',
       version='0.1',
       description='Xplan Subroutine Coordination',
       url='http://gitlab.sd2e.org/xplan2/components/xplan_coordinate',

@@ -1,0 +1,289 @@
+{
+    "challenge_problem": "CELL_FREE_RIBOSWITCHES",
+    "experiment_id": "experiment.transcriptic.2020-09-23-Cell-Free-Transcriptional-Riboswitch-Characterization-Strateos",
+    "experiment_reference": "Cell-Free-Transcriptional-Riboswitch-Characterization-Strateos",
+    "experiment_reference_url": "https://docs.google.com/document/d/166F8ob5rSyR95r_hkorKy8tW0opf85vIeY35f9Frlww",
+    "protocol": "cell_free_riboswitches",
+    "condition_space": {
+        "factors": {
+            "measurement_type": {
+                "name": "measurement_type",
+                "domain": [
+                    "AUTOMATED_TEST",
+                    "CFU",
+                    "CONDITION_SPACE",
+                    "DNA_SEQ",
+                    "EXPERIMENTAL_DESIGN",
+                    "FLOW",
+                    "IMAGE",
+                    "PLATE_READER",
+                    "PROTEOMICS",
+                    "RNA_SEQ",
+                    "SEQUENCING_CHROMATOGRAM"
+                ],
+                "dtype": "str",
+                "otype": "DesignElement",
+                "ftype": "sample"
+            },
+            "strain": {
+                "name": "strain",
+                "domain": [
+                    "Test DNA1",
+                    "Test DNA2"
+                ],
+                "dtype": "str",
+                "otype": "DesignElement",
+                "ftype": "aliquot"
+            },
+            "temperature": {
+                "name": "temperature",
+                "domain": [
+                    0.0,
+                    35.0
+                ],
+                "dtype": "float",
+                "otype": "Condition",
+                "ftype": "batch",
+                "lab_name": "run_info.inc_temp",
+                "lab_prefix": "warm_"
+            },
+            "timepoint": {
+                "name": "timepoint",
+                "domain": [
+                    0.0,
+                    24.0
+                ],
+                "dtype": "float",
+                "otype": "DesignElement",
+                "ftype": "sample"
+            },
+            "replicate": {
+                "name": "replicate",
+                "domain": [
+                    1,
+                    20
+                ],
+                "dtype": "float",
+                "otype": "Condition",
+                "ftype": "sample"
+            },
+            "inducer1_concentration": {
+                "name": "inducer1_concentration",
+                "domain": [
+                    0, 101
+                ],
+                "dtype": "float",
+                "otype": "Condition",
+                "ftype": "sample"
+            },
+            "inducer2_concentration": {
+                "name": "inducer2_concentration",
+                "domain": [
+                  0, 100
+                ],
+                "dtype": "float",
+                "otype": "Condition",
+                "ftype": "sample"
+          },
+          "neg_control" : {
+                "name": "neg_control",
+                "domain": [
+                  0, 100
+                ],
+                "dtype": "float",
+                "otype": "Condition",
+                "ftype": "sample"
+          },
+          "rnase_inh" : {
+                "name": "rnase_inh",
+                "domain": [
+                  "True", "False"
+                ],
+                "dtype": "str",
+                "otype": "Condition",
+                "ftype": "sample"
+          },
+          "rxn_conc": {
+                "name": "rxn_conc",
+                "domain": [
+                  0, 100
+                ],
+                "dtype": "float",
+                "otype": "Condition",
+                "ftype": "sample"
+          }
+        }
+    },
+    "batches": [
+        {
+            "id": "0",
+            "samples": 1,
+            "layout": "fixed"
+        },
+        {
+            "id": "1",
+            "samples": 1,
+            "layout": "fixed"
+        }
+    ],
+    "defaults": {
+        "constants": {
+                "container_search_string" : ["ct1ew8ztkq5r5bg", "ct1ew8ztkquavt4"],
+            "lab": "Strateos"
+        },
+        "parameters": {
+            "run_info.rxn_vol" : "5:microliter",
+            "run_info.incubate_in_reader": false,
+            "plate_reader_info.emission": "520:nanometer",
+            "plate_reader_info.excitation": "480:nanometer",
+            "plate_reader_info.gain": 0.16,
+            "inducers" : {
+                "inducer1" : {
+                    "units" : "uM",
+                    "containerId" : "ct1ew8ztkqh44mt",
+                    "wellIndex" : 0
+                },
+                "inducer2" : {
+                    "units" : "uM",
+                    "containerId" : "ct1ew8ztkr6hnyd",
+                    "wellIndex" : 0
+                }
+            }
+        },
+        "conditions": [
+            {
+                "factors": [
+                    {
+                        "factor": "measurement_type",
+                        "values": [
+                            "PLATE_READER"
+                        ]
+                    },
+                    {
+                        "factor": "strain",
+                        "values": [
+                            "Test DNA1",
+                            "Test DNA2"
+                        ]
+                    },
+                    {
+                        "factor": "temperature",
+                        "values": [
+                            30
+                        ]
+                    },
+                    {
+                        "factor": "timepoint",
+                        "values": [
+                            0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0
+                        ]
+                    },
+                    {
+                        "factor": "replicate",
+                        "values": [
+                            1, 2, 3
+                        ]
+                    },
+                    {
+                        "factor": "inducer1_concentration",
+                        "values": [
+                            0, 10, 100
+                        ]
+                    },
+                    {
+                        "factor": "inducer2_concentration",
+                        "values": [
+                            0
+                        ]
+                    },
+                    {
+                        "factor": "rxn_conc",
+                        "values": [
+                            20
+                        ]
+                    },
+                    {
+                        "factor": "neg_control",
+                        "values": [
+                            1
+                        ]
+                    },
+                    {
+                        "factor": "rnase_inh",
+                        "values": [
+                            "True"
+                        ]
+                    }
+                ]
+            },
+            {
+                "factors": [
+                    {
+                        "factor": "measurement_type",
+                        "values": [
+                            "PLATE_READER"
+                        ]
+                    },
+                    {
+                        "factor": "strain",
+                        "values": [
+                            "Test DNA1",
+                            "Test DNA2"
+                        ]
+                    },
+                    {
+                        "factor": "temperature",
+                        "values": [
+                            30
+                        ]
+                    },
+                    {
+                        "factor": "timepoint",
+                        "values": [
+                            0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0
+                        ]
+                    },
+                    {
+                        "factor": "replicate",
+                        "values": [
+                            1, 2, 3
+                        ]
+                    },
+                    {
+                        "factor": "inducer1_concentration",
+                        "values": [
+                            0
+                        ]
+                    },
+                    {
+                        "factor": "inducer2_concentration",
+                        "values": [
+                            80, 90, 100
+                        ]
+                    },
+                    {
+                        "factor": "rxn_conc",
+                        "values": [
+                            20
+                        ]
+                    },
+                    {
+                        "factor": "neg_control",
+                        "values": [
+                            1
+                        ]
+                    },
+                    {
+                        "factor": "rnase_inh",
+                        "values": [
+                            "True"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "submit": false,
+        "protocol_id": "pr1eyfj3r9f6pkm",
+        "test_mode": true
+    }
+}

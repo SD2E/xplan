@@ -10,6 +10,8 @@ setup(name='xplan_utils',
       packages=find_packages('src'),
       package_dir={'':'src'},
       install_requires=["arrow",
-                        "attrdict"],
+                        "attrdict",
+                        "autoprotocol"
+                        ],
       tests_require=["pytest"],
       zip_safe=False)

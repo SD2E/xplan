@@ -42,39 +42,33 @@ def get_design_file_name(experiment_id):
     return "design_" + experiment_id + ".json"
 
 
-def get_experiment_design(robj, experiment_id, out_dir):
-    robj.logger.info("Getting Experiment Design ... " + experiment_id)
-    state = persist.get_state(robj, recovery_file=os.path.join(out_dir, robj.settings['xplan_config']['state_file']))
+def get_experiment_design(experiment_id, out_dir):
+    l.info("Getting Experiment Design ... " + experiment_id)
+    state = persist.get_state(out_dir)
 
-    if 'experiment_requests' not in state:
-        raise Exception("Cannot retreive experiment design: " + str(experiment_id))
-    if experiment_id not in state['experiment_requests']:
-        raise Exception("Cannot retreive experiment design: " + str(experiment_id))
+    #if 'experiment_requests' not in state:
+    #    raise Exception("Cannot retreive experiment design: " + str(experiment_id))
+    #if experiment_id not in state['experiment_requests']:
+    #    raise Exception("Cannot retreive experiment design: " + str(experiment_id))
 
     design_file_name = get_design_file_name(experiment_id)
     experiment_dir = ensure_experiment_dir(experiment_id, out_dir)
-    robj.logger.info("experiment_dir: " + experiment_dir)
+    l.info("experiment_dir: " + experiment_dir)
     design_file_stash = os.path.join(experiment_dir, design_file_name)
-    design = ExperimentDesign(**json.load(open(os.path.join(out_dir, design_file_stash))))
-    robj.logger.info("Retrieved Experiment: " + experiment_id)
+    design = ExperimentDesign(**json.load(open(design_file_stash)))
+    l.info("Retrieved Experiment: " + experiment_id)
     return design
 
 
-def get_experiment_request(robj, experiment_id, out_dir):
-    robj.logger.info("Getting Experiment Request ... " + experiment_id)
-    state = persist.get_state(robj, recovery_file=os.path.join(out_dir, robj.settings['xplan_config']['state_file']))
-
-    if 'experiment_requests' not in state:
-        raise Exception("Cannot retreive experiment request: " + str(experiment_id))
-    if experiment_id not in state['experiment_requests']:
-        raise Exception("Cannot retreive experiment request: " + str(experiment_id))
+def get_experiment_request(experiment_id, out_dir):
+    l.info("Getting Experiment Request ... " + experiment_id)
 
     request_file_name = get_request_file_name(experiment_id)
     experiment_dir = ensure_experiment_dir(experiment_id, out_dir)
-    robj.logger.info("experiment_dir: " + experiment_dir)
+    l.info("experiment_dir: " + experiment_dir)
     request_file_stash = os.path.join(experiment_dir, request_file_name)
-    request = json.load(open(os.path.join(out_dir, request_file_stash)))
-    robj.logger.info("Retrieved Experiment: " + experiment_id)
+    request = json.load(open(request_file_stash))
+    l.info("Retrieved Experiment: " + experiment_id)
     return request
 
 
@@ -86,14 +80,16 @@ def get_params_file_path(experiment_id, batch_id, out_dir):
 
 def do_convert_ftypes(factors):
     for factor_id, factor in factors.items():
-        if factor_id == "strain" or factor_id == "replicate":
+        if factor_id == "strain":
+            factor['ftype'] = 'aliquot'
+        elif  factor_id == "replicate" and factor['ftype'] != "sample":
             factor['ftype'] = 'aliquot'
         elif factor_id == "timepoint" or factor_id == "measurement_type":
             factor['ftype'] = 'sample'
 
     return factors
 
-def get_container_id(params_file_name):
+def get_container_ids(params_file_name):
     with open(params_file_name, 'r') as f:
         params_file = json.load(f)
         attr = None
@@ -101,17 +97,20 @@ def get_container_id(params_file_name):
             attr = "src_info"
         elif "exp_info" in params_file['parameters']:
             attr = "exp_info"
+
         if attr:
             if 'src_samples' in params_file['parameters'][attr]:
                 samples = params_file['parameters'][attr]['src_samples']
                 ## Get the first container
                 if len(samples) > 0:
                     container = samples[0]['containerId']
-                    return container
+                    return [container]
                 else:
                     raise Exception("Cannot find container for protocol with no src_samples")
+        elif 'rxn_info' in params_file['parameters']:
+            return [x['rxn_group']['sample_info']['src']['containerId'] for x in params_file['parameters']['rxn_info']]
         elif 'parameters' in params_file:
-            return params_file['parameters']['exp_params']['source_plate']
+            return [params_file['parameters']['exp_params']['source_plate']]
 
         else:
             raise Exception("Don't know how to get container id from this params file: %s", params_file_name)
@@ -128,9 +127,9 @@ def put_aliquot_properties(experiment_id, aliquot_properties, out_dir):
         container_df.to_csv(container_file_stash, index=False)
 
 
-def put_experiment_submission(experiment_id, batch_id, submit_id, params_file_name, out_dir, xplan_config):
+def put_experiment_submission(experiment_id, batch_id, submit_id, params_file_name, out_dir):
     l.info("Saving Experiment Submission Record ...")
-    state = persist.get_state(recovery_file=os.path.join(out_dir, xplan_config['state_file']))
+    state = persist.get_state(out_dir)
     ## if robj.local is True:
     # persist.preview_dict(state)
     # session = robj.nickname
@@ -150,16 +149,15 @@ def put_experiment_submission(experiment_id, batch_id, submit_id, params_file_na
 
     if 'assigned_containers' not in state:
         state['assigned_containers'] = []
-    container_id = get_container_id(params_file_name)
-    state['assigned_containers'].append(container_id)
+    container_ids = get_container_ids(params_file_name)
+    state['assigned_containers'] += container_ids
 
     if 'runs' not in state:
         state['runs'] = {submit_id: {"experiment_id": experiment_id, "batch_id": batch_id}}
     else:
         state['runs'][submit_id] = {"experiment_id": experiment_id, "batch_id": batch_id}
 
-    new_state = persist.set_state(state,
-                                  recovery_file=os.path.join(out_dir, xplan_config['state_file']))
+    new_state = persist.set_state(state, out_dir)
     # persist.save_state(robj, os.path.join(out_dir, robj.settings['xplan_config']['state_file']))
     l.info("Saved Experiment Submission Record ...")
 

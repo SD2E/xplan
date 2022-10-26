@@ -1,0 +1,18 @@
+---
+xplan_config:
+  state_file: state.json
+  is_production: True
+  mock: False
+  out_dir:
+    system: data-tacc-work-jladwig
+    path: xplan2
+  lab_configuration:
+    system: data-tacc-work-jladwig
+    path: xplan2/secrets/tx_secrets.json
+  jobs:
+    email: ~
+
+logs:
+  level: DEBUG
+  token: ~
+  file: xplan-reactor.log

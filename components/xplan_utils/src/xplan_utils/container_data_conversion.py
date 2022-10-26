@@ -78,7 +78,7 @@ def aliquot_dict(well_map, aliquots_df, well_idx, strain_name="Name"):
     # aliquot_info = aliquots_df.loc[well_idx]
 
     if not well_idx in aliquots_df.index:
-        return {}
+        return { "strain" : "None"}
     
     ## Handle case where other factors are embedded in the strain_name
     if ":" in strain_name and ";" in strain_name:
@@ -181,7 +181,16 @@ def container_to_dict(container, strain_name="Name", drop_nan_strain=True, conve
     """
     col_count = container.attributes['container_type']['col_count']
     well_map = container.well_map
-    well_count = container.container_type.well_count
+    if container.container_type != None:
+        well_count = container.container_type.well_count
+    elif "container_type_id" in container.attributes:
+        id = container.attributes["container_type_id"]
+        if id == "96-pcr":
+            well_count = 96
+        else:
+            raise Exception(f"Cannot determine number of aliquots in container {container}")
+    else:
+        raise Exception(f"Cannot determine number of aliquots in container {container}")
 
     for i in range(0, well_count):
         if i not in well_map:
@@ -264,11 +273,14 @@ def generate_container(num_aliquots, batch_id, strain_name="Name", dimensions=(8
         "rows" : row_dict(col_count, well_map.keys())
         }
 
-def get_strain_count(container):
+def get_strain_count(container, strain_map):
     strain_counts = { None : 0 }
     for aliquot, properties in container['aliquots'].items():
         if 'strain' in properties:
-            strain = properties['strain']
+            if properties['strain'] in strain_map:
+                strain = strain_map[properties['strain']]
+            else:
+                strain = properties['strain']
             if strain in strain_counts:
                 strain_counts[strain] += 1
             else:

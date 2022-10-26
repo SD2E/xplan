@@ -1,0 +1,386 @@
+{
+  "license": "MIT",
+  "format": "python",
+  "protocols": [
+    {
+      "name": "CellFreeRiboswitches",
+      "display_name": "Cell-Free Riboswitches",
+      "categories": [],
+      "description": "Cell Free Riboswitch",
+      "version": "1.0.0",
+      "command_string": "python3 -m cell_free_ribo",
+      "inputs": {
+        "run_info": {
+          "type": "group",
+          "label": "Run Configuration",
+          "inputs": {
+            "rxn_vol": {
+              "type": "choice",
+              "label": "Reaction Volume",
+              "default": "5:microliter",
+              "options": [
+                {"value": "5:microliter", "name": "5 uL"},
+                {"value": "10:microliter", "name": "10 uL"}
+              ]
+            },
+            "inc_temp": {
+              "type": "choice",
+              "label": "Incubation Temperature",
+              "description": "Select the incubation temperature.",
+              "default": "warm_30",
+              "options": [
+                {
+                  "value": "warm_30",
+                  "name": "30 degrees Celsius"
+                },
+                {
+                  "value": "warm_35",
+                  "name": "35 degrees Celsius"
+                }
+              ]
+            },
+            "incubate_in_reader": {
+              "type": "bool",
+              "default": false,
+              "label": "Incubate in Reader",
+              "description": "Incubate plate in plate reader. Not compatible for more than 1 plate."
+            }
+          }
+        },
+        "rxn_info": {
+          "type": "group+",
+          "description": "Choose samples to run in TX-TL",
+          "label": "TX-TL Reaction",
+          "inputs": {
+            "rxn_group": {
+              "type": "group",
+              "label": "Reaction Conditions",
+              "inputs": {
+                "sample_info": {
+                  "type": "group",
+                  "label": "DNA Info",
+                  "inputs": {
+                    "src": {
+                      "type": "aliquot",
+                      "label": "Select DNA",
+                      "description": "Select DNA to from inventory. Concentration of DNA is determined by aliquot property."
+                    },
+                    "rxn_conc": {
+                      "type": "decimal",
+                      "label": "Final Reaction Concentration - DNA (ng/uL)",
+                      "default": 20
+                    }
+                  }
+                },
+                "inducer_info": {
+                  "type": "group",
+                  "label": "Inducer",
+                  "inputs": {
+                    "inducer": {
+                      "type": "aliquot",
+                      "label": "Select Inducer",
+                      "description": "Select an inducer from inventory. The aliquot should have an associated stock concentration"
+                    },
+                    "inducer_concentrations": {
+                      "type": "group+",
+                      "label": "Concentration",
+                      "inputs": {
+                        "value": {
+                          "type": "integer",
+                          "label": "Ligand Concentration",
+                          "default": 0
+                        },
+                        "units": {
+                          "type": "choice",
+                          "default": "uM",
+                          "options": [
+                            {"value": "uM", "name": "uM"},
+                            {"value": "mM", "name": "mM"},
+                            {"value": "M", "name": "M"}
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "rxn_info": {
+                  "type": "group",
+                  "label": "Reaction Info",
+                  "inputs": {
+                    "n_replicates": {
+                      "type": "integer",
+                      "default": 3,
+                      "label": "Number of Replicates",
+                      "description": "Specify number of replicates of this reaction condition."
+                    },
+                    "neg_control": {
+                      "type": "integer",
+                      "default": 1,
+                      "label": "No Template Controls (NTCs)",
+                      "description": "Specify the number of NTCs to run for this aliquot"
+                    },
+                    "rnase_inh": {
+                      "type": "bool",
+                      "default": false,
+                      "label": "Use RNAse Inhibitor"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "plate_reader_info": {
+          "type": "group",
+          "label": "Plate Reader Configuration",
+          "inputs": {
+            "emission": {
+              "type": "length",
+              "default": "625:nanometer",
+              "label": "Emission Wavelength"
+            },
+            "excitation": {
+              "type": "length",
+              "default": "625:nanometer",
+              "label": "Excitiation Wavelength"
+            },
+            "gain": {
+              "type": "decimal",
+              "default": 0.16,
+              "label": "Specify Gain",
+              "description": "If 0, optimal gain will be used"
+            }
+          }
+        },
+        "experimental_info": {
+          "type": "group",
+          "description": "",
+          "label": "Experimental Information",
+          "inputs": {
+            "experiment_id": {
+              "type": "string",
+              "label": "Experiment ID",
+              "default": " ",
+              "description": "Experimental Request ID to be associated with data generated."
+            },
+            "experiment_reference": {
+              "type": "string",
+              "label": "Experiment Reference",
+              "default": " "
+            },
+            "experiment_reference_url": {
+              "type": "string",
+              "label": "Experiment Reference URL",
+              "default": " "
+            }
+          }
+        }
+      },
+      "preview": {
+        "refs": {
+          "test_dna1":{
+            "type": "micro-1.5",
+            "name": "Plasmid DNA",
+            "store": "cold_20",
+            "aliquots": {
+              "0": {
+                "name": "DNA",
+                "volume": "100:microliter",
+                "properties": {
+                  "replicate": "1",
+                  "concentration": "5000:ng/uL",
+                  "sbh_uri": "URI"
+                }
+              }
+            }
+          },
+          "test_dna2":{
+            "type": "micro-1.5",
+            "name": "Plasmid DNA 2",
+            "store": "cold_20",
+            "aliquots": {
+              "0": {
+                "name": "DNA",
+                "volume": "100:microliter",
+                "properties": {
+                  "replicate": "1",
+                  "concentration": "5000:ng/uL",
+                  "sbh_uri": "URI"
+                }
+              }
+            }
+          },
+          "test_inducer1": {
+            "type": "micro-1.5",
+            "name": "Inducer",
+            "store": "cold_20",
+            "aliquots": {
+              "0": {
+                "name": "Inducer",
+                "volume": "1000:microliter",
+                "properties": {
+                  "concentration": "1:millimolar",
+                  "sbh_uri": "URI"
+                }
+              }
+            }
+          },
+          "test_inducer2": {
+            "type": "micro-1.5",
+            "name": "Inducer 2",
+            "store": "cold_20",
+            "aliquots": {
+              "0": {
+                "name": "Inducer",
+                "volume": "1000:microliter",
+                "properties": {
+                  "concentration": "1:millimolar",
+                  "sbh_uri": "URI"
+                }
+              }
+            }
+          }
+        },
+        "parameters": {
+          "run_info": {
+            "rxn_vol": "5:microliter",
+            "inc_temp": "warm_30",
+            "incubate_in_reader": false
+          },
+          "rxn_info": [
+            {
+              "rxn_group": {
+                "sample_info": {
+                  "src": "test_dna1/0",
+                  "rxn_conc": 20
+                },
+                "inducer_info": {
+                  "inducer": "test_inducer1/0",
+                  "inducer_concentrations": [
+                    {
+                      "value": 80,
+                      "units": "uM"
+                    },
+                    {
+                      "value": 90,
+                      "units": "uM"
+                    },
+                    {
+                      "value": 100,
+                      "units": "uM"
+                    }
+                  ]
+                },
+                "rxn_info": {
+                  "n_replicates": 3,
+                  "neg_control": 1,
+                  "rnase_inh": false
+                }
+              }
+            },
+            {
+              "rxn_group": {
+                "sample_info": {
+                  "src": "test_dna1/0",
+                  "rxn_conc": 20
+                },
+                "inducer_info": {
+                  "inducer": "test_inducer2/0",
+                  "inducer_concentrations": [
+                    {
+                      "value": 80,
+                      "units": "uM"
+                    },
+                    {
+                      "value": 90,
+                      "units": "uM"
+                    },
+                    {
+                      "value": 100,
+                      "units": "uM"
+                    }
+                  ]
+                },
+                "rxn_info": {
+                  "n_replicates": 3,
+                  "neg_control": 1,
+                  "rnase_inh": false
+                }
+              }
+            },
+            {
+              "rxn_group": {
+                "sample_info": {
+                  "src": "test_dna2/0",
+                  "rxn_conc": 20
+                },
+                "inducer_info": {
+                  "inducer": "test_inducer1/0",
+                  "inducer_concentrations": [
+                    {
+                      "value": 0,
+                      "units": "uM"
+                    },
+                    {
+                      "value": 10,
+                      "units": "uM"
+                    },
+                    {
+                      "value": 100,
+                      "units": "uM"
+                    }
+                  ]
+                },
+                "rxn_info": {
+                  "n_replicates": 3,
+                  "neg_control": 1,
+                  "rnase_inh": false
+                }
+              }
+            },
+            {
+              "rxn_group": {
+                "sample_info": {
+                  "src": "test_dna2/0",
+                  "rxn_conc": 20
+                },
+                "inducer_info": {
+                  "inducer": "test_inducer2/0",
+                  "inducer_concentrations": [
+                    {
+                      "value": 0,
+                      "units": "uM"
+                    },
+                    {
+                      "value": 10,
+                      "units": "uM"
+                    },
+                    {
+                      "value": 100,
+                      "units": "uM"
+                    }
+                  ]
+                },
+                "rxn_info": {
+                  "n_replicates": 3,
+                  "neg_control": 1,
+                  "rnase_inh": false
+                }
+              }
+            }
+          ],
+          "plate_reader_info": {
+            "emission": "520:nanometer",
+            "excitation": "480:nanometer",
+            "gain": 0.16
+          },
+          "experimental_info": {
+            "experiment_id": " id",
+            "experiment_reference": "ref",
+            "experiment_reference_url": "url"
+          }
+        }
+      }
+    }
+  ]
+}

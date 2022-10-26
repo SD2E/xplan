@@ -1,6 +1,7 @@
 import json
 import os
 import numpy as np
+import pandas as pd
 
 from xplan_design.experiment_design import ExperimentDesign
 from xplan_design.plate_layout import get_model_pd, solve1
@@ -9,25 +10,30 @@ import logging
 
 from xplan_utils.container_data_conversion import container_to_dict, generate_container
 from xplan_utils.helpers import put_experiment_request, \
-    put_aliquot_properties, put_experiment_design, do_convert_ftypes
+    put_aliquot_properties, put_experiment_design, do_convert_ftypes, get_experiment_request
 from xplan_utils.lab.strateos.utils import get_transcriptic_api, TranscripticApiError, get_tx_containers, \
-    get_usable_tx_containers, generate_test_container, get_container_id
+    get_usable_tx_containers, generate_test_container, get_container_id, add_run_container_to_factor
 
 from xplan_utils import persist
 
 l = logging.getLogger(__file__)
 l.setLevel(logging.INFO)
 
-def generate_design(request, transcriptic_cfg, out_dir='.'):
+def generate_design(experiment_id, challenge_problem, transcriptic_cfg, input_dir='.', out_dir='.'):
     """
     Handle experiment request based upon condition space factors
     """
     l.info("Processing GenExperimentRequestMessageFactors")
+
+    challenge_in_dir = os.path.join(input_dir, challenge_problem)
+    challenge_out_dir = os.path.join(out_dir, challenge_problem)
+
+
+    request = get_experiment_request(experiment_id, challenge_in_dir)
+
     experiment_id = request.get('experiment_id')
-    base_dir = request.get('base_dir', ".")
     experiment_reference = request.get('experiment_reference')
     experiment_reference_url = request.get('experiment_reference_url')
-    challenge_problem = request.get('challenge_problem')
     condition_space = ConditionSpace(factors=request.get('condition_space')['factors'])
     solver_type = request.get('solver_type', "smt")
     batches = request.get('batches')
@@ -46,19 +52,15 @@ def generate_design(request, transcriptic_cfg, out_dir='.'):
     test_mode = defaults['test_mode'] if 'test_mode' in defaults else None
 
     if "exp_info.media_well_strings" in parameters:
-        blank_wells = eval(parameters["exp_info.media_well_strings"])
+        blank_wells = parameters["exp_info.media_well_strings"]
         num_blank_wells = len(blank_wells)
     else:
         num_blank_wells = 2  # Strateos requires two blank wells
         blank_wells = []
 
-    if base_dir == ".":
-        challenge_out_dir = os.path.join(out_dir, challenge_problem)
-    else:
-        challenge_out_dir = os.path.join(out_dir, base_dir, challenge_problem)
     l.info("challenge_problem = " + challenge_problem)
 
-    state = persist.get_state(challenge_out_dir)
+    state = persist.get_state(challenge_in_dir)
 
     ## Override factor types
     for fname, factor in condition_space.factors.items():
@@ -96,19 +98,25 @@ def generate_design(request, transcriptic_cfg, out_dir='.'):
             l.error("Failed connecting to Transcriptic")
             raise TranscripticApiError(exc)
 
-        if "generate" == constants['container_search_string']:
+        if "container_search_string" in constants and "generate" == constants['container_search_string']:
             containers = None
             usable_containers = None
-        else:
+        elif "container_search_string" in constants:
             containers = get_tx_containers(transcriptic_api, constants['container_search_string'])
-            if 'assigned_containers' in state:
-                containers = [x for x in containers if get_container_id(x) not in state['assigned_containers']]
+            #if 'assigned_containers' in state:
+                #containers = [x for x in containers if get_container_id(x) not in state['assigned_containers']]
 
             # robj.logger.info("Retrieved containers: " + str(containers))
             usable_containers = get_usable_tx_containers({
                 "defaults": {"source_plates": None},
                 "containers": containers})
             l.info("Usable containers: %s", [get_container_id(x) for x in usable_containers])
+        else:
+            usable_containers = None
+            l.info("Not assigning to containers...")
+
+        if 'lab_id' in condition_space.factors:
+            condition_space.factors['lab_id'] = add_run_container_to_factor(condition_space.factors['lab_id'], containers)
 
         if solver_type == "smt":
             if 'constraints' in defaults:
@@ -148,6 +156,8 @@ def generate_design(request, transcriptic_cfg, out_dir='.'):
     #    raise Exception("TODO: Implement submission coordination")
     #    #submit_experiment(robj, experiment_id, challenge_out_dir, challenge_problem, protocol_id, test_mode)
 
+    put_experiment_design(experiment_design, challenge_out_dir)
+
     return experiment_design
 
 
@@ -180,6 +190,7 @@ def generate_experiment_smt(conditions,
                                                                       usable_containers,
                                                                       batches,
                                                                       experiment_id,
+                                                                      protocol,
                                                                       tx_config=transcriptic_config,
                                                                       strain_name=strain_property,
                                                                       hand_coded_constraints=hand_coded_constraints,
@@ -218,8 +229,9 @@ def strip_aliquot_properties(container):
 
 
 def assign_batch_ids(design):
-    containers = design.container.unique()
-    design['batch'] = design.apply(lambda x: str(containers.tolist().index(x['container'])), axis=1)
+    if 'batch' not in design.columns:
+        containers = design.container.unique()
+        design['batch'] = design.apply(lambda x: str(containers.tolist().index(x['container'])), axis=1)
     return design
 
 
@@ -257,12 +269,16 @@ def get_plate_layout_dfs(design, volume=50):
             for container_id, container in containers}
 
 
+
+
+
 def generate_experiment_request_smt(conditions,
                                     parameters,
                                     condition_space,
                                     usable_containers,
                                     batches,
                                     experiment_id,
+                                    protocol,
                                     tx_config=None,
                                     strip_aliquot_properties=False,
                                     strain_name="Name",
@@ -270,10 +286,13 @@ def generate_experiment_request_smt(conditions,
                                     test_mode=True,
                                     submit=False):
     l.debug("Strain Name: %s", strain_name)
-    c2ds = get_containers(usable_containers,
-                          batches,
-                          strip_aliquot_properties=strip_aliquot_properties,
-                          strain_name=strain_name)
+    if usable_containers:
+        c2ds = get_containers(usable_containers,
+                              batches,
+                              strip_aliquot_properties=strip_aliquot_properties,
+                              strain_name=strain_name)
+    else:
+        c2ds = None
 
     factors = do_convert_ftypes(condition_space.factors)
     l.debug("factors: %s", {x: y['ftype'] for x, y in factors.items()})
@@ -283,18 +302,23 @@ def generate_experiment_request_smt(conditions,
         if factor['dtype'] == "float" and len(factor['domain']) == 1:
             factor['domain'].append(factor['domain'][0])
 
+
     inputs = {
         "samples": None,
         "factors": factors,
         "requirements": conditions,
-        "containers": c2ds
+        "containers": c2ds,
+        "protocol" : protocol
     }
 
-    model, variables = solve1(inputs, hand_coded_constraints=hand_coded_constraints)
+    solutions = solve1(inputs, hand_coded_constraints=hand_coded_constraints)
 
-    if model:
+    if len(solutions) > 0:
         l.info("Extracting dataframe for design ...")
-        df = get_model_pd(model, variables, inputs['factors'])
+        df = pd.DataFrame()
+        for model, variables in solutions:
+            bdf = get_model_pd(model, variables, inputs['factors'], inputs['float_map'])
+            df = df.append(bdf, ignore_index=True)
 
         ## if test mode, and need to submit, then clone containers
         if test_mode and submit:

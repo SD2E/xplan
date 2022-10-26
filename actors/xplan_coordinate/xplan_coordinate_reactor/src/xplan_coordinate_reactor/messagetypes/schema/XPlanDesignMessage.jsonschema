@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "XPlanDesignMessage",
+    "description": "XPlan design message",
+    "$comment": "",
+    "definitions": {     
+    },
+    "properties": {
+        "experiment_id" : { "type" : "string" },
+        "challenge_problem" : { "type" : "string" },
+        "lab_configuration" : { "type" : ["string", "object"] },
+        "out_dir" : { "type" : "string" }
+    },
+    "required": [
+        "experiment_id",
+        "challenge_problem",
+        "lab_configuration",
+        "out_dir"
+    ]
+}
+

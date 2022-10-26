@@ -1,17 +1,15 @@
 {
   "checkpointable": false,
   "name": "{{ app.name }}",
-  "executionSystem": "hpc-tacc-wrangler-{{ agave.username }}",
-  "executionType": "HPC",
+  "executionSystem": "hpc-tacc-jetstream-public",
+  "executionType": "CLI",
   "deploymentPath": "{{ username }}/apps/{{ app.name }}-{{ app.version }}",
   "deploymentSystem": "{{ app.deployment_system }}",
   "helpURI": "",
   "label": "{{ app.label }}",
   "shortDescription": "{{ app.description }}",
   "longDescription": "",
-  "modules": [
-    "load tacc-singularity"
-  ],
+  "modules": [],
   "ontology": [],
   "parallelism": "SERIAL",
   "tags": [],
@@ -19,28 +17,96 @@
   "testPath": "tester.sh",
   "version": "{{ app.version }}",
   "defaultMaxRunTime": "00:30:00",
-  "inputs": [    {
-    "id": "invocation",
-    "details": {
-      "label": "Invocation File"
+  "inputs": [
+    {
+      "id": "experiment_dir",
+      "details": {
+        "label": "Experiment Directory",
+        "description": "The directory the design app will use to source the initial experiment files."
+      },
+      "semantics": {}
     },
-    "semantics": {}
-  },
-  {
-    "id": "lab_configuration",
-    "details": {
-      "label": "Lab Configuration"
+    {
+      "id": "state_json",
+      "details": {
+        "label": "State Json"
+      },
+      "semantics": {}
     },
-    "semantics": {}
-  },
-  {
-    "id": "out_dir",
-    "details": {
-      "label": "Output directory"
-    },
-    "semantics": {}
-  }],
+    {
+      "id": "lab_configuration_uri",
+      "details": {
+        "label": "Lab Configuration URI"
+      },
+      "semantics": {},
+      "value": {
+        "required": false,
+        "type": "string"
+      }
+    }
+  ],
   "parameters": [
+    {
+      "id": "out_path",
+      "details": {
+        "label": "Output Path",
+        "description": "The directory the design app will use to output the resulting experiment files."
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "required": true,
+        "type": "string"
+      }
+    },
+    {
+      "id": "experiment_id",
+      "details": {
+        "label": "Experiment ID"
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "required": true,
+        "type": "string"
+      }
+    },
+    {
+      "id": "lab_configuration",
+      "details": {
+        "label": "Lab Configuration"
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "required": false,
+        "type": "string"
+      }
+    },
+    {
+      "id": "challenge_problem",
+      "details": {
+        "label": "Challenge Problem"
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "required": true,
+        "type": "string"
+      }
+    },
+    {
+      "id": "xplan_test",
+      "details": {
+        "label": "Test flag"
+      },
+      "semantics": {},
+      "value": {
+        "visible": true,
+        "required": false,
+        "type": "bool"
+      }
+    },
     {
       "id": "CONTAINER_IMAGE",
       "value": {

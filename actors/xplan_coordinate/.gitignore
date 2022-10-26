@@ -1,0 +1,5 @@
+.ACTOR_ID
+.ACTOR_ID.bak
+/tmp
+/xplan_coordinate_reactor/src/xplan_coordinate_reactor.egg-info
+/xplan_coordinate_reactor/build

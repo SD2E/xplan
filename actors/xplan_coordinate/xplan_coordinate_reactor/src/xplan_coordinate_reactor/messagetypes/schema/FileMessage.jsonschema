@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "FileMessage",
+    "description": "Send a message as a file",
+    "$comment": "",
+    "definitions": {     
+    },
+    "properties": {
+        "file" : { "type" : "string" },
+        "lab_configuration" : { "type" : ["string", "object"] }
+    },
+    "required": ["file"]
+}

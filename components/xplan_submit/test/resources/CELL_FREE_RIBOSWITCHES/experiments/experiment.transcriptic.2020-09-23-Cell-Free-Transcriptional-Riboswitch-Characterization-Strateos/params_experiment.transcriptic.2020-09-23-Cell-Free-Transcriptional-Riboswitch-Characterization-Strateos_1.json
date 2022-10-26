@@ -1,0 +1,89 @@
+{
+    "parameters": {
+        "experimental_info": {
+            "experiment_id": "experiment.transcriptic.2020-09-23-Cell-Free-Transcriptional-Riboswitch-Characterization-Strateos",
+            "experiment_reference": "Cell-Free-Transcriptional-Riboswitch-Characterization-Strateos",
+            "experiment_reference_url": "https://docs.google.com/document/d/166F8ob5rSyR95r_hkorKy8tW0opf85vIeY35f9Frlww"
+        },
+        "plate_reader_info": {
+            "emission": "520:nanometer",
+            "excitation": "480:nanometer",
+            "gain": 0.16
+        },
+        "run_info": {
+            "inc_temp": "warm_30",
+            "incubate_in_reader": false,
+            "rxn_vol": "5:microliter"
+        },
+        "rxn_info": [
+            {
+                "rxn_group": {
+                    "inducer_info": {
+                        "inducer": {
+                            "containerId": "ct1ew8ztkqh44mt",
+                            "wellIndex": 0
+                        },
+                        "inducer_concentrations": [
+                            {
+                                "units": "uM",
+                                "value": 10
+                            },
+                            {
+                                "units": "uM",
+                                "value": 100
+                            }
+                        ]
+                    },
+                    "rxn_info": {
+                        "n_replicates": 3,
+                        "neg_control": 1,
+                        "rnase_inh": true
+                    },
+                    "sample_info": {
+                        "rxn_conc": 20,
+                        "src": {
+                            "containerId": "ct1ew8ztkquavt4",
+                            "wellIndex": "a1"
+                        }
+                    }
+                }
+            },
+            {
+                "rxn_group": {
+                    "inducer_info": {
+                        "inducer": {
+                            "containerId": "ct1ew8ztkr6hnyd",
+                            "wellIndex": 0
+                        },
+                        "inducer_concentrations": [
+                            {
+                                "units": "uM",
+                                "value": 90
+                            },
+                            {
+                                "units": "uM",
+                                "value": 100
+                            },
+                            {
+                                "units": "uM",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    "rxn_info": {
+                        "n_replicates": 3,
+                        "neg_control": 1,
+                        "rnase_inh": true
+                    },
+                    "sample_info": {
+                        "rxn_conc": 20,
+                        "src": {
+                            "containerId": "ct1ew8ztkquavt4",
+                            "wellIndex": "a1"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
