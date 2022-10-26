@@ -5,6 +5,7 @@ import pysmt.shortcuts
 from pysmt.typing import INT, REAL
 from pysmt.rewritings import conjunctive_partition
 from functools import reduce
+from io import StringIO
 
 import xplan_design.plate_layout_utils
 
@@ -1283,7 +1284,7 @@ def get_container_assignment(input, sample_types, strain_counts, aliquot_factor_
 
     # container_assignment = batch_types.reset_index(drop=True).to_dict('index')
 
-    if protocol == "cell_free_riboswitches":
+    if protocol == "CellFreeRiboswitches":
         # Container assigment is not a partition like other protocols.
         # Map each container that has a DNA that is in the batch to the batch
 
@@ -1332,7 +1333,7 @@ def get_container_assignment(input, sample_types, strain_counts, aliquot_factor_
             if container_id in container_assignment:
                 continue
             container_assignment[container_id] = json.loads(batch_types.loc[0, ].to_json())
-        container_assignment = pd.read_json(json.dumps(container_assignment), orient="index").reset_index().rename(
+        container_assignment = pd.read_json(StringIO(json.dumps(container_assignment)), orient="index").reset_index().rename(
             columns={"index": "container"})
 
     #    container_assignment = { str(list(containers.keys())[k]):v for k,v in container_assignment.items() }
@@ -1372,7 +1373,7 @@ def fill_empty_aliquots(factors, requirements, sample_types):
 
 
 def _get_container_assignment_df(container_assignment):
-    ca_df = pd.read_json(json.dumps(container_assignment), orient='index').reset_index().rename(
+    ca_df = pd.read_json(StringIO(json.dumps(container_assignment)), orient='index').reset_index().rename(
         columns={"level_0": "container"}).drop(columns=["index"])
     ca_df["container"] = ca_df["container"].astype(str)
     return ca_df
@@ -1477,7 +1478,7 @@ def _get_compatible_replicate_groups(aliquot, samples, non_replicate_factors, co
 def get_containers_df(containers, factors, aliquot_factor_map):
     container_aliquots = pd.DataFrame()
     for container_id, container in containers.items():
-        container_df = pd.read_json(json.dumps(container['aliquots']), orient='index')
+        container_df = pd.read_json(StringIO(json.dumps(container['aliquots'])), orient='index')
         if len(container_df) == 0:
             container_df = pd.DataFrame(index=container['aliquots'])
         container_df.loc[:, 'container'] = container_id

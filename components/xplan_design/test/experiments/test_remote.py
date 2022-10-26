@@ -10,6 +10,7 @@ class challenge_problems:
     NOVEL_CHASSIS = "NOVEL_CHASSIS"
     RIBOSWITCHES = "RIBOSWITCHES"
     YEAST_STATES = "YEAST_STATES"
+    ARL_PROMOTER_TEST = "ARL_PROMOTER_TEST"
 
 CASES = [
     {
@@ -23,8 +24,11 @@ CASES = [
     {
         "experiment_id" : "experiment.transcriptic.2021-04-23-YeastSTATES-Dual-Response-CRISPR-Redesigns-Short-Duration-Time-Series-30C-Titration",
         "challenge_problem" : challenge_problems.YEAST_STATES
+    },
+    {
+        "experiment_id" : "experiment.transcriptic.2021-04-09-P-putida-starvation-TimeSeriesTitration-Strateos",
+        "challenge_problem" : challenge_problems.ARL_PROMOTER_TEST
     }
-
 ]
 
 
@@ -69,7 +73,7 @@ def get_request(experiment_id, challenge_problem=challenge_problems.YEAST_STATES
         f.write(response.content)
 
 def test_generate_remote_design():
-    case = 2
+    case = -1
     experiment_id = CASES[case]['experiment_id']
     challenge_problem = CASES[case]['challenge_problem']
     get_request(experiment_id, challenge_problem=challenge_problem)

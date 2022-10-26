@@ -112,7 +112,7 @@ def get_invocation_parameters(batch,
     ## Get the protocol type to decide how to map design to lab parameters
     protocol = batch_samples.protocol.unique()[0]
     l.debug("Batch uses protocol: %s", str(protocol))
-    if protocol == 'timeseries' or protocol == 'obstacle_course' or protocol == 'growth_curve' or protocol == 'cell_free_riboswitches':
+    if protocol == 'TimeSeriesHTP' or protocol == 'obstacle_course' or protocol == 'GrowthCurve' or protocol == 'CellFreeRiboswitches':
         return get_time_series_invocation_parameters(batch_samples, batch, parameters, condition_space, design,
                                                      transcriptic_api, experiment_id, experiment_reference,
                                                      experiment_reference_url, strain_property=strain_property,
@@ -541,7 +541,7 @@ def get_time_series_invocation_parameters(batch_samples,
                                           blank_wells=[],
                                           num_blank_wells=2,
                                           convert_ftypes=False):
-    l.info("Creating Timeseries invocation parameters...")
+    l.info("Creating TimeSeriesHTP invocation parameters...")
     protocol = batch_samples.protocol.unique()[0]
     invocation_params = AutoVivification()
     exp_params = parameters.copy()
@@ -571,11 +571,11 @@ def get_time_series_invocation_parameters(batch_samples,
                                                                 blank_wells=blank_wells,
                                                                 num_blank_wells=num_blank_wells)
 
-    if protocol == 'growth_curve':
+    if protocol == 'GrowthCurve':
         timepoint_str = extract_timepoints(batch_samples, invocation_params)
         make_entry(invocation_params, 'read_info.growth_time.sample_points', timepoint_str)
         make_entry(invocation_params, 'src_info.src_samples', samples)
-    elif protocol == 'timeseries':
+    elif protocol == 'TimeSeriesHTP':
         ## Add reagent column concentrations
         reagents = [factor_id for factor_id, factor in condition_space.factors.items() if factor['ftype'] == 'column' and factor['name'] != "column_id"]
         invocation_params = add_reagent_concentrations(invocation_params, batch_samples, reagents, exp_params)
@@ -603,7 +603,7 @@ def get_time_series_invocation_parameters(batch_samples,
         dilution_volume = int(get_obstacle_course_dilution_volume(batch_samples, int(culture_volume)))
         make_entry(invocation_params, 'exp_info.growth_volumes.media_volume',
                    "{}:{}".format(dilution_volume, culture_volume_units))
-    elif protocol == "cell_free_riboswitches":
+    elif protocol == "CellFreeRiboswitches":
         ## Get the rxn_info list
         rxn_info_list = get_rxn_info_list(batch_samples)
         make_entry(invocation_params, "rxn_info", rxn_info_list)
@@ -760,9 +760,9 @@ def factor_to_param(factor_name, factor, batch_samples, protocol, logger=l):
         "M9 Glucose CAA (a.k.a. M9 Glucose Stock)": "M9 Minimal Media",
         "modified_m9_media_with_50mg_per_l_trp" : "M9 Minimal Media w 50mg per L TRP"
     }
-    if value in mapped_values and protocol != "timeseries":
+    if value in mapped_values and protocol != "TimeSeriesHTP":
         value = mapped_values[value]
-    elif value in time_series_mapped_values and protocol == "timeseries":
+    elif value in time_series_mapped_values and protocol == "TimeSeriesHTP":
         value = time_series_mapped_values[value]
 
     if 'lab_suffix' in factor:
