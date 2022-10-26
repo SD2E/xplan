@@ -51,11 +51,13 @@ def  submit_experiment(experiment_id, challenge_problem,
     else:
         planned_batches = [b['id'] for b in batches]
 
+
+
     for batch in planned_batches:
         if batches is not None:
             if str(batch) not in batches:
                 continue
-
+        declared_protocol_name = next(iter(design_df.loc[design_df.batch == batch]['protocol'].unique()))
         (submit_id, params_file_name) = submit_plate(experiment_id,
                                                      str(batch),
                                                      challenge_problem,
@@ -66,7 +68,8 @@ def  submit_experiment(experiment_id, challenge_problem,
                                                      protocol_id,
                                                      tx_test_mode,
                                                      tx_cfg,
-                                                     logger=l)
+                                                     logger=l,
+                                                     declared_protocol_name=declared_protocol_name)
 
         put_experiment_submission(experiment_id, str(batch), submit_id, params_file_name, challenge_out_dir)
 
@@ -98,7 +101,8 @@ def  submit_experiment(experiment_id, challenge_problem,
 
 
 def submit_plate(experiment_id, plate_id, challenge_problem, in_dir, out_dir,
-                 tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg, logger=l):
+                 tx_mock, tx_proj_id, tx_proto_id, tx_test_mode, tx_cfg, logger=l,
+                 declared_protocol_name=None):
     l = logger
     l.info("Handling plate: " + plate_id)
 
@@ -118,7 +122,8 @@ def submit_plate(experiment_id, plate_id, challenge_problem, in_dir, out_dir,
                                                  tx_cfg,
                                                  plate_id,
                                                  test_mode=tx_test_mode,
-                                                 logger=l)
+                                                 logger=l,
+                                                 declared_protocol_name=declared_protocol_name)
             submit_id = submit_resp['id']
         else:
             l.info("Submitting Mock TX Experiment")
@@ -131,7 +136,8 @@ def submit_plate(experiment_id, plate_id, challenge_problem, in_dir, out_dir,
 
 def submit_to_transcriptic(project_id, protocol_id,
                            params, challenge_problem, out_dir, tx_cfg, plate_id,
-                           test_mode=True, logger=l):
+                           test_mode=True, logger=l,
+                           declared_protocol_name=None):
     """Submit to transcriptic and record response"""
     l = logger
     launch_request_id = None
@@ -175,7 +181,11 @@ def submit_to_transcriptic(project_id, protocol_id,
     request_response = {}
     try:
         protocols = conn.get_protocols()
-        protocol_name = next(x['name'] for x in protocols if x['id'] == protocol_id)
+        protocol_names = [x['name'] for x in protocols if x['id'] == protocol_id]
+        if len(protocol_names) > 0:
+            protocol_name = next(iter(protocol_names))
+        else:
+            protocol_name = declared_protocol_name
         req_title = "{}_{}_{}".format(
             arrow.utcnow().format('YYYY-MM-DDThh:mm:ssTZD'),
             challenge_problem,

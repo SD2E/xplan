@@ -113,7 +113,7 @@ def test_be_activator():
     gen_design(experiment_id)
 
 def test_arl_promoter():
-    experiment_id = "experiment.transcriptic.2021-02-08-ARL-P-putida-Growth-Curves-30C"
+    experiment_id = "experiment.transcriptic.2021-04-08-Pseudomonad-Growth-Curves-30C"
     gen_design(experiment_id, challenge_problem="ARL_PROMOTER_TEST")
 
 def test_nc_yellow_2():
@@ -126,4 +126,12 @@ def test_rs_feb():
 
 def test_nc_eslami_3():
     experiment_id = "experiment.transcriptic.2021-03-03-NovelChassis-Endogenous-Promoter-Blue-22-42-Run-03"
+    gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")
+
+def test_ys_gc_di():
+    experiment_id = "experiment.transcriptic.2021-04-12-YeastSTATES-Dual-Response-CRISPR-Redesigns-Growth-Curves-30C"
+    gen_design(experiment_id)
+
+def test_nc_eslami_4():
+    experiment_id = "experiment.transcriptic.2021-04-15-NovelChassis-Endogenous-Promoter-Yellow-21-30-Run-04"
     gen_design(experiment_id, challenge_problem="NOVEL_CHASSIS")

@@ -1,0 +1,321 @@
+{
+    "parameters": {
+        "experimental_info": {
+            "experiment_id": "experiment.transcriptic.2020-12-03-YeastSTATES-Dual-Response-CRISPR-Growth-Curves-30C",
+            "experiment_reference": "YeastSTATES-Dual-Response-CRISPR-Growth-Curves-30C",
+            "experiment_reference_url": "https://docs.google.com/document/d/1VC6Mj_UirpZ_0R-zbrDvJjzOjmlRpirUtFdAt89qqb4"
+        },
+        "incubation_info": {
+            "inc_temp": "warm_30"
+        },
+        "inoc_info": {
+            "inc_time_1": "16:hour",
+            "inoc_media_vol": "500:microliter",
+            "inoc_vol": "5:microliter",
+            "inoculation_media": "sc_media"
+        },
+        "plate_reader_info": {
+            "fluor_em": "530:nanometer",
+            "fluor_ex": "488:nanometer",
+            "list_of_gains": {
+                "gain_1": 0.1,
+                "gain_2": 0.16,
+                "gain_3": 0.2
+            }
+        },
+        "read_info": {
+            "growth_time": {
+                "sample_points": "1,3,6,9,12,15,18,21,24"
+            },
+            "sampling_info": {
+                "read_cult_vol": "10:microliter",
+                "read_solv_vol": "90:microliter"
+            }
+        },
+        "recovery_info": {
+            "recovery_media": "sc_media_200nm_be",
+            "recovery_media_vol": "700:microliter",
+            "recovery_sample_vol": "2:microliter"
+        },
+        "src_info": {
+            "src_samples": [
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 0
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 1
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 12
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 14
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 15
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 16
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 17
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 18
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 19
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 20
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 21
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 22
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 23
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 24
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 26
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 27
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 28
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 29
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 30
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 31
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 32
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 33
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 34
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 35
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 36
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 38
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 39
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 40
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 41
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 42
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 43
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 44
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 45
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 46
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 47
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 48
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 50
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 51
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 52
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 53
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 54
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 55
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 56
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 57
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 58
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 59
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 60
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 62
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 63
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 64
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 65
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 66
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 67
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 68
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 69
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 70
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 71
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 72
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 74
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 75
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 76
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 77
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 78
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 79
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 80
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 81
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 82
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 83
+                },
+                {
+                    "containerId": "ct1fnfq7bc548q8",
+                    "wellIndex": 84
+                }
+            ]
+        }
+    }
+}

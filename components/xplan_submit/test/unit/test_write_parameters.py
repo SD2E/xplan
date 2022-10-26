@@ -45,3 +45,8 @@ def test_write_NC_endogenous_promoter_params():
     experiment_id = "experiment.transcriptic.2020-12-04-NovelChassis-Endogenous-Promoter-Yellow-41-48"
     challenge_problem = "NOVEL_CHASSIS"
     write_params(experiment_id, challenge_problem=challenge_problem)
+
+def test_write_RS_Feb():
+    experiment_id = "experiment.transcriptic.2021-02-11-Cell-Free-Transcriptional-Riboswitch-Characterization-Sequences-1-32-C-03-Feb-2021"
+    challenge_problem = "RIBOSWITCHES"
+    write_params(experiment_id, challenge_problem=challenge_problem)

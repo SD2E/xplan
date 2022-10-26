@@ -32,7 +32,14 @@ cat ${DESIGN_DIR}/project.ini
 echo "======================================="
 echo "=========== end project.ini ==========="
 echo "======================================="
-set -x # activate debugging 
+echo "======================================="
+echo "========== start app.json =========="
+echo "======================================="
+cat ${DESIGN_DIR}/app.json
+echo "======================================="
+echo "=========== end app.json ==========="
+echo "======================================="
+set -x # activate debugging
 
 tapis app deploy --no-build --no-push -W ${DESIGN_DIR}
 rm assets

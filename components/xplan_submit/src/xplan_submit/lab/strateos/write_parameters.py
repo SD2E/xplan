@@ -112,7 +112,7 @@ def get_invocation_parameters(batch,
     ## Get the protocol type to decide how to map design to lab parameters
     protocol = batch_samples.protocol.unique()[0]
     l.debug("Batch uses protocol: %s", str(protocol))
-    if protocol == 'timeseries' or protocol == 'obstacle_course' or protocol == 'growth_curve' or protocol == 'cell_free_riboswitches':
+    if protocol == 'TimeSeriesHTP' or protocol == 'obstacle_course' or protocol == 'GrowthCurve' or protocol == 'CellFreeRiboswitches':
         return get_time_series_invocation_parameters(batch_samples, batch, parameters, condition_space, design,
                                                      transcriptic_api, experiment_id, experiment_reference,
                                                      experiment_reference_url, strain_property=strain_property,
@@ -541,7 +541,7 @@ def get_time_series_invocation_parameters(batch_samples,
                                           blank_wells=[],
                                           num_blank_wells=2,
                                           convert_ftypes=False):
-    l.info("Creating Timeseries invocation parameters...")
+    l.info("Creating TimeSeriesHTP invocation parameters...")
     protocol = batch_samples.protocol.unique()[0]
     invocation_params = AutoVivification()
     exp_params = parameters.copy()
@@ -571,11 +571,11 @@ def get_time_series_invocation_parameters(batch_samples,
                                                                 blank_wells=blank_wells,
                                                                 num_blank_wells=num_blank_wells)
 
-    if protocol == 'growth_curve':
+    if protocol == 'GrowthCurve':
         timepoint_str = extract_timepoints(batch_samples, invocation_params)
         make_entry(invocation_params, 'read_info.growth_time.sample_points', timepoint_str)
         make_entry(invocation_params, 'src_info.src_samples', samples)
-    elif protocol == 'timeseries':
+    elif protocol == 'TimeSeriesHTP':
         ## Add reagent column concentrations
         reagents = [factor_id for factor_id, factor in condition_space.factors.items() if factor['ftype'] == 'column' and factor['name'] != "column_id"]
         invocation_params = add_reagent_concentrations(invocation_params, batch_samples, reagents, exp_params)
@@ -603,7 +603,7 @@ def get_time_series_invocation_parameters(batch_samples,
         dilution_volume = int(get_obstacle_course_dilution_volume(batch_samples, int(culture_volume)))
         make_entry(invocation_params, 'exp_info.growth_volumes.media_volume',
                    "{}:{}".format(dilution_volume, culture_volume_units))
-    elif protocol == "cell_free_riboswitches":
+    elif protocol == "CellFreeRiboswitches":
         ## Get the rxn_info list
         rxn_info_list = get_rxn_info_list(batch_samples)
         make_entry(invocation_params, "rxn_info", rxn_info_list)
@@ -634,19 +634,62 @@ def get_rxn_info_list(batch_samples):
         else:
             inducer_group = batch_samples
         inducer_name = inducer.split("_concentration")[0]
-        inducer_container = inducers_defs[inducer_name]["containerId"]
-        inducer_well = inducers_defs[inducer_name]["wellIndex"]
-        inducer_units = inducers_defs[inducer_name]["units"]
+
         inducer_groupby_group = []
         for elt in ['container', 'aliquot', 'rxn_conc', 'neg_control', 'rnase_inh', 'Use MgGlu2']:
             if elt in inducer_group.columns:
                 inducer_groupby_group.append(elt)
         rxn_inducer_groups = inducer_group.groupby(inducer_groupby_group)
         for g, grp in rxn_inducer_groups:
+            concentrations = list(grp[inducer].unique())
+
+
+            # Determine format for inducers, either one for all concentrations, or per concentration containers
+            inducer_def_for_name = inducers_defs[inducer_name]
+            if type(inducer_def_for_name) == dict and "units" in inducers_defs[inducer_name]:
+                ## This is one container for all inducer levels
+                inducer_container = inducer_def_for_name["containerId"]
+                inducer_well = inducer_def_for_name["wellIndex"]
+                inducer_units = inducer_def_for_name["units"]
+                inducer_info = {
+                    "inducer": {
+                        "containerId": inducer_container,
+                        "wellIndex": inducer_well
+                    },
+                    "inducer_concentrations": [
+                        {
+                            "value": conc,
+                            "units": inducer_units
+                        }
+                        for conc in concentrations
+                    ]
+                }
+            else: ## This is a per inducer level container mapping (all concentrations here need to have same container)
+                inducer_containers = list(set([x["containerId"] for k, x in inducer_def_for_name.items() if int(k) in concentrations]))
+                if len(inducer_containers) != 1:
+                    raise Exception(f"Cannot assign other than exactly one inducer container to this batch, got: {inducer_containers}")
+                inducer_container_def = next(iter([x for k, x in inducer_def_for_name.items() if x['containerId'] == next(iter(inducer_containers))]))
+                inducer_container = inducer_container_def["containerId"]
+                inducer_well = inducer_container_def["wellIndex"]
+                inducer_units = inducer_container_def["units"]
+                inducer_info = {
+                    "inducer": {
+                        "containerId": inducer_container,
+                        "wellIndex": inducer_well
+                    },
+                    "inducer_concentrations": [
+                        {
+                            "value": conc,
+                            "units": inducer_units
+                        }
+                        for conc in concentrations
+                    ]
+                }
+
+
             rxn_conc = next(iter(grp.rxn_conc.unique()))
             container_id = next(iter(grp.container.unique()))
             aliquot = next(iter(grp.aliquot.unique()))
-            concentrations = list(grp[inducer].unique())
             replicates = max(iter(grp.replicate.unique()))
             neg_control = next(iter(grp.neg_control.unique()))
             rnase_inh = eval(next(iter(grp.rnase_inh.unique()))) # convert "True" to True
@@ -657,19 +700,7 @@ def get_rxn_info_list(batch_samples):
                         "src": {"containerId": container_id, "wellIndex": aliquot},
                         "rxn_conc": rxn_conc
                     },
-                    "inducer_info": {
-                        "inducer": {
-                            "containerId" : inducer_container,
-                            "wellIndex" : inducer_well
-                        },
-                        "inducer_concentrations": [
-                            {
-                                "value": conc,
-                                "units": inducer_units
-                            }
-                            for conc in concentrations
-                        ]
-                    },
+                    "inducer_info": inducer_info,
                     "rxn_info": {
                         "n_replicates": replicates,
                         "neg_control": neg_control,
@@ -702,10 +733,11 @@ def extract_timepoints(batch_samples, invocation_params):
 
     if 0.0 in timepoints:
         timepoints.remove(0.0)  ## Timepoint 0 will be read automatically, do not need to specify
-    if len(timepoints)  == 1:
-        timepoint_str = str([timepoints[0]])
-    else:
-        timepoint_str = ','.join(map(str, map(int, timepoints)))
+    #if len(timepoints)  == 1:
+    #    timepoint_str = str([timepoints[0]])
+    #else:
+        #timepoint_str = ','.join(map(str, map(int, timepoints)))
+    timepoint_str = ','.join(map(str, timepoints))
     return timepoint_str
 
 def factor_to_param(factor_name, factor, batch_samples, protocol, logger=l):
@@ -728,9 +760,9 @@ def factor_to_param(factor_name, factor, batch_samples, protocol, logger=l):
         "M9 Glucose CAA (a.k.a. M9 Glucose Stock)": "M9 Minimal Media",
         "modified_m9_media_with_50mg_per_l_trp" : "M9 Minimal Media w 50mg per L TRP"
     }
-    if value in mapped_values and protocol != "timeseries":
+    if value in mapped_values and protocol != "TimeSeriesHTP":
         value = mapped_values[value]
-    elif value in time_series_mapped_values and protocol == "timeseries":
+    elif value in time_series_mapped_values and protocol == "TimeSeriesHTP":
         value = time_series_mapped_values[value]
 
     if 'lab_suffix' in factor:

@@ -2,7 +2,8 @@ FROM sd2e/python3:latest
 
 #RUN pip3 install --upgrade pip
 RUN pip3 install pandas
-RUN pip install transcriptic==9.0.0 --upgrade
+RUN pip3 install fsspec
+RUN pip install transcriptic==9.1.0 --upgrade
 RUN pip3 install jsonpatch
 
 # RUN pip3 install --upgrade setuptools
